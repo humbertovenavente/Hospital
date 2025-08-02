@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: /home/andrespc/Documents/Proyecto2025  #  Cambiar el contexto a la raíz
+      dockerfile: src/Dockerfile  #  Especifica que el Dockerfile está dentro de `src/`
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+
+  backend:
+    build:
+      context: /home/andrespc/Documents/Proyecto2025/backend  #  Backend usa backend/
+      dockerfile: Dockerfile.jvm
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@db:1521/XEPDB1
+      - QUARKUS_DATASOURCE_USERNAME=C##PROYECTO
+      - QUARKUS_DATASOURCE_PASSWORD=Unis
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: container-registry.oracle.com/database/express:latest
+    environment:
+      - ORACLE_PASSWORD=Unis
+    ports:
+      - "1521:1521"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

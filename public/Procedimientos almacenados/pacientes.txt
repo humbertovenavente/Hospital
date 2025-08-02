@@ -1,0 +1,133 @@
+
+
+-- ver tablas
+
+SELECT * FROM USUARIO;
+SELECT * FROM PACIENTE;
+
+-- eliminar el procedure
+DROP PROCEDURE ACTUALIZAR_PACIENTE;
+
+-- procedimiento de actualizar
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_PACIENTE(
+    p_id_paciente NUMBER,
+    p_nombre VARCHAR2,
+    p_apellido VARCHAR2,
+    p_documento VARCHAR2,
+    p_fecha_nacimiento DATE,
+    p_genero VARCHAR2,
+    p_telefono VARCHAR2,
+    p_correo VARCHAR2,
+    p_contrasena VARCHAR2
+) 
+IS
+    v_id_usuario NUMBER;
+BEGIN
+    -- Obtener el ID_USUARIO asociado al paciente
+    SELECT ID_USUARIO INTO v_id_usuario FROM PACIENTE WHERE ID_PACIENTE = p_id_paciente;
+
+    -- Verificar si existe el paciente
+    IF v_id_usuario IS NOT NULL THEN
+        -- Actualizar los datos del paciente
+        UPDATE PACIENTE
+        SET APELLIDO = p_apellido,
+            DOCUMENTO = p_documento,
+            FECHA_NACIMIENTO = p_fecha_nacimiento,
+            GENERO = p_genero,
+            TELEFONO = p_telefono
+        WHERE ID_PACIENTE = p_id_paciente;
+
+        -- Actualizar los datos en la tabla de usuarios
+        UPDATE USUARIO
+        SET NOMBRE_USUARIO = p_nombre,
+            CORREO = p_correo,
+            CONTRASENA = p_contrasena
+        WHERE ID_USUARIO = v_id_usuario;
+
+        COMMIT;
+        DBMS_OUTPUT.PUT_LINE('Paciente y usuario actualizados correctamente.');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Error: Paciente no encontrado.');
+    END IF;
+END;
+
+
+-- ver estado si valido o no de actualizar
+SELECT OBJECT_NAME, STATUS 
+FROM USER_OBJECTS 
+WHERE OBJECT_TYPE = 'PROCEDURE' 
+AND OBJECT_NAME = 'ACTUALIZAR_PACIENTE';
+
+
+
+
+---------------------------------------
+
+
+-- registrar 
+
+-- ver estado del procedure valido o no de registrar
+
+SELECT OBJECT_NAME, STATUS 
+FROM USER_OBJECTS 
+WHERE OBJECT_TYPE = 'PROCEDURE' 
+AND OBJECT_NAME = 'REGISTRAR_PACIENTE';
+
+-- procedimeinto
+
+CREATE OR REPLACE PROCEDURE REGISTRAR_PACIENTE(
+    p_nombre_usuario VARCHAR2,
+    p_apellido VARCHAR2,
+    p_documento VARCHAR2,
+    p_fecha_nacimiento DATE,
+    p_genero VARCHAR2,
+    p_telefono VARCHAR2,
+    p_correo VARCHAR2,
+    p_password VARCHAR2
+) AS
+    v_id_usuario NUMBER;
+BEGIN
+    -- Insertar en USUARIO y obtener el ID generado
+    INSERT INTO USUARIO (NOMBRE_USUARIO, CONTRASENA, ROL_ID, CORREO, ESTADO)
+    VALUES (p_nombre_usuario, p_password, 4, p_correo, 1)
+    RETURNING ID_USUARIO INTO v_id_usuario;
+
+    -- Insertar en PACIENTE usando el ID del usuario creado
+    INSERT INTO PACIENTE (ID_USUARIO, APELLIDO, DOCUMENTO, FECHA_NACIMIENTO, GENERO, TELEFONO)
+    VALUES (v_id_usuario, p_apellido, p_documento, p_fecha_nacimiento, p_genero, p_telefono);
+
+    COMMIT;
+END;
+
+
+-- dar de baja el procedure
+DROP PROCEDURE REGISTRAR_PACIENTE;
+
+-- checking the errores
+
+SELECT * FROM USER_ERRORS WHERE NAME = 'REGISTRAR_PACIENTE';
+
+----------------------------------------------
+
+-- eliminar
+
+
+CREATE OR REPLACE PROCEDURE ELIMINAR_PACIENTE(
+    p_id_paciente NUMBER
+) AS
+    v_id_usuario NUMBER;
+BEGIN
+    -- Obtener el ID del usuario relacionado con el paciente
+    SELECT ID_USUARIO INTO v_id_usuario FROM PACIENTE WHERE ID_PACIENTE = p_id_paciente;
+
+    -- Eliminar el paciente
+    DELETE FROM PACIENTE WHERE ID_PACIENTE = p_id_paciente;
+
+    -- Eliminar el usuario
+    DELETE FROM USUARIO WHERE ID_USUARIO = v_id_usuario;
+
+    COMMIT;
+END;
+
+
+-- solo

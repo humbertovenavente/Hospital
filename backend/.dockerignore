@@ -1,0 +1,11 @@
+*
+!mvnw
+!mvnw.cmd
+!pom.xml
+!src/
+!target/*-runner
+!target/*-runner.jar
+!target/lib/*
+!target/quarkus-app/*
+!.mvn/
+!.mvn/wrapper/
