@@ -16,8 +16,8 @@ import jakarta.ws.rs.ext.Provider;
  * This filter allows cross-origin requests by adding the necessary headers to the response.
  * It also handles preflight (OPTIONS) requests appropriately.
  */
-@Provider
-@ApplicationScoped
+// @Provider
+// @ApplicationScoped
 public class CorsFilter implements ContainerResponseFilter {
 
     /**
