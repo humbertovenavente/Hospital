@@ -218,7 +218,7 @@ const cargarHistorial = async () => {
 };
 
 const enviar = async () => {
-  const aseg = form.value.aseguradora;
+  const aseg = form.value.aseguradora as any;
   if (!aseg || !aseg.url) {
     mensaje.value = "No se encontró la URL de la aseguradora seleccionada.";
     return;
@@ -246,7 +246,7 @@ const enviar = async () => {
       const data = await res.json();
       mensaje.value = "Solicitud enviada a la aseguradora.";
       estadoSolicitud.value = data;
-      form.value = { nombre: "", direccion: "", telefono: "", aseguradora: null };
+      form.value = { nombre: "", direccion: "", telefono: "", aseguradora: null as any };
       await cargarHistorial();
     } else {
       mensaje.value = "Error al enviar solicitud.";

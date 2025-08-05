@@ -1,200 +1,214 @@
-# 🚀 Jenkins CI/CD Pipeline - Hospital System
+# 🚀 Configuración de Jenkins CI/CD para Hospital
 
 ## 📋 Resumen
 
-Jenkins ha sido configurado exitosamente para ejecutar el pipeline CI/CD del sistema hospitalario. El pipeline incluye construcción, pruebas y despliegue automático a tres ambientes: desarrollo, QA y producción.
+Se ha configurado un pipeline completo de CI/CD usando Jenkins, Docker y GitHub para el proyecto Hospital con tres ambientes: **Development**, **QA** y **Production**.
+
+## 🏗️ Arquitectura del Pipeline
+
+```
+GitHub (dev branch) → Jenkins → Docker → Despliegue
+```
+
+### 🌿 Branches y Ambientes
+
+| Branch | Ambiente | Base de Datos | Usuario |
+|--------|----------|---------------|---------|
+| `dev` | Development | Oracle XE | `C##PROYECTO` |
+| `QA` | QA/UAT | Oracle XE | `C##HOSPITAL2` |
+| `prod` | Production | Oracle XE | `C##HOSPITAL3` |
 
 ## 🔧 Configuración de Jenkins
 
-### Estado Actual
-- **URL**: http://localhost:8081
-- **Puerto**: 8081 (configurado para evitar conflictos con el backend)
-- **Estado**: ✅ Funcionando
-- **Contraseña inicial**: `21633f4907a94353a7cf0392061afc87`
+### 📦 Plugins Requeridos
 
-### Scripts Disponibles
+- **Git Plugin**: Para clonar repositorios
+- **Pipeline Plugin**: Para ejecutar pipelines declarativos
+- **Docker Plugin**: Para construir imágenes Docker
+- **JUnit Plugin**: Para publicar resultados de tests
+- **Credentials Plugin**: Para manejar credenciales
 
-#### 1. `start-jenkins.sh`
-Inicia Jenkins manualmente con la configuración correcta:
+### 🛠️ Herramientas Instaladas
+
+- **Java 17**: Para compilar el backend
+- **Maven**: Para gestionar dependencias Java
+- **Node.js**: Para construir el frontend
+- **Docker**: Para containerización
+- **Git**: Para control de versiones
+
+## 📁 Archivos de Configuración
+
+### 🔄 Pipeline Principal
+- **`Jenkinsfile`**: Pipeline declarativo con todas las etapas
+
+### 🐳 Docker
+- **`Dockerfile`**: Imagen del backend Java/Quarkus
+- **`Dockerfile.frontend`**: Imagen del frontend Vue.js
+- **`docker-compose.yml`**: Desarrollo local
+- **`docker-compose.qa.yml`**: Ambiente QA
+- **`docker-compose.prod.yml`**: Ambiente producción
+
+### 🚀 Scripts de Despliegue
+- **`deploy-dev.sh`**: Despliegue a desarrollo
+- **`deploy-qa.sh`**: Despliegue a QA
+- **`deploy-prod.sh`**: Despliegue a producción
+
+### ⚙️ Scripts de Jenkins
+- **`start-jenkins.sh`**: Iniciar Jenkins
+- **`stop-jenkins.sh`**: Detener Jenkins
+- **`setup-jenkins-final.sh`**: Configuración completa
+- **`verify-jenkins-setup.sh`**: Verificar configuración
+- **`install-junit-plugin.sh`**: Instalar plugin JUnit
+- **`fix-jenkins-permissions.sh`**: Solucionar permisos
+
+## 🔄 Etapas del Pipeline
+
+### 1. **Checkout**
+- Clona el repositorio desde GitHub
+- Branch: `dev`
+
+### 2. **Setup Tools**
+- Verifica Java, Maven, Docker y Node.js
+- Configura variables de entorno
+
+### 3. **Build Backend**
+- Compila el proyecto Java con Maven
+- Genera el JAR ejecutable
+
+### 4. **Test Backend**
+- Ejecuta tests unitarios
+- Publica resultados con JUnit
+
+### 5. **Build Frontend**
+- Instala dependencias npm
+- Construye la aplicación Vue.js
+
+### 6. **Build Docker Images**
+- Construye imagen del backend
+- Construye imagen del frontend
+
+### 7. **Deploy to Development**
+- Despliega automáticamente al ambiente dev
+- Usa `docker-compose.yml`
+
+### 8. **Deploy to QA** (condicional)
+- Se ejecuta solo en branch `QA`
+- Usa `docker-compose.qa.yml`
+
+### 9. **Deploy to Production** (condicional)
+- Se ejecuta solo en branch `dev` (configuración especial)
+- Usa `docker-compose.prod.yml`
+
+## 🚀 Cómo Usar
+
+### 1. **Iniciar Jenkins**
 ```bash
 ./start-jenkins.sh
 ```
 
-#### 2. `stop-jenkins.sh`
-Detiene Jenkins de forma segura:
+### 2. **Acceder a Jenkins**
+- URL: http://localhost:8081
+
+### 3. **Instalar Plugin JUnit**
 ```bash
-./stop-jenkins.sh
+./install-junit-plugin.sh
 ```
 
-#### 3. `setup-jenkins.sh`
-Muestra las instrucciones de configuración:
-```bash
-./setup-jenkins.sh
-```
+### 4. **Crear Pipeline Job**
+- Nombre: `Hospital-Pipeline`
+- Tipo: `Pipeline`
+- SCM: `Git`
+- Repository: `https://github.com/humbertovenavente/Hospital.git`
+- Branch: `dev`
+- Script Path: `Jenkinsfile`
 
-## 🏗️ Pipeline CI/CD
+### 5. **Ejecutar Pipeline**
+- Haz clic en `Build Now`
 
-### Estructura del Pipeline
+## 🔗 URLs Importantes
 
-```
-Hospital/
-├── Jenkinsfile                    # Pipeline principal de Jenkins
-├── .github/workflows/ci-cd.yml   # GitHub Actions (alternativo)
-├── deploy-dev.sh                 # Script de despliegue a desarrollo
-├── deploy-qa.sh                  # Script de despliegue a QA
-├── deploy-prod.sh                # Script de despliegue a producción
-├── docker-compose.yml            # Docker Compose para desarrollo
-├── docker-compose.qa.yml         # Docker Compose para QA
-├── docker-compose.prod.yml       # Docker Compose para producción
-├── Dockerfile                    # Dockerfile para backend
-└── Dockerfile.frontend           # Dockerfile para frontend
-```
-
-### Ambientes Configurados
-
-| Ambiente | Rama | Base de Datos | URL |
-|----------|------|---------------|-----|
-| **Desarrollo** | `dev` | `C##PROYECTO` | http://localhost |
-| **QA** | `QA` | `C##HOSPITAL2` | http://qa.hospital.com |
-| **Producción** | `prod` | `C##HOSPITAL3` | https://hospital.com |
-
-### Flujo de Trabajo
-
-1. **Desarrollo**: Los desarrolladores trabajan en la rama `dev`
-2. **QA**: Merge a `QA` → Despliegue automático a QA
-3. **Producción**: Merge a `dev` → Despliegue automático a producción
-
-## 🚀 Configuración del Pipeline en Jenkins
-
-### 1. Acceder a Jenkins
-- Abrir navegador: http://localhost:8081
-- Usar contraseña inicial: `21633f4907a94353a7cf0392061afc87`
-
-### 2. Instalar Plugins
-Instalar los siguientes plugins:
-- **Git plugin** - Para integración con Git
-- **Pipeline plugin** - Para pipelines declarativos
-- **Docker plugin** - Para construcción de imágenes Docker
-- **Credentials plugin** - Para manejo de credenciales
-
-### 3. Crear Pipeline Job
-
-1. **Nuevo Item** → **Pipeline**
-2. **Nombre**: `Hospital-CI-CD`
-3. **Configuración**:
-   - **Pipeline**: Pipeline script from SCM
-   - **SCM**: Git
-   - **Repository URL**: `https://github.com/humbertovenavente/Hospital.git`
-   - **Branch**: `dev`
-   - **Script Path**: `Jenkinsfile`
-
-### 4. Configurar Credenciales (Opcional)
-Para repositorios privados, configurar credenciales:
-- **Kind**: Username with password
-- **Scope**: Global
-- **Username**: Tu usuario de GitHub
-- **Password**: Tu token de GitHub
-
-## 🔄 Etapas del Pipeline
-
-### 1. Checkout
-- Clona el repositorio desde GitHub
-- Cambia a la rama correspondiente
-
-### 2. Build Backend
-- Compila el proyecto Java/Quarkus
-- Ejecuta pruebas unitarias
-- Construye imagen Docker
-
-### 3. Build Frontend
-- Instala dependencias npm
-- Construye aplicación Vue.js
-- Construye imagen Docker
-
-### 4. Deploy to Development
-- Se ejecuta en rama `dev`
-- Despliega usando `docker-compose.yml`
-
-### 5. Deploy to QA
-- Se ejecuta en rama `QA`
-- Despliega usando `docker-compose.qa.yml`
-
-### 6. Deploy to Production
-- Se ejecuta en rama `dev` (rama principal)
-- Despliega usando `docker-compose.prod.yml`
-- Incluye backup automático
-
-## 🐳 Docker
-
-### Imágenes Construidas
-- **Backend**: Java 17 + Quarkus
-- **Frontend**: Node.js 18 + Nginx
-
-### Comandos de Despliegue
-```bash
-# Desarrollo
-./deploy-dev.sh
-
-# QA
-./deploy-qa.sh
-
-# Producción
-./deploy-prod.sh
-```
-
-## 🔍 Monitoreo
-
-### Logs de Jenkins
-```bash
-# Ver logs en tiempo real
-sudo journalctl -u jenkins.service -f
-
-# Ver logs recientes
-sudo journalctl -u jenkins.service --no-pager -l -n 50
-```
-
-### Estado de Servicios
-```bash
-# Verificar puertos
-netstat -tlnp | grep -E "(8080|8081|80)"
-
-# Verificar procesos
-ps aux | grep -E "(jenkins|java|node)"
-```
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Jenkins | http://localhost:8081 | Panel de control |
+| Backend Dev | http://localhost:8080 | API de desarrollo |
+| Frontend Dev | http://localhost:80 | Aplicación web |
+| Oracle DB | localhost:1521 | Base de datos |
 
 ## 🛠️ Solución de Problemas
 
-### Jenkins no inicia
-1. Verificar puerto disponible: `netstat -tlnp | grep 8081`
-2. Verificar permisos: `sudo chown -R jenkins:jenkins /var/lib/jenkins`
-3. Usar script manual: `./start-jenkins.sh`
+### ❌ Error: "No such DSL method 'publishTestResults'"
+**Solución**: Instalar plugin JUnit
+```bash
+./install-junit-plugin.sh
+```
 
-### Pipeline falla
-1. Verificar conectividad con GitHub
-2. Verificar credenciales configuradas
-3. Revisar logs del job en Jenkins
+### ❌ Error: "permission denied while trying to connect to the Docker daemon"
+**Solución**: Configurar permisos de Docker
+```bash
+sudo chmod 666 /var/run/docker.sock
+sudo usermod -aG docker jenkins
+```
 
-### Docker no funciona
-1. Verificar Docker instalado: `docker --version`
-2. Verificar Docker Compose: `docker-compose --version`
-3. Verificar permisos: `sudo usermod -aG docker $USER`
+### ❌ Error: "release version 17 not supported"
+**Solución**: Configurar Java 17
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+```
 
-## 📚 Recursos Adicionales
+### ❌ Error: Jenkins no inicia
+**Solución**: Verificar puerto y permisos
+```bash
+./stop-jenkins.sh
+./start-jenkins.sh
+```
 
-- [Jenkins Documentation](https://www.jenkins.io/doc/)
-- [Pipeline Syntax](https://www.jenkins.io/doc/book/pipeline/syntax/)
-- [Docker Documentation](https://docs.docker.com/)
-- [GitHub Actions](https://docs.github.com/en/actions)
+## 📊 Monitoreo
+
+### 🔍 Logs del Pipeline
+- Jenkins: http://localhost:8081/job/Hospital-Pipeline
+- Docker: `docker logs <container-name>`
+
+### 📈 Métricas
+- Tests ejecutados
+- Tiempo de build
+- Tasa de éxito
+- Tiempo de despliegue
+
+## 🔐 Seguridad
+
+### 🔑 Credenciales
+- Base de datos: Configuradas en `application.properties`
+- Docker: Usuario jenkins en grupo docker
+- Jenkins: Configurado localmente
+
+### 🛡️ Buenas Prácticas
+- Usar variables de entorno para credenciales
+- No hardcodear passwords en código
+- Mantener Jenkins actualizado
+- Revisar logs regularmente
+
+## 📝 Notas Importantes
+
+1. **Branch Principal**: `dev` es ahora el branch principal para producción
+2. **Base de Datos**: Cada ambiente tiene su propio usuario de Oracle
+3. **Docker**: Todas las imágenes se construyen localmente
+4. **Backup**: El script de producción incluye backup automático
+5. **Health Checks**: Se incluyen verificaciones de salud en producción
 
 ## 🎯 Próximos Pasos
 
-1. **Configurar Jenkins** siguiendo las instrucciones de `setup-jenkins.sh`
-2. **Crear el pipeline job** en Jenkins
-3. **Configurar webhooks** para integración automática con GitHub
-4. **Configurar notificaciones** (email, Slack, etc.)
-5. **Configurar monitoreo** y alertas
-6. **Implementar pruebas automatizadas** adicionales
+1. ✅ Configurar Jenkins
+2. ✅ Crear pipeline
+3. ✅ Configurar Docker
+4. 🔄 Instalar plugin JUnit
+5. 🔄 Crear job en Jenkins
+6. 🔄 Ejecutar pipeline completo
+7. 🔄 Configurar monitoreo
+8. 🔄 Implementar notificaciones
 
 ---
 
-**¡Jenkins está listo para ejecutar tu pipeline CI/CD! 🚀** 
+**Estado**: ✅ Configuración completa lista
+**Última actualización**: $(date)
+**Versión**: 1.0 

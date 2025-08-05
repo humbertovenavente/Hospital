@@ -1,31 +1,29 @@
 #!/bin/bash
 
-# Script para instalar el plugin JUnit en Jenkins
-echo "🔧 Instalando plugin JUnit en Jenkins..."
-
-# Verificar que Jenkins esté ejecutándose
-if ! ss -tlnp | grep 8081 > /dev/null; then
-    echo "❌ Jenkins no está ejecutándose en el puerto 8081"
-    exit 1
-fi
-
-echo "📋 Instrucciones para instalar el plugin JUnit:"
+echo "🔧 Instalando JUnit Plugin en Jenkins..."
 echo ""
-echo "1. Abre tu navegador y ve a: http://localhost:8081"
+echo "📋 Pasos para instalar el JUnit Plugin:"
 echo ""
-echo "2. Ve a: Manage Jenkins > Manage Plugins"
+echo "1. Abre Jenkins en tu navegador: http://localhost:8081"
 echo ""
-echo "3. En la pestaña 'Available', busca 'JUnit'"
+echo "2. Ve a 'Manage Jenkins' > 'Manage Plugins'"
 echo ""
-echo "4. Marca la casilla y haz clic en 'Install without restart'"
+echo "3. Haz clic en la pestaña 'Available'"
 echo ""
-echo "5. Espera a que se complete la instalación"
+echo "4. Busca 'JUnit' en el campo de búsqueda"
 echo ""
-echo "6. Una vez instalado, el pipeline debería funcionar correctamente"
+echo "5. Marca la casilla 'JUnit Plugin'"
 echo ""
-echo "🔗 URL directa: http://localhost:8081/pluginManager/available"
+echo "6. Haz clic en 'Install without restart'"
 echo ""
-echo "💡 Alternativa: También puedes instalar desde la línea de comandos si tienes credenciales:"
-echo "   curl -X POST -u admin:PASSWORD http://localhost:8081/pluginManager/installNecessaryPlugins -d '<jenkins><install plugin=\"junit@latest\"/></jenkins>' -H 'Content-Type: text/xml'"
+echo "7. Espera a que se complete la instalación"
 echo ""
-echo "✅ Una vez instalado el plugin, ejecuta el pipeline nuevamente" 
+echo "8. Una vez instalado, ve a tu pipeline 'Hospital-CI-CD'"
+echo ""
+echo "9. Haz clic en 'Build Now' para ejecutar el pipeline nuevamente"
+echo ""
+echo "✅ El plugin JUnit permitirá que el pipeline publique los resultados de las pruebas"
+echo ""
+echo "🔍 Alternativamente, puedes instalar el plugin desde la línea de comandos:"
+echo "   curl -X POST http://localhost:8081/pluginManager/installNecessaryPlugins -d '<jenkins><install plugin=junit@latest/></jenkins>'"
+echo "" 

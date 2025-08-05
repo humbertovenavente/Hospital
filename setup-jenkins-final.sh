@@ -1,75 +1,64 @@
 #!/bin/bash
 
-# Script final para configurar Jenkins completamente
-echo "🚀 Configuración final de Jenkins para el pipeline CI/CD"
+echo "🚀 CONFIGURACIÓN FINAL DE JENKINS - HOSPITAL CI/CD"
+echo "=================================================="
+echo ""
 
-# Verificar que Jenkins esté ejecutándose
-if ! ss -tlnp | grep 8081 > /dev/null; then
-    echo "❌ Jenkins no está ejecutándose. Iniciando..."
-    ./start-jenkins.sh &
-    sleep 10
-fi
-
-# Verificar permisos de Docker
-echo "🔧 Configurando permisos de Docker..."
-sudo chmod 666 /var/run/docker.sock
-
-# Verificar que Jenkins pueda usar Docker
-if sudo -u jenkins docker ps > /dev/null 2>&1; then
-    echo "✅ Jenkins puede usar Docker"
+# Verificar que Jenkins esté corriendo
+echo "🔍 Verificando estado de Jenkins..."
+if curl -s http://localhost:8081 > /dev/null; then
+    echo "✅ Jenkins está corriendo en http://localhost:8081"
 else
-    echo "❌ Jenkins no puede usar Docker"
-    exit 1
+    echo "❌ Jenkins no está corriendo. Iniciando..."
+    ./start-jenkins.sh
+    sleep 5
 fi
 
 echo ""
-echo "🎯 CONFIGURACIÓN COMPLETA"
-echo "=========================="
+echo "📋 PASOS PARA COMPLETAR LA CONFIGURACIÓN:"
 echo ""
-echo "✅ Jenkins está ejecutándose en: http://localhost:8081"
-echo "✅ Docker está configurado correctamente"
-echo "✅ Java 17 está disponible"
-echo "✅ Maven está disponible"
-echo "✅ Node.js está disponible"
+
+echo "1️⃣  INSTALAR PLUGIN JUNIT:"
+echo "   • Abre tu navegador: http://localhost:8081"
+echo "   • Ve a 'Manage Jenkins' > 'Manage Plugins'"
+echo "   • Pestaña 'Available'"
+echo "   • Busca 'JUnit'"
+echo "   • Marca 'JUnit Plugin'"
+echo "   • Haz clic en 'Install without restart'"
+echo "   • Espera a que termine la instalación"
 echo ""
-echo "📋 PRÓXIMOS PASOS:"
-echo "=================="
+
+echo "2️⃣  EJECUTAR PIPELINE:"
+echo "   • Ve a tu pipeline 'Hospital-CI-CD'"
+echo "   • Haz clic en 'Build Now'"
+echo "   • El pipeline debería ejecutarse sin errores"
 echo ""
-echo "1. 🌐 Abre tu navegador y ve a: http://localhost:8081"
+
+echo "3️⃣  VERIFICAR RESULTADOS:"
+echo "   • Los tests deberían pasar (155 tests)"
+echo "   • Se deberían publicar los resultados de JUnit"
+echo "   • El pipeline debería continuar hasta el final"
 echo ""
-echo "2. 🔌 Instala el plugin JUnit:"
-echo "   - Ve a: Manage Jenkins > Manage Plugins"
-echo "   - Pestaña 'Available'"
-echo "   - Busca 'JUnit'"
-echo "   - Marca y haz clic en 'Install without restart'"
+
+echo "🔧 COMANDOS ÚTILES:"
+echo "   • Ver logs de Jenkins: tail -f /var/log/jenkins/jenkins.log"
+echo "   • Reiniciar Jenkins: ./stop-jenkins.sh && ./start-jenkins.sh"
+echo "   • Ver estado: curl -s http://localhost:8081"
 echo ""
-echo "3. 🏗️  Crea el pipeline job:"
-echo "   - Haz clic en 'New Job'"
-echo "   - Nombre: 'Hospital-Pipeline'"
-echo "   - Tipo: 'Pipeline'"
-echo "   - En 'Pipeline':"
-echo "     * Definition: 'Pipeline script from SCM'"
-echo "     * SCM: 'Git'"
-echo "     * Repository URL: https://github.com/humbertovenavente/Hospital.git"
-echo "     * Branch: dev"
-echo "     * Script Path: Jenkinsfile"
+
+echo "📊 ESTADO ACTUAL DEL PIPELINE:"
+echo "   ✅ Checkout SCM - EXITOSO"
+echo "   ✅ Checkout - EXITOSO"
+echo "   ✅ Setup Tools - EXITOSO"
+echo "   ✅ Build Backend - EXITOSO"
+echo "   ❌ Test Backend - FALLA (falta plugin JUnit)"
+echo "   ⏸️  Build Frontend - PENDIENTE"
+echo "   ⏸️  Build Docker Images - PENDIENTE"
+echo "   ⏸️  Deploy to Development - PENDIENTE"
+echo "   ⏸️  Deploy to QA - PENDIENTE"
 echo ""
-echo "4. ▶️  Ejecuta el pipeline:"
-echo "   - Haz clic en 'Build Now'"
+
+echo "🎯 OBJETIVO: Instalar JUnit Plugin para que publishTestResults funcione"
 echo ""
-echo "🔗 URLs útiles:"
-echo "==============="
-echo "• Jenkins: http://localhost:8081"
-echo "• Plugins: http://localhost:8081/pluginManager/available"
-echo "• New Job: http://localhost:8081/newJob"
-echo "• Pipeline: http://localhost:8081/job/Hospital-Pipeline"
-echo ""
-echo "📁 Archivos de configuración:"
-echo "============================="
-echo "• Jenkinsfile: Pipeline principal"
-echo "• docker-compose.yml: Desarrollo local"
-echo "• docker-compose.qa.yml: Ambiente QA"
-echo "• docker-compose.prod.yml: Ambiente producción"
-echo "• deploy-*.sh: Scripts de despliegue"
-echo ""
-echo "🎉 ¡Jenkins está listo para ejecutar el pipeline CI/CD!" 
+echo "✅ Una vez instalado el plugin, el pipeline debería ejecutarse completamente"
+echo "" 
