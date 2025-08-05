@@ -59,11 +59,11 @@ pipeline {
                     '''
                 }
             }
-            post {
-                always {
-                    publishTestResults testResultsPattern: '**/target/surefire-reports/*.xml'
-                }
-            }
+                                    post {
+                            always {
+                                publishTestResults testResultsPattern: '**/target/surefire-reports/*.xml'
+                            }
+                        }
         }
         
         stage('Build Frontend') {
