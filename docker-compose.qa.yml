@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # Backend del Hospital para QA
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@qa-db-server:1521/XEPDB1
+      - QUARKUS_DATASOURCE_USERNAME=C##HOSPITAL2
+      - QUARKUS_DATASOURCE_PASSWORD=Unis
+      - QUARKUS_PROFILE=qa
+    restart: unless-stopped
+    networks:
+      - qa-network
+
+  # Frontend del Hospital para QA
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "8082:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - qa-network
+
+networks:
+  qa-network:
+    driver: bridge 
