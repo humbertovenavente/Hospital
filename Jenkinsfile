@@ -95,8 +95,14 @@ pipeline {
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
                     
-                    // Aquí irían los comandos para desplegar en el servidor de desarrollo
-                    echo "Desplegando en ambiente de desarrollo..."
+                    // Desplegar usando docker-compose
+                    sh "docker compose down || true"
+                    sh "docker compose up -d"
+                    
+                    echo "✅ Desplegado exitosamente en ambiente de desarrollo!"
+                    echo "🌐 Frontend: http://localhost:80"
+                    echo "🔧 Backend: http://localhost:8080"
+                    echo "🗄️  Database: localhost:1521"
                 }
             }
         }
@@ -111,8 +117,11 @@ pipeline {
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
                     
-                    // Aquí irían los comandos para desplegar en el servidor de QA
-                    echo "Desplegando en ambiente de QA..."
+                    // Desplegar usando docker-compose.qa.yml
+                    sh "docker compose -f docker-compose.qa.yml down || true"
+                    sh "docker compose -f docker-compose.qa.yml up -d"
+                    
+                    echo "✅ Desplegado exitosamente en ambiente de QA!"
                 }
             }
         }
@@ -127,8 +136,11 @@ pipeline {
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
                     
-                    // Aquí irían los comandos para desplegar en el servidor de producción
-                    echo "Desplegando en ambiente de producción..."
+                    // Desplegar usando docker-compose.prod.yml
+                    sh "docker compose -f docker-compose.prod.yml down || true"
+                    sh "docker compose -f docker-compose.prod.yml up -d"
+                    
+                    echo "✅ Desplegado exitosamente en ambiente de producción!"
                 }
             }
         }
