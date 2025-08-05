@@ -86,11 +86,10 @@ pipeline {
         }
         
         stage('Deploy to Development') {
-            when {
-                branch 'dev'
-            }
             steps {
                 script {
+                    echo "🚀 INICIANDO DESPLIEGUE A DESARROLLO..."
+                    
                     // Desplegar en ambiente de desarrollo
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
@@ -127,11 +126,10 @@ pipeline {
         }
         
         stage('Deploy to Production') {
-            when {
-                branch 'dev'
-            }
             steps {
                 script {
+                    echo "🚀 INICIANDO DESPLIEGUE A PRODUCCIÓN..."
+                    
                     // Desplegar en ambiente de producción
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
