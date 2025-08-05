@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Base de datos Oracle (para desarrollo local)
   oracle:
-    image: container-registry.oracle.com/database/express:latest
+    image: oracle-xe-con-datos:latest
     environment:
       ORACLE_PWD: Unis
       ORACLE_CHARACTERSET: AL32UTF8
@@ -19,9 +19,7 @@ services:
 
   # Backend del Hospital
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: hospital-registry/hospital-backend:20
     ports:
       - "8080:8080"
     environment:
@@ -35,9 +33,7 @@ services:
 
   # Frontend del Hospital
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: hospital-registry/hospital-frontend:20
     ports:
       - "80:80"
     depends_on:
