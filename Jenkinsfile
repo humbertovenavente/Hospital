@@ -6,6 +6,8 @@ pipeline {
         BACKEND_IMAGE = 'hospital-backend'
         FRONTEND_IMAGE = 'hospital-frontend'
         VERSION = "${env.BUILD_NUMBER}"
+        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
+        PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
     }
     
     stages {
@@ -15,10 +17,34 @@ pipeline {
             }
         }
         
+        stage('Setup Tools') {
+            steps {
+                sh '''
+                    echo "=== Verificando Java ==="
+                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                    export PATH=$JAVA_HOME/bin:$PATH
+                    java -version
+                    mvn -version
+                    
+                    echo "=== Verificando Docker ==="
+                    docker --version
+                    
+                    echo "=== Verificando Node.js ==="
+                    node --version || echo "Node.js no está instalado"
+                    npm --version || echo "npm no está instalado"
+                '''
+            }
+        }
+        
         stage('Build Backend') {
             steps {
                 dir('backend') {
-                    sh 'mvn clean package -DskipTests'
+                    sh '''
+                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                        export PATH=$JAVA_HOME/bin:$PATH
+                        java -version
+                        mvn clean package -DskipTests
+                    '''
                 }
             }
         }
@@ -26,7 +52,11 @@ pipeline {
         stage('Test Backend') {
             steps {
                 dir('backend') {
-                    sh 'mvn test'
+                    sh '''
+                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                        export PATH=$JAVA_HOME/bin:$PATH
+                        mvn test
+                    '''
                 }
             }
             post {
