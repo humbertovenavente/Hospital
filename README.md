@@ -1,3 +1,32 @@
+# Hospital Management System
+
+Sistema de gestión hospitalaria desarrollado con Vue.js, Quarkus y Oracle Database.
+
+## 🏥 Características
+
+- Gestión de pacientes
+- Gestión de doctores
+- Gestión de citas médicas
+- Sistema de recetas
+- Reportes y estadísticas
+- Interfaz web moderna
+
+## 🚀 Pipeline CI/CD
+
+Este proyecto incluye un pipeline completo de CI/CD con Jenkins que maneja:
+
+- ✅ Pull Requests automáticos
+- ✅ Despliegues por ambiente (dev, QA, prod)
+- ✅ Tests automatizados
+- ✅ Notificaciones por email
+- ✅ Health checks y rollback
+
+## 📋 Prueba del Pipeline
+
+**Fecha de prueba**: $(date)
+
+Este cambio es para probar el pipeline de CI/CD.
+
 # Proyecto2025
 
 This template should help get you started developing with Vue 3 in Vite.
