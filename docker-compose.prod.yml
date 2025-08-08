@@ -1,59 +1,95 @@
 version: '3.8'
 
 services:
-  # Backend del Hospital para producción
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+  # Base de datos Oracle para Producción
+  oracle-prod:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    container_name: hospital-oracle-prod
     environment:
-      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@prod-db-server:1521/XEPDB1
-      - QUARKUS_DATASOURCE_USERNAME=C##HOSPITAL3
-      - QUARKUS_DATASOURCE_PASSWORD=Unis
-      - QUARKUS_PROFILE=prod
-    restart: unless-stopped
-    networks:
-      - prod-network
+      ORACLE_PWD: Unis
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "1523:1521"  # Puerto diferente para producción
+    volumes:
+      - oracle_prod_data:/opt/oracle/oradata
+      - ./backend/src/main/resources/import.sql:/opt/oracle/scripts/startup/import.sql
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "sqlplus", "-L", "C##PROYECTO/Unis@localhost:1521/XEPDB1", "@healthcheck.sql"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
 
-  # Frontend del Hospital para producción
-  frontend:
+  # Backend Quarkus para Producción
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: hospital-backend-prod
+    environment:
+      QUARKUS_DATASOURCE_URL: jdbc:oracle:thin:@oracle-prod:1521/XEPDB1
+      QUARKUS_DATASOURCE_USERNAME: C##PROYECTO
+      QUARKUS_DATASOURCE_PASSWORD: Unis
+      QUARKUS_HTTP_PORT: 8080
+      QUARKUS_PROFILE: prod
+    ports:
+      - "8084:8080"  # Puerto diferente para producción
+    depends_on:
+      oracle-prod:
+        condition: service_healthy
+    volumes:
+      - ./backend/src/main/resources/application.properties:/app/config/application.properties
+    restart: unless-stopped
+
+  # Frontend Vue.js para Producción
+  frontend-prod:
     build:
       context: .
       dockerfile: Dockerfile.frontend
+    container_name: hospital-frontend-prod
+    environment:
+      VITE_API_URL: http://localhost:8084
+      NODE_ENV: production
     ports:
-      - "80:80"
-      - "443:443"
+      - "5176:80"  # Puerto diferente para producción
     depends_on:
-      - backend
+      - backend-prod
     restart: unless-stopped
-    networks:
-      - prod-network
-    volumes:
-      - ./ssl:/etc/nginx/ssl:ro
 
-  # Nginx reverse proxy para producción
-  nginx:
+  # Nginx reverse proxy para Producción
+  nginx-prod:
     image: nginx:alpine
+    container_name: hospital-nginx-prod
     ports:
-      - "80:80"
-      - "443:443"
+      - "8085:80"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./ssl:/etc/nginx/ssl:ro
+      - ./nginx.prod.conf:/etc/nginx/nginx.conf
     depends_on:
-      - frontend
-      - backend
+      - frontend-prod
+      - backend-prod
     restart: unless-stopped
-    networks:
-      - prod-network
 
-networks:
-  prod-network:
-    driver: bridge 
+  # Monitoreo para Producción
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hospital-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+
+  # Grafana para dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hospital-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_data:/var/lib/grafana
+    restart: unless-stopped
+
+volumes:
+  oracle_prod_data:
+  grafana_data: 
