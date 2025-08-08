@@ -27,6 +27,12 @@ node {
                 curl -f http://localhost:9000/api/system/status || echo "SonarQube no está disponible"
             '''
             
+            // Asegurar binarios compilados para análisis Java
+            sh '''
+                echo "=== Precompilando backend para análisis SonarQube ==="
+                mvn -q -f backend/pom.xml -DskipTests -DskipITs test-compile
+            '''
+            
             echo "   Ejecutando análisis de calidad del código..."
             
             // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
