@@ -20,27 +20,28 @@ node {
         
         stage('Code Quality Check') {
             echo "🔍 Iniciando verificación de calidad del código con SonarQube..."
+            echo "   Configurando SonarQube Scanner..."
             
             // Verificar que SonarQube esté disponible
             sh '''
                 echo "=== Verificando SonarQube ==="
                 curl -f http://localhost:9000/api/system/status || echo "SonarQube no está disponible"
-            '''
-            
-            // Asegurar binarios compilados para análisis Java
-            sh '''
-                echo "=== Precompilando backend para análisis SonarQube ==="
-                mvn -q -f backend/pom.xml -DskipTests -DskipITs test-compile
+                echo "=== Verificando SonarQube Scanner ==="
+                /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
             '''
             
             echo "   Ejecutando análisis de calidad del código..."
             
             // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
-            withSonarQubeEnv('Hospital Management System') {
+            // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
+            withSonarQubeEnv('SonarQube') {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         echo "=== Ejecutando SonarQube Analysis ==="
                         export PATH=$PATH:/opt/sonar-scanner/bin
+                        # Fallbacks: si la integración no expone variables, usar valores por defecto
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
                         sonar-scanner \
                             -Dsonar.projectKey=hospital-project \
                             -Dsonar.projectName="Hospital Management System" \
@@ -50,15 +51,14 @@ node {
                             -Dsonar.java.source=17 \
                             -Dsonar.java.binaries=backend/target/classes \
                             -Dsonar.java.test.binaries=backend/target/test-classes \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.token=${SONAR_TOKEN} \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.token=${TOKEN_TO_USE} \
                             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**,**/*.min.js,**/*.min.css \
                             -Dsonar.qualitygate.wait=true
                         echo "=== Análisis de SonarQube completado ==="
                     '''
                 }
             }
-            
             echo "✅ Verificación de calidad completada"
         }
         
