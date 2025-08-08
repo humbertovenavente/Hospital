@@ -20,7 +20,7 @@ export default defineConfigWithVueTs(
     ignores: ['**/dist/**', '**/dist-ssr/**', '**/coverage/**'],
   },
 
-  pluginVue.configs['flat/essential'],
+  pluginVue.configs['flat/essential'] as any,
   vueTsConfigs.recommended,
   
   {
@@ -29,8 +29,8 @@ export default defineConfigWithVueTs(
   },
   
   {
-    ...pluginPlaywright.configs['flat/recommended'],
+    ...pluginPlaywright.configs['flat/recommended'] as any,
     files: ['e2e/**/*.{test,spec}.{js,ts,jsx,tsx}'],
   },
-  skipFormatting,
+  skipFormatting as any,
 )

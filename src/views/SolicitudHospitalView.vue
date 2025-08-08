@@ -118,10 +118,16 @@
 import { ref, onMounted } from "vue";
 import API_URL from "@/config";
 
-const form = ref({ nombre: "", direccion: "", telefono: "", aseguradora: null });
+interface Aseguradora {
+  id?: number;
+  nombre: string;
+  url: string;
+}
+
+const form = ref({ nombre: "", direccion: "", telefono: "", aseguradora: null as Aseguradora | null });
 const mensaje = ref("");
 const estadoSolicitud = ref<any>(null);
-const seguros = ref<any[]>([]);
+const seguros = ref<Aseguradora[]>([]);
 const historialSolicitudes = ref<any[]>([]);
 const nuevaAseguradora = ref({ nombre: "", url: "" });
 const mensajeRegistro = ref("");
@@ -223,7 +229,7 @@ const enviar = async () => {
     mensaje.value = "No se encontró la URL de la aseguradora seleccionada.";
     return;
   }
-  const yaAprobada = historialSolicitudes.value.some((s) => s.estado === "aprobado" && s.aseguradora === aseg.nombre);
+  const yaAprobada = historialSolicitudes.value.some((s: any) => s.estado === "aprobado" && s.aseguradora === aseg.nombre);
   if (yaAprobada) {
     mensaje.value = "Ya existe una solicitud aprobada.";
     return;
