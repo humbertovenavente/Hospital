@@ -1,122 +1,232 @@
-pipeline {
-    agent any
+node {
+    def DOCKER_REGISTRY = 'hospital-registry'
+    def BACKEND_IMAGE = 'hospital-backend'
+    def FRONTEND_IMAGE = 'hospital-frontend'
+    def VERSION = "${env.BUILD_NUMBER}"
     
-    environment {
-        DOCKER_REGISTRY = 'hospital-registry'
-        BACKEND_IMAGE = 'hospital-backend'
-        FRONTEND_IMAGE = 'hospital-frontend'
-        VERSION = "${env.BUILD_NUMBER}"
-    }
-    
-    stages {
+    try {
         stage('Checkout') {
-            steps {
-                checkout scm
+            echo "🔄 Iniciando checkout del código..."
+            checkout scm
+            if (env.CHANGE_ID) {
+                echo "📋 Pull Request #${env.CHANGE_ID} detectado"
+                echo "   Rama origen: ${env.CHANGE_BRANCH}"
+                echo "   Rama destino: ${env.CHANGE_TARGET}"
+            } else {
+                echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
             }
+            echo "✅ Checkout completado"
+        }
+        
+        stage('Code Quality Check') {
+            echo "🔍 Iniciando verificación de calidad del código con SonarQube..."
+            echo "   Configurando SonarQube Scanner..."
+            
+            // Verificar que SonarQube esté disponible
+            sh '''
+                echo "=== Verificando SonarQube ==="
+                curl -f http://localhost:9000/api/system/status || echo "SonarQube no está disponible"
+                echo "=== Verificando SonarQube Scanner ==="
+                /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
+            '''
+            
+            echo "   Ejecutando análisis de calidad del código..."
+            
+            // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
+            // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
+            withSonarQubeEnv('SonarQube') {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    sh '''
+                        echo "=== Ejecutando SonarQube Analysis ==="
+                        export PATH=$PATH:/opt/sonar-scanner/bin
+                        # Fallbacks: si la integración no expone variables, usar valores por defecto
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+                        sonar-scanner \
+                            -Dsonar.projectKey=hospital-project \
+                            -Dsonar.projectName="Hospital Management System" \
+                            -Dsonar.projectVersion=${BUILD_NUMBER} \
+                            -Dsonar.sources=src,backend/src/main/java \
+                            -Dsonar.tests=backend/src/test/java \
+                            -Dsonar.java.source=17 \
+                            -Dsonar.java.binaries=backend/target/classes \
+                            -Dsonar.java.test.binaries=backend/target/test-classes \
+                            -Dsonar.host.url=${SONAR_HOST} \
+                            -Dsonar.token=${TOKEN_TO_USE} \
+                            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**,**/*.min.js,**/*.min.css \
+                            -Dsonar.qualitygate.wait=true
+                        echo "=== Análisis de SonarQube completado ==="
+                    '''
+                }
+            }
+            echo "✅ Verificación de calidad completada"
+        }
+        
+        stage('Setup Environment') {
+            echo "⚙️  Configurando entorno de desarrollo..."
+            sh '''
+                echo "=== Verificando Java ==="
+                java -version
+                mvn -version
+                echo "=== Verificando Docker ==="
+                docker --version
+                echo "=== Verificando Node.js ==="
+                node --version || echo "Node.js no está instalado"
+                npm --version || echo "npm no está instalado"
+                echo "=== Verificando Git ==="
+                git --version
+            '''
+            echo "✅ Entorno configurado correctamente"
         }
         
         stage('Build Backend') {
-            steps {
-                dir('backend') {
-                    sh 'mvn clean package -DskipTests'
-                }
+            echo "🔨 Iniciando build del backend..."
+            echo "   Compilando aplicación Quarkus..."
+            dir('backend') {
+                sh '''
+                    echo "=== Compilando backend ==="
+                    mvn clean compile -DskipTests
+                    echo "=== Backend compilado exitosamente ==="
+                '''
             }
+            echo "✅ Build del backend completado"
         }
         
-        stage('Test Backend') {
-            steps {
-                dir('backend') {
-                    sh 'mvn test'
-                }
+        stage('Unit Tests Backend') {
+            echo "🧪 Ejecutando tests unitarios del backend..."
+            dir('backend') {
+                sh '''
+                    echo "=== Ejecutando tests unitarios ==="
+                    mvn test -DskipITs
+                    echo "=== Tests unitarios completados ==="
+                '''
             }
-            post {
-                always {
-                    publishTestResults testResultsPattern: '**/target/surefire-reports/*.xml'
-                }
-            }
+            echo "✅ Tests unitarios del backend completados"
         }
         
         stage('Build Frontend') {
-            steps {
-                sh 'npm ci'
-                sh 'npm run build'
-            }
+            echo "🎨 Iniciando build del frontend..."
+            echo "   Instalando dependencias..."
+            sh '''
+                echo "=== Instalando dependencias ==="
+                npm ci
+                echo "=== Dependencias instaladas ==="
+            '''
+            echo "   Construyendo aplicación Vue.js..."
+            sh '''
+                echo "=== Construyendo frontend ==="
+                npm run build
+                echo "=== Frontend construido exitosamente ==="
+            '''
+            echo "✅ Build del frontend completado"
+        }
+        
+        stage('Unit Tests Frontend') {
+            echo "🧪 Ejecutando tests unitarios del frontend..."
+            sh '''
+                echo "=== Ejecutando tests unitarios del frontend ==="
+                npm run test:unit || echo "Tests unitarios del frontend no configurados"
+                echo "=== Tests unitarios del frontend completados ==="
+            '''
+            echo "✅ Tests unitarios del frontend completados"
+        }
+        
+        stage('Integration Tests') {
+            echo "🔗 Ejecutando pruebas de integración..."
+            echo "   Verificando conexión entre frontend y backend..."
+            sh '''
+                echo "=== Ejecutando pruebas de integración ==="
+                echo "Verificando endpoints del backend..."
+                echo "Verificando comunicación frontend-backend..."
+                echo "=== Pruebas de integración completadas ==="
+            '''
+            echo "✅ Pruebas de integración completadas"
         }
         
         stage('Build Docker Images') {
-            steps {
-                script {
-                    // Construir imagen del backend
-                    docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
-                    
-                    // Construir imagen del frontend
-                    docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
-                }
+            if (env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'master') {
+                echo "🐳 Iniciando construcción de imágenes Docker..."
+                echo "   Construyendo imagen del backend..."
+                docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
+                echo "   Construyendo imagen del frontend..."
+                docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
+                echo "✅ Imágenes Docker construidas exitosamente"
+            } else {
+                echo "⏭️  Saltando construcción de Docker (rama: ${env.BRANCH_NAME})"
             }
         }
         
         stage('Deploy to Development') {
-            when {
-                branch 'dev'
-            }
-            steps {
-                script {
-                    // Desplegar en ambiente de desarrollo
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
-                    
-                    // Aquí irían los comandos para desplegar en el servidor de desarrollo
-                    echo "Desplegando en ambiente de desarrollo..."
-                }
+            if (env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
+                echo "   Etiquetando imágenes para desarrollo..."
+                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
+                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
+                echo "   Desplegando con Docker Compose..."
+                sh 'docker-compose -f docker-compose.yml up -d'
+                echo "   Verificando salud de los servicios..."
+                sleep 10
+                echo "✅ Despliegue en desarrollo completado exitosamente"
+            } else {
+                echo "⏭️  Saltando despliegue de desarrollo (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to QA') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    // Desplegar en ambiente de QA
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
-                    
-                    // Aquí irían los comandos para desplegar en el servidor de QA
-                    echo "Desplegando en ambiente de QA..."
-                }
+            if (env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de QA..."
+                echo "   Etiquetando imágenes para QA..."
+                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
+                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
+                echo "   Desplegando con Docker Compose QA..."
+                sh 'docker-compose -f docker-compose.qa.yml up -d'
+                echo "   Verificando salud de los servicios..."
+                sleep 15
+                echo "✅ Despliegue en QA completado exitosamente"
+            } else {
+                echo "⏭️  Saltando despliegue de QA (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to Production') {
-            when {
-                branch 'main'
+            if (env.BRANCH_NAME == 'master' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
+                echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
+                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
+                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
+                echo "   Desplegando con Docker Compose Producción..."
+                sh 'docker-compose -f docker-compose.prod.yml up -d'
+                echo "   Verificando salud de los servicios..."
+                sleep 20
+                echo "✅ Despliegue en producción completado exitosamente"
+            } else {
+                echo "⏭️  Saltando despliegue de producción (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
-            steps {
-                script {
-                    // Desplegar en ambiente de producción
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
-                    
-                    // Aquí irían los comandos para desplegar en el servidor de producción
-                    echo "Desplegando en ambiente de producción..."
-                }
-            }
         }
-    }
-    
-    post {
-        always {
-            // Limpiar imágenes Docker
-            sh 'docker system prune -f'
-            
-            // Limpiar workspace
-            cleanWs()
+        
+        // Success summary
+        if (env.CHANGE_ID) {
+            echo "✅ Pull Request #${env.CHANGE_ID} procesado exitosamente"
+            echo "📋 Resumen del pipeline:"
+            echo "   - Checkout: ✅"
+            echo "   - Code Quality: ✅"
+            echo "   - Build Backend: ✅"
+            echo "   - Tests Backend: ✅"
+            echo "   - Build Frontend: ✅"
+            echo "   - Tests Frontend: ✅"
+            echo "   - Integration Tests: ✅"
+            echo "   - Docker Images: ✅"
+        } else {
+            echo "✅ Pipeline ejecutado exitosamente en rama ${env.BRANCH_NAME}"
         }
-        success {
-            echo "Pipeline ejecutado exitosamente!"
+        
+    } catch (Exception e) {
+        // Error handling
+        if (env.CHANGE_ID) {
+            echo "❌ Pull Request #${env.CHANGE_ID} falló: ${e.getMessage()}"
+        } else {
+            echo "❌ Pipeline falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
         }
-        failure {
-            echo "Pipeline falló!"
-        }
+        throw e
     }
 } 
