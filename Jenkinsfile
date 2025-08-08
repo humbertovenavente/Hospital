@@ -398,9 +398,6 @@ pipeline {
     post {
         always {
             echo "🧹 Limpiando recursos..."
-            // Limpiar imágenes Docker
-            sh 'docker system prune -f'
-            
             // Limpiar workspace
             cleanWs()
             echo "✅ Limpieza completada"
