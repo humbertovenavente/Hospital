@@ -397,10 +397,12 @@ pipeline {
     
     post {
         always {
-            echo "🧹 Limpiando recursos..."
-            // Limpiar workspace
-            cleanWs()
-            echo "✅ Limpieza completada"
+            script {
+                echo "🧹 Limpiando recursos..."
+                // Limpiar workspace
+                cleanWs()
+                echo "✅ Limpieza completada"
+            }
         }
         success {
             script {
