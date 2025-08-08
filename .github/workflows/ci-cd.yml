@@ -1,0 +1,112 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, dev, QA ]
+  pull_request:
+    branches: [ main, dev, QA ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Cache Maven packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+    
+    - name: Build and test backend
+      run: |
+        cd backend
+        mvn clean test
+    
+    - name: Build frontend
+      run: |
+        npm ci
+        npm run build
+    
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: backend/target/surefire-reports/
+
+  build-and-deploy-dev:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build and push Docker images
+      run: |
+        docker build -t hospital-backend:dev .
+        docker build -f Dockerfile.frontend -t hospital-frontend:dev .
+    
+    - name: Deploy to development
+      run: |
+        echo "Deploying to development environment"
+        # Aquí irían los comandos para desplegar en el servidor de desarrollo
+
+  build-and-deploy-qa:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/QA'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build and push Docker images
+      run: |
+        docker build -t hospital-backend:qa .
+        docker build -f Dockerfile.frontend -t hospital-frontend:qa .
+    
+    - name: Deploy to QA
+      run: |
+        echo "Deploying to QA environment"
+        # Aquí irían los comandos para desplegar en el servidor de QA
+
+  build-and-deploy-prod:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    
+    - name: Build and push Docker images
+      run: |
+        docker build -t hospital-backend:prod .
+        docker build -f Dockerfile.frontend -t hospital-frontend:prod .
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment"
+        # Aquí irían los comandos para desplegar en el servidor de producción 

@@ -1,40 +1,48 @@
+version: '3.8'
+
 services:
+  # Base de datos Oracle (para desarrollo local)
+  oracle:
+    image: container-registry.oracle.com/database/express:latest
+    environment:
+      ORACLE_PWD: Unis
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "sys/Unis@//localhost:1521/XE", "AS", "SYSDBA", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend del Hospital
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@oracle:1521/XEPDB1
+      - QUARKUS_DATASOURCE_USERNAME=C##PROYECTO
+      - QUARKUS_DATASOURCE_PASSWORD=Unis
+    depends_on:
+      oracle:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend del Hospital
   frontend:
     build:
-      context: /home/andrespc/Documents/Proyecto2025  #  Cambiar el contexto a la raíz
-      dockerfile: src/Dockerfile  #  Especifica que el Dockerfile está dentro de `src/`
+      context: .
+      dockerfile: Dockerfile.frontend
     ports:
       - "80:80"
     depends_on:
       - backend
-    networks:
-      - app-network
+    restart: unless-stopped
 
-
-  backend:
-    build:
-      context: /home/andrespc/Documents/Proyecto2025/backend  #  Backend usa backend/
-      dockerfile: Dockerfile.jvm
-    ports:
-      - "8080:8080"
-    environment:
-      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@db:1521/XEPDB1
-      - QUARKUS_DATASOURCE_USERNAME=C##PROYECTO
-      - QUARKUS_DATASOURCE_PASSWORD=Unis
-    depends_on:
-      - db
-    networks:
-      - app-network
-
-  db:
-    image: container-registry.oracle.com/database/express:latest
-    environment:
-      - ORACLE_PASSWORD=Unis
-    ports:
-      - "1521:1521"
-    networks:
-      - app-network
-
-networks:
-  app-network:
-    driver: bridge
+volumes:
+  oracle_data:
