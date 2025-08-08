@@ -31,25 +31,6 @@ node {
             '''
             
             echo "   Ejecutando análisis de calidad del código..."
-<<<<<<< Updated upstream
-            sh '''
-                echo "=== Ejecutando SonarQube Analysis ==="
-                export PATH=$PATH:/opt/sonar-scanner/bin
-                sonar-scanner \
-                    -Dsonar.projectKey=hospital-project \
-                    -Dsonar.projectName="Hospital Management System" \
-                    -Dsonar.projectVersion=${BUILD_NUMBER} \
-                    -Dsonar.sources=src,backend/src/main/java \
-                    -Dsonar.tests=backend/src/test/java \
-                    -Dsonar.java.source=17 \
-                    -Dsonar.java.binaries=backend/target/classes \
-                    -Dsonar.java.test.binaries=backend/target/test-classes \
-                    -Dsonar.host.url=http://localhost:9000 \
-                    -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**,**/*.min.js,**/*.min.css \
-                    -Dsonar.qualitygate.wait=true || echo "SonarQube analysis completed with warnings"
-                echo "=== Análisis de SonarQube completado ==="
-            '''
-=======
             
             // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
             // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
@@ -78,8 +59,6 @@ node {
                     '''
                 }
             }
-            
->>>>>>> Stashed changes
             echo "✅ Verificación de calidad completada"
         }
         
