@@ -13,6 +13,7 @@ WORKDIR /app
 COPY backend/target/quarkus-app/lib/ /app/lib/
 COPY backend/target/quarkus-app/quarkus-run.jar /app/quarkus-run.jar
 COPY backend/target/quarkus-app/app/ /app/app/
+COPY backend/target/quarkus-app/quarkus/ /app/quarkus/
 
 # Exponer puerto
 EXPOSE 8080
