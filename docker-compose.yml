@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Base de datos Oracle (para desarrollo local)
   oracle:
@@ -19,7 +17,8 @@ services:
 
   # Backend del Hospital
   backend:
-    image: hospital-registry/hospital-backend:22
+    image: hospital-registry/hospital-backend:dev
+    pull_policy: never
     ports:
       - "8080:8080"
     environment:
@@ -33,7 +32,8 @@ services:
 
   # Frontend del Hospital
   frontend:
-    image: hospital-registry/hospital-frontend:20
+    image: hospital-registry/hospital-frontend:dev
+    pull_policy: never
     ports:
       - "80:80"
     depends_on:

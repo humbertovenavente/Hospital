@@ -1,0 +1,1 @@
+‡ 2javaX·hr6backend/src/main/java/com/unis/model/UsuarioInter.java

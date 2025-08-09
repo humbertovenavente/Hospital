@@ -1,0 +1,28 @@
+# 1️⃣ Etapa de construcción con Maven y OpenJDK 21
+FROM eclipse-temurin:21-jdk AS build
+WORKDIR /app
+
+# Copiar archivos de Maven
+COPY mvnw mvnw.cmd pom.xml /app/
+COPY .mvn/wrapper/ /app/.mvn/wrapper/
+COPY src /app/src/
+
+# Asegurar permisos de ejecución para `mvnw`
+RUN chmod +x mvnw
+
+# Resolver dependencias y construir la aplicación
+RUN ./mvnw dependency:resolve
+RUN ./mvnw package -DskipTests
+
+# 2️⃣ Etapa final para ejecutar la aplicación
+FROM eclipse-temurin:21-jdk AS runtime
+WORKDIR /app
+
+# Copiar la aplicación compilada desde la etapa de build
+COPY --from=build /app/target/quarkus-app/ /app/
+
+# Exponer el puerto de la aplicación
+EXPOSE 8080
+
+# Comando para ejecutar Quarkus
+CMD ["java", "-jar", "/app/quarkus-run.jar"]
