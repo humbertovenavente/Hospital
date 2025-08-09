@@ -279,6 +279,7 @@ Por favor revisar la consola para más detalles.
             // Usar Email Extension Plugin (configurado en "Extended E-mail Notification")
             emailext(
                 to: recipients,
+                from: 'humbertovenavente7@gmail.com',
                 subject: subject,
                 body: body,
                 mimeType: 'text/plain'
