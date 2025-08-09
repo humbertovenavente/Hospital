@@ -15,6 +15,8 @@ node {
     try {
         stage('Checkout') {
             echo "🔄 Iniciando checkout del código..."
+            // Limpiar workspace para evitar quedarnos en la rama anterior
+            deleteDir()
             checkout scm
             if (env.CHANGE_ID) {
                 echo "📋 Pull Request #${env.CHANGE_ID} detectado"
