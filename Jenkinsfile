@@ -104,6 +104,14 @@ node {
                 mvn -version
                 echo "=== Verificando Docker ==="
                 docker --version
+                echo "=== Verificando Docker Compose ==="
+                if command -v docker-compose >/dev/null 2>&1; then
+                  docker-compose --version
+                elif docker compose version >/dev/null 2>&1; then
+                  docker compose version
+                else
+                  echo "docker-compose no está instalado. Si deseas usar despliegues con Docker, instala el plugin: sudo apt-get install -y docker-compose-plugin"
+                fi
                 echo "=== Verificando Node.js ==="
                 node --version || echo "Node.js no está instalado"
                 npm --version || echo "npm no está instalado"
@@ -197,7 +205,16 @@ node {
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
                 echo "   Desplegando con Docker Compose..."
-                sh 'docker-compose -f docker-compose.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 10
                 echo "✅ Despliegue en desarrollo completado exitosamente"
@@ -213,7 +230,16 @@ node {
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
                 echo "   Desplegando con Docker Compose QA..."
-                sh 'docker-compose -f docker-compose.qa.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.qa.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
@@ -229,7 +255,16 @@ node {
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
                 echo "   Desplegando con Docker Compose Producción..."
-                sh 'docker-compose -f docker-compose.prod.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.prod.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 20
                 echo "✅ Despliegue en producción completado exitosamente"
