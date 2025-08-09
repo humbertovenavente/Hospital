@@ -7,7 +7,6 @@ node {
             booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
         ])
     ])
-
     def DOCKER_REGISTRY = 'hospital-registry'
     def BACKEND_IMAGE = 'hospital-backend'
     def FRONTEND_IMAGE = 'hospital-frontend'
@@ -16,6 +15,8 @@ node {
     try {
         stage('Checkout') {
             echo "🔄 Iniciando checkout del código..."
+            // Limpiar workspace para evitar quedarnos en la rama anterior
+            deleteDir()
             checkout scm
             if (env.CHANGE_ID) {
                 echo "📋 Pull Request #${env.CHANGE_ID} detectado"
