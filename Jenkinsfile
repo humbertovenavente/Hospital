@@ -3,6 +3,8 @@ node {
     properties([
         parameters([
             booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
+            ,
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
         ])
     ])
 
@@ -116,9 +118,9 @@ node {
             echo "   Compilando aplicación Quarkus..."
             dir('backend') {
                 sh '''
-                    echo "=== Compilando backend ==="
-                    mvn clean compile -DskipTests
-                    echo "=== Backend compilado exitosamente ==="
+                    echo "=== Empaquetando backend (Quarkus fast-jar) ==="
+                    mvn clean package -DskipTests -Dquarkus.package.type=fast-jar
+                    echo "=== Backend empaquetado exitosamente ==="
                 '''
             }
             echo "✅ Build del backend completado"
@@ -176,7 +178,7 @@ node {
         }
         
         stage('Build Docker Images') {
-            if (env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'prod') {
+            if (params.BUILD_DOCKER && (env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'prod')) {
                 echo "🐳 Iniciando construcción de imágenes Docker..."
                 echo "   Construyendo imagen del backend..."
                 docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
@@ -184,12 +186,12 @@ node {
                 docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
                 echo "✅ Imágenes Docker construidas exitosamente"
             } else {
-                echo "⏭️  Saltando construcción de Docker (rama: ${env.BRANCH_NAME})"
+                echo "⏭️  Saltando construcción de Docker (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME})"
             }
         }
         
         stage('Deploy to Development') {
-            if (env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
                 echo "   Etiquetando imágenes para desarrollo..."
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
@@ -200,12 +202,12 @@ node {
                 sleep 10
                 echo "✅ Despliegue en desarrollo completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de desarrollo (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de desarrollo (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to QA') {
-            if (env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
                 echo "   Etiquetando imágenes para QA..."
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
@@ -216,12 +218,12 @@ node {
                 sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de QA (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to Production') {
-            if (env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
                 echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
@@ -232,7 +234,7 @@ node {
                 sleep 20
                 echo "✅ Despliegue en producción completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de producción (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de producción (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
