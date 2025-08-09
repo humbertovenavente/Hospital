@@ -12,15 +12,6 @@ node {
     def VERSION = "${env.BUILD_NUMBER}"
     
     try {
-        stage('Fail Injection (opcional)') {
-            if (params.FORCE_FAIL) {
-                echo "⚠️  FAIL injection activado: se forzará un fallo para probar notificaciones"
-                error('Fallo intencional para probar notificaciones por correo')
-            } else {
-                echo 'Fail injection desactivado'
-            }
-        }
-        
         stage('Checkout') {
             echo "🔄 Iniciando checkout del código..."
             checkout scm
@@ -47,6 +38,15 @@ node {
             } catch (err) {
                 echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'dev' por defecto"
                 env.BRANCH_NAME = env.BRANCH_NAME ?: 'dev'
+            }
+        }
+        
+        stage('Fail Injection (opcional)') {
+            if (params.FORCE_FAIL) {
+                echo "⚠️  FAIL injection activado: se forzará un fallo para probar notificaciones"
+                error('Fallo intencional para probar notificaciones por correo')
+            } else {
+                echo 'Fail injection desactivado'
             }
         }
         
