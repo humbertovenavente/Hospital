@@ -19,7 +19,7 @@ node {
             deleteDir()
             checkout scm
             if (env.CHANGE_ID) {
-                echo "📋 Pull Request #${env.CHANGE_ID} detectado"
+                echo " Pull Request #${env.CHANGE_ID} detectado"
                 echo "   Rama origen: ${env.CHANGE_BRANCH}"
                 echo "   Rama destino: ${env.CHANGE_TARGET}"
             } else {
@@ -65,6 +65,12 @@ node {
                 /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
             '''
             
+            // Asegurar binarios Java antes del análisis (requeridos por sonar.java.binaries)
+            echo "   Compilando backend para proporcionar backend/target/classes a SonarQube..."
+            dir('backend') {
+                sh 'mvn -q -DskipTests compile'
+            }
+
             echo "   Ejecutando análisis de calidad del código..."
             
             // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
