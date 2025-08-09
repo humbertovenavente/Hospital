@@ -65,10 +65,10 @@ node {
                 /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
             '''
             
-            // Asegurar binarios Java antes del análisis (requeridos por sonar.java.binaries)
-            echo "   Compilando backend para proporcionar backend/target/classes a SonarQube..."
+            // Asegurar binarios de código y de pruebas antes del análisis
+            echo "   Compilando backend y tests (sin ejecutar) para SonarQube..."
             dir('backend') {
-                sh 'mvn -q -DskipTests compile'
+                sh 'mvn -q -DskipITs -DskipTests test-compile'
             }
 
             echo "   Ejecutando análisis de calidad del código..."
