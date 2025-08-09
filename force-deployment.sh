@@ -1,0 +1,66 @@
+#!/bin/bash
+
+echo "🚀 FORZANDO DESPLIEGUE EN JENKINS"
+echo "================================="
+echo ""
+
+echo "📋 CAMBIOS REALIZADOS:"
+echo "   ✅ Removidas condiciones 'when' de las etapas de despliegue"
+echo "   ✅ Deploy to Development: Ahora se ejecuta SIEMPRE"
+echo "   ✅ Deploy to Production: Ahora se ejecuta SIEMPRE"
+echo "   ✅ Deploy to QA: Solo se ejecuta en branch QA"
+echo ""
+
+echo "🔧 COMANDOS QUE SE EJECUTARÁN:"
+echo "   • docker tag hospital-registry/hospital-backend:22 hospital-registry/hospital-backend:dev"
+echo "   • docker tag hospital-registry/hospital-frontend:22 hospital-registry/hospital-frontend:dev"
+echo "   • docker compose down"
+echo "   • docker compose up -d"
+echo "   • docker tag hospital-registry/hospital-backend:22 hospital-registry/hospital-backend:prod"
+echo "   • docker tag hospital-registry/hospital-frontend:22 hospital-registry/hospital-frontend:prod"
+echo "   • docker compose -f docker-compose.prod.yml down"
+echo "   • docker compose -f docker-compose.prod.yml up -d"
+echo ""
+
+echo "🎯 PRÓXIMOS PASOS:"
+echo ""
+
+echo "1️⃣  Ve a Jenkins: http://localhost:8081"
+echo ""
+
+echo "2️⃣  Ve a tu pipeline 'Hospital-CI-CD'"
+echo ""
+
+echo "3️⃣  Haz clic en 'Build Now' para ejecutar el pipeline"
+echo ""
+
+echo "4️⃣  Ahora deberías ver que TODAS las etapas se ejecutan:"
+echo "   ✅ Checkout SCM"
+echo "   ✅ Checkout"
+echo "   ✅ Setup Tools"
+echo "   ✅ Build Backend"
+echo "   ✅ Test Backend"
+echo "   ✅ Build Frontend"
+echo "   ✅ Build Docker Images"
+echo "   ✅ Deploy to Development (NUEVO - se ejecutará)"
+echo "   ✅ Deploy to Production (NUEVO - se ejecutará)"
+echo "   ✅ Post Actions"
+echo ""
+
+echo "🔍 VERIFICACIÓN DESPUÉS DEL DESPLIEGUE:"
+echo "   Una vez completado, verifica:"
+echo "   • Frontend: http://localhost:80"
+echo "   • Backend: http://localhost:8080"
+echo "   • Database: localhost:1521"
+echo ""
+
+echo "⚠️  IMPORTANTE:"
+echo "   Si las etapas siguen sin ejecutarse, puede ser que Jenkins"
+echo "   tenga cache del Jenkinsfile anterior. En ese caso:"
+echo "   1. Ve a 'Manage Jenkins' > 'Manage Plugins'"
+echo "   2. Busca 'Pipeline' y reinstala el plugin"
+echo "   3. Reinicia Jenkins"
+echo ""
+
+echo "✅ ESTADO: Listo para forzar despliegue"
+echo "" 

@@ -7,7 +7,7 @@ Este documento describe la configuración del pipeline de CI/CD para el sistema 
 ### Ambientes
 - **Development**: Se actualiza tras merge al branch `dev`
 - **QA/UAT**: Se actualiza tras merge al branch `QA`
-- **Production**: Se actualiza tras merge al branch `main`
+- **Production**: Se actualiza tras merge al branch `dev`
 
 ### Base de Datos por Ambiente
 - **Development**: `C##PROYECTO`
@@ -110,7 +110,7 @@ FRONTEND_IMAGE=hospital-frontend
 1. **Desarrollo**: Los desarrolladores trabajan en ramas feature
 2. **Merge a dev**: Se hace merge a la rama `dev` → Despliegue automático a desarrollo
 3. **Merge a QA**: Se hace merge a la rama `QA` → Despliegue automático a QA
-4. **Merge a main**: Se hace merge a la rama `main` → Despliegue automático a producción
+4. **Merge a dev**: Se hace merge a la rama `dev` → Despliegue automático a producción
 
 ## 🛠️ Comandos Útiles
 

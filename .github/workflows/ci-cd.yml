@@ -93,7 +93,7 @@ jobs:
   build-and-deploy-prod:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/dev'
     
     steps:
     - uses: actions/checkout@v3
