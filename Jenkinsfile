@@ -276,8 +276,14 @@ El pipeline ha fallado.
 
 Por favor revisar la consola para más detalles.
 """
-            mail to: recipients, subject: subject, body: body
-            echo "📧 Notificación de fallo enviada a: ${recipients}"
+            // Usar Email Extension Plugin (configurado en "Extended E-mail Notification")
+            emailext(
+                to: recipients,
+                subject: subject,
+                body: body,
+                mimeType: 'text/plain'
+            )
+            echo "📧 Notificación de fallo enviada (emailext) a: ${recipients}"
         } catch (err) {
             echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
         }
