@@ -1,0 +1,1 @@
+~ 2javaXšhr6backend/src/main/java/com/unis/model/FichaTecnica.java

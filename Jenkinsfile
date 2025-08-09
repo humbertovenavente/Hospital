@@ -1,4 +1,12 @@
 node {
+    // Parámetro para pruebas: permite forzar un fallo controlado y validar notificaciones
+    properties([
+        parameters([
+            booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
+            ,
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
+        ])
+    ])
     def DOCKER_REGISTRY = 'hospital-registry'
     def BACKEND_IMAGE = 'hospital-backend'
     def FRONTEND_IMAGE = 'hospital-frontend'
@@ -16,6 +24,31 @@ node {
                 echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
             }
             echo "✅ Checkout completado"
+
+            // Normalizar nombre de rama cuando Jenkins no lo expone (evitar 'null')
+            try {
+                if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
+                    def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    if (detected == 'HEAD') {
+                        // En estado detached (p.ej., PR). Preferir destino u origen del PR
+                        detected = env.CHANGE_TARGET ?: (env.CHANGE_BRANCH ?: 'dev')
+                    }
+                    env.BRANCH_NAME = detected
+                    echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
+                }
+            } catch (err) {
+                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'dev' por defecto"
+                env.BRANCH_NAME = env.BRANCH_NAME ?: 'dev'
+            }
+        }
+        
+        stage('Fail Injection (opcional)') {
+            if (params.FORCE_FAIL) {
+                echo "⚠️  FAIL injection activado: se forzará un fallo para probar notificaciones"
+                error('Fallo intencional para probar notificaciones por correo')
+            } else {
+                echo 'Fail injection desactivado'
+            }
         }
         
         stage('Code Quality Check') {
@@ -70,6 +103,14 @@ node {
                 mvn -version
                 echo "=== Verificando Docker ==="
                 docker --version
+                echo "=== Verificando Docker Compose ==="
+                if command -v docker-compose >/dev/null 2>&1; then
+                  docker-compose --version
+                elif docker compose version >/dev/null 2>&1; then
+                  docker compose version
+                else
+                  echo "docker-compose no está instalado. Si deseas usar despliegues con Docker, instala el plugin: sudo apt-get install -y docker-compose-plugin"
+                fi
                 echo "=== Verificando Node.js ==="
                 node --version || echo "Node.js no está instalado"
                 npm --version || echo "npm no está instalado"
@@ -84,9 +125,9 @@ node {
             echo "   Compilando aplicación Quarkus..."
             dir('backend') {
                 sh '''
-                    echo "=== Compilando backend ==="
-                    mvn clean compile -DskipTests
-                    echo "=== Backend compilado exitosamente ==="
+                    echo "=== Empaquetando backend (Quarkus fast-jar) ==="
+                    mvn clean package -DskipTests -Dquarkus.package.type=fast-jar
+                    echo "=== Backend empaquetado exitosamente ==="
                 '''
             }
             echo "✅ Build del backend completado"
@@ -144,7 +185,7 @@ node {
         }
         
         stage('Build Docker Images') {
-            if (env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'master') {
+            if (params.BUILD_DOCKER && (env.BRANCH_NAME == 'dev' || env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'prod')) {
                 echo "🐳 Iniciando construcción de imágenes Docker..."
                 echo "   Construyendo imagen del backend..."
                 docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
@@ -152,55 +193,82 @@ node {
                 docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
                 echo "✅ Imágenes Docker construidas exitosamente"
             } else {
-                echo "⏭️  Saltando construcción de Docker (rama: ${env.BRANCH_NAME})"
+                echo "⏭️  Saltando construcción de Docker (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME})"
             }
         }
         
         stage('Deploy to Development') {
-            if (env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
                 echo "   Etiquetando imágenes para desarrollo..."
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
                 echo "   Desplegando con Docker Compose..."
-                sh 'docker-compose -f docker-compose.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 10
                 echo "✅ Despliegue en desarrollo completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de desarrollo (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de desarrollo (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to QA') {
-            if (env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
                 echo "   Etiquetando imágenes para QA..."
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
                 echo "   Desplegando con Docker Compose QA..."
-                sh 'docker-compose -f docker-compose.qa.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.qa.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de QA (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to Production') {
-            if (env.BRANCH_NAME == 'master' && !env.CHANGE_ID) {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
                 echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
                 echo "   Desplegando con Docker Compose Producción..."
-                sh 'docker-compose -f docker-compose.prod.yml up -d'
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  $DC -f docker-compose.prod.yml up -d
+                '''
                 echo "   Verificando salud de los servicios..."
                 sleep 20
                 echo "✅ Despliegue en producción completado exitosamente"
             } else {
-                echo "⏭️  Saltando despliegue de producción (rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de producción (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
@@ -226,6 +294,35 @@ node {
             echo "❌ Pull Request #${env.CHANGE_ID} falló: ${e.getMessage()}"
         } else {
             echo "❌ Pipeline falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
+        }
+        // Notificación por correo a Lead Developer y Product Owner
+        try {
+            def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
+            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (${env.BRANCH_NAME})")
+            def body = """
+Hola equipo,
+
+El pipeline ha fallado.
+
+- Job: ${env.JOB_NAME}
+- Build: #${env.BUILD_NUMBER}
+- Rama: ${env.BRANCH_NAME}
+- URL: ${env.BUILD_URL}
+- Motivo: ${e.getMessage()}
+
+Por favor revisar la consola para más detalles.
+"""
+            // Usar Email Extension Plugin (configurado en "Extended E-mail Notification")
+            emailext(
+                to: recipients,
+                from: 'humbertovenavente7@gmail.com',
+                subject: subject,
+                body: body,
+                mimeType: 'text/plain'
+            )
+            echo "📧 Notificación de fallo enviada (emailext) a: ${recipients}"
+        } catch (err) {
+            echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
         }
         throw e
     }
