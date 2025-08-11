@@ -13,11 +13,13 @@ services:
     volumes:
       - oracle_prod_data:/opt/oracle/oradata
       - ./backend/src/main/resources/import.sql:/opt/oracle/scripts/startup/import.sql
+      - ./healthcheck.sql:/opt/oracle/healthcheck.sql
     healthcheck:
-      test: ["CMD", "sqlplus", "-L", "Hospital3/Unis@localhost:1521/XEPDB1", "@healthcheck.sql"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "sqlplus", "-L", "system/Unis@localhost:1521/XEPDB1", "-c", "SELECT 1 FROM DUAL;"]
+      interval: 60s
+      timeout: 30s
       retries: 5
+      start_period: 300s
 
   # Backend Quarkus para Producción
   backend-prod:
