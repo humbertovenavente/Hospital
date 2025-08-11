@@ -1,53 +1,48 @@
 version: '3.8'
 
 services:
-  sonarqube:
-    image: sonarqube:10.4.1-enterprise
-    container_name: sonarqube-dev
-    ports:
-      - "9000:9000"
+  sonarqube-dev:
+    image: sonarqube:10.4.1-developer
+    container_name: sonarqube-developer
     environment:
-      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
-      - SONAR_WEB_JVMOPTS=-Xmx512m -Xms128m
-      - SONAR_SEARCH_JVMOPTS=-Xmx512m -Xms128m
-      - SONAR_JDBC_URL=jdbc:postgresql://db:5432/sonar
-      - SONAR_JDBC_USERNAME=sonar
-      - SONAR_JDBC_PASSWORD=sonar123
-      - SONAR_LICENSE_FILE=/opt/sonarqube/license/sonar-license.txt
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: true
+      SONAR_JDBC_URL: jdbc:postgresql://postgres-sonar:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+      SONAR_WEB_JVM_OPTS: "-Xmx2g -Xms1g"
+      SONAR_CE_JVM_OPTS: "-Xmx2g -Xms1g"
+      SONAR_SEARCH_JVM_OPTS: "-Xmx2g -Xms1g"
+    ports:
+      - "9001:9000"
     volumes:
-      - sonarqube_data:/opt/sonarqube/data
-      - sonarqube_extensions:/opt/sonarqube/extensions
-      - sonarqube_logs:/opt/sonarqube/logs
-      - ./sonar-license:/opt/sonarqube/license
+      - sonarqube_dev_data:/opt/sonarqube/data
+      - sonarqube_dev_extensions:/opt/sonarqube/extensions
+      - sonarqube_dev_logs:/opt/sonarqube/logs
     depends_on:
-      - db
+      - postgres-sonar
+    networks:
+      - sonarqube-dev-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
 
-  db:
+  postgres-sonar:
     image: postgres:15
-    container_name: sonarqube-postgres
+    container_name: postgres-sonar-dev
     environment:
       POSTGRES_USER: sonar
-      POSTGRES_PASSWORD: sonar123
+      POSTGRES_PASSWORD: sonar
       POSTGRES_DB: sonar
-      POSTGRES_INITDB_ARGS: "--encoding=UTF-8"
     volumes:
-      - postgresql:/var/lib/postgresql/data
+      - postgres_sonar_dev_data:/var/lib/postgresql/data
+    networks:
+      - sonarqube-dev-network
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sonar"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
 volumes:
-  sonarqube_data:
-  sonarqube_extensions:
-  sonarqube_logs:
-  postgresql:
+  sonarqube_dev_data:
+  sonarqube_dev_extensions:
+  sonarqube_dev_logs:
+  postgres_sonar_dev_data:
+
+networks:
+  sonarqube-dev-network:
+    driver: bridge
