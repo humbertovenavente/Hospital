@@ -40,31 +40,11 @@ echo "   Versión: ${BUILD_NUMBER}"
 echo "   Host: ${SONAR_HOST}"
 
 # Configuración específica para evitar problemas de bridge server
-export SONAR_SCANNER_OPTS="-Xmx4g -XX:MaxPermSize=512m"
+export SONAR_SCANNER_OPTS="-Xmx4g"
 
 sonar-scanner \
-    -Dsonar.projectKey=hospital-frontend \
-    -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
-    -Dsonar.projectVersion="${BUILD_NUMBER}" \
-    -Dsonar.sources=src \
-    -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
-    -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
-    -Dsonar.host.url="${SONAR_HOST}" \
-    -Dsonar.token="${SONAR_TOKEN}" \
-    -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/**,**/.scannerwork/**" \
-    -Dsonar.qualitygate.wait=true \
-    -Dsonar.javascript.timeout=600000 \
-    -Dsonar.typescript.timeout=600000 \
-    -Dsonar.javascript.bridge.timeout=600000 \
-    -Dsonar.javascript.bridge.connectionTimeout=600000 \
-    -Dsonar.javascript.bridge.readTimeout=600000 \
-    -Dsonar.javascript.bridge.serverTimeout=600000 \
-    -Dsonar.javascript.bridge.keepAlive=true \
-    -Dsonar.javascript.bridge.maxRetries=5 \
-    -Dsonar.javascript.bridge.memory=4096 \
-    -Dsonar.javascript.bridge.maxMemory=8192 \
-    -Dsonar.log.level=INFO \
-    -Dsonar.verbose=true
+    -Dproject.settings=./sonar-project-frontend.properties \
+    -Dsonar.projectVersion="${BUILD_NUMBER}"
 
 if [ $? -eq 0 ]; then
     echo "🎉 Análisis del frontend completado exitosamente"
