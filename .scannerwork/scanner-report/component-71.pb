@@ -1,0 +1,1 @@
+G 2jsX€hr'src/views/admin/AdminModerationView.vue

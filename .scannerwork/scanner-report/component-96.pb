@@ -1,0 +1,1 @@
+` 2jsXÀhrsrc/views/FichaTecnicaView.vue

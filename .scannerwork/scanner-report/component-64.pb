@@ -1,0 +1,1 @@
+@ 2jsXêhr,src/views/vistasSimuladas/HistorialPagos.vue

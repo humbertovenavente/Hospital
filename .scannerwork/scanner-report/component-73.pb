@@ -1,0 +1,1 @@
+I 2jsXßhr'src/views/admin/AdminFichasTecnicas.vue

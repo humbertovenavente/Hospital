@@ -1,0 +1,1 @@
+C 2jsXhr.src/views/vistasSimuladas/PacienteReportes.vue

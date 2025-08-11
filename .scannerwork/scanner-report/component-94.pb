@@ -1,0 +1,1 @@
+^ 2jsXèhr#src/views/SolicitudHospitalView.vue

@@ -1,0 +1,1 @@
+R 2jsXžhr src/views/ConsultarHistorial.vue

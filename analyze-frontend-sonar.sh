@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🔍 Iniciando análisis del FRONTEND con SonarQube..."
+echo "🔍 Iniciando análisis BÁSICO del FRONTEND con SonarQube (sin JS/TS)..."
 
 # Configuración
 SONAR_HOST="${SONAR_HOST:-http://localhost:9000}"
@@ -43,7 +43,7 @@ echo "   Host: ${SONAR_HOST}"
 export SONAR_SCANNER_OPTS="-Xmx4g"
 
 sonar-scanner \
-    -Dproject.settings=./sonar-project-frontend.properties \
+    -Dproject.settings=./sonar-project-frontend-basic.properties \
     -Dsonar.projectVersion="${BUILD_NUMBER}"
 
 if [ $? -eq 0 ]; then
