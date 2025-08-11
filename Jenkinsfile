@@ -306,6 +306,31 @@ node {
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
                 echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
+                
+                // Limpiar contenedores existentes para evitar conflictos
+                echo "   🧹 Limpiando contenedores existentes..."
+                sh '''
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  
+                  # Detener y eliminar contenedores existentes
+                  echo "Deteniendo servicios existentes..."
+                  $DC -f docker-compose.prod.yml down --remove-orphans
+                  
+                  # Limpiar contenedores huérfanos que puedan tener el mismo nombre
+                  echo "Limpiando contenedores huérfanos..."
+                  docker container prune -f
+                  
+                  # Verificar que no queden contenedores con nombres conflictivos
+                  echo "Verificando contenedores existentes..."
+                  docker ps -a --filter "name=hospital-" --format "table {{.Names}}\t{{.Status}}"
+                '''
+                
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                 sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
                 echo "   Desplegando con Docker Compose Producción..."
