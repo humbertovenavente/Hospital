@@ -1,1 +1,0 @@
-¤ 2javaXhrEbackend/src/main/java/com/unis/repository/FichaTecnicaRepository.java

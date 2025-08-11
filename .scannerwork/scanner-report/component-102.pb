@@ -1,1 +1,0 @@
-f 2javaXQhrDbackend/src/main/java/com/unis/resource/UsuarioInterAccResource.java

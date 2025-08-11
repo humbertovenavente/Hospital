@@ -1,1 +1,0 @@
-• 2javaXFhr5backend/src/main/java/com/unis/model/Aseguradora.java
