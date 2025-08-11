@@ -50,7 +50,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import API_URL from "@/config";
+import config from "@/config";
 
 const historia = ref(null);
 const timelineData = ref([]);

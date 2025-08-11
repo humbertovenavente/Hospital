@@ -220,7 +220,7 @@
 
 <script>
 import axios from 'axios';
-import API_URL from '@/config';
+import config from '@/config';
 import recetaService from "@/services/RecetaService.js";
 import { userRole, userId } from '@/stores/authStore';
 

@@ -86,7 +86,7 @@
 </template>
 
 <script>
-import API_URL from '@/config';
+import config from '@/config';
 
 export default {
   data() {
