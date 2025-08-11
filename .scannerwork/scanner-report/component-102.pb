@@ -1,1 +1,0 @@
-f 2jsX@hrsrc/views/DoctorImageView.vue

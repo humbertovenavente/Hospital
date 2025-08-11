@@ -1,1 +1,0 @@
-H 2jsXŸhr,src/views/admin/AdminMedicalPrescription.vue

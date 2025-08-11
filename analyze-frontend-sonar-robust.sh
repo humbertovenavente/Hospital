@@ -31,6 +31,11 @@ echo "=== Limpiando directorio de trabajo anterior ==="
 rm -rf .scannerwork
 echo "✅ Directorio limpiado"
 
+echo "=== Asegurando que estamos en la rama dev ==="
+git checkout dev
+git pull origin dev
+echo "✅ Rama dev actualizada"
+
 echo "=== Ejecutando análisis del frontend ==="
 echo "   Proyecto: ${PROJECT_KEY}"
 echo "   Versión: ${BUILD_NUMBER}"

@@ -1,1 +1,0 @@
-e 2jsX×hrsrc/views/RecetaView.vue

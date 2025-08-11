@@ -1,1 +1,0 @@
-A 2jsX€hr/src/views/vistasSimuladas/StockMedicamentos.vue
