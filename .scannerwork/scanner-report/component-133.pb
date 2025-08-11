@@ -1,1 +1,0 @@
-… 2javaX£hr9backend/src/main/java/com/unis/model/UsuarioInterAcc.java

@@ -1,1 +1,0 @@
-À X\hr-backend/src/main/docker/Dockerfile.legacy-jar

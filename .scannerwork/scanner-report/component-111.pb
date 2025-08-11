@@ -1,1 +1,0 @@
-o 2javaX/hrAbackend/src/main/java/com/unis/resource/FichaTecnicaResource.java
