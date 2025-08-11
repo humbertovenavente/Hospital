@@ -14,7 +14,7 @@ services:
       - oracle_qa_data:/opt/oracle/oradata
       - ./backend/src/main/resources/import.sql:/opt/oracle/scripts/startup/import.sql
     healthcheck:
-      test: ["CMD", "sqlplus", "-L", "C##PROYECTO/Unis@localhost:1521/XEPDB1", "@healthcheck.sql"]
+      test: ["CMD", "sqlplus", "-L", "Hospital3/Unis@localhost:1521/XEPDB1", "@healthcheck.sql"]
       interval: 30s
       timeout: 10s
       retries: 5

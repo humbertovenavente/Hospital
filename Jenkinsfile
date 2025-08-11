@@ -340,7 +340,40 @@ node {
             echo "   - Integration Tests: ✅"
             echo "   - Docker Images: ✅"
         } else {
-            echo "✅ Pipeline ejecutado exitosamente en rama ${env.BRANCH_NAME}"
+            echo "✅ Pipeline ejecutado exitosamente en rama ${env.BRANCH_NAME} (PRODUCCIÓN)"
+        }
+        
+        // Notificación por correo de éxito
+        try {
+            def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
+            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama PRODUCCIÓN: ${env.BRANCH_NAME})")
+            def body = """
+Hola equipo,
+
+El pipeline se ha ejecutado exitosamente.
+
+- Job: ${env.JOB_NAME}
+- Build: #${env.BUILD_NUMBER}
+- Rama: ${env.BRANCH_NAME} (PRODUCCIÓN)
+- URL: ${env.BUILD_URL}
+- Estado: EXITOSO
+
+El sistema está funcionando correctamente en el ambiente de PRODUCCIÓN.
+
+Saludos,
+Sistema de CI/CD del Hospital
+"""
+            // Usar Email Extension Plugin
+            emailext(
+                to: recipients,
+                from: 'humbertovenavente7@gmail.com',
+                subject: subject,
+                body: body,
+                mimeType: 'text/plain'
+            )
+            echo "📧 Notificación de éxito enviada a: ${recipients}"
+        } catch (err) {
+            echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
         }
         
     } catch (Exception e) {
@@ -353,19 +386,20 @@ node {
         // Notificación por correo a Lead Developer y Product Owner
         try {
             def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
-            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (${env.BRANCH_NAME})")
+            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama PRODUCCIÓN: ${env.BRANCH_NAME})")
             def body = """
 Hola equipo,
 
-El pipeline ha fallado.
+El pipeline ha fallado en la rama de PRODUCCIÓN.
 
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
-- Rama: ${env.BRANCH_NAME}
+- Rama: ${env.BRANCH_NAME} (PRODUCCIÓN)
 - URL: ${env.BUILD_URL}
 - Motivo: ${e.getMessage()}
 
 Por favor revisar la consola para más detalles.
+URGENTE: Fallo en ambiente de PRODUCCIÓN.
 """
             // Usar Email Extension Plugin (configurado en "Extended E-mail Notification")
             emailext(
