@@ -93,3 +93,6 @@ print_warning "y colocarla en el directorio 'sonar-license' con el nombre 'sonar
 echo ""
 print_status "Para verificar el estado: docker-compose -f docker-compose.sonarqube-dev.yml ps"
 print_status "Para ver logs: docker-compose -f docker-compose.sonarqube-dev.yml logs -f"
+
+
+

@@ -170,3 +170,6 @@ docker-compose -f docker-compose.sonarqube.yml up -d
 ---
 
 **Nota**: Este proceso migra la configuración pero no los datos de análisis. Los proyectos y configuraciones deberán ser reconfigurados en Developer Edition.
+
+
+

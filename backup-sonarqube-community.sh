@@ -84,3 +84,6 @@ print_warning "IMPORTANTE: Este backup solo incluye configuración, no datos de 
 print_warning "Los datos de análisis se perderán al cambiar a Developer Edition"
 echo ""
 print_status "Puedes proceder con la migración ejecutando: ./migrate-sonarqube-to-dev.sh"
+
+
+
