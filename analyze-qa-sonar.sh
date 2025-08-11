@@ -30,7 +30,7 @@ fi
 # Analizar el backend
 echo "🔧 Analizando BACKEND (Java/Quarkus)..."
 cd backend
-if sonar-scanner -Dproject.settings=../sonar-project-backend.properties; then
+if sonar-scanner; then
     echo "✅ Análisis del backend completado exitosamente"
 else
     echo "❌ Error en el análisis del backend"
