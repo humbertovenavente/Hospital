@@ -53,6 +53,56 @@ node {
             }
         }
         
+        stage('Setup Environment') {
+            echo "⚙️  Configurando entorno de desarrollo..."
+            sh '''
+                echo "=== Verificando Java ==="
+                java -version
+                mvn -version
+                echo "=== Verificando Docker ==="
+                docker --version
+                echo "=== Verificando Docker Compose ==="
+                if command -v docker-compose >/dev/null 2>&1; then
+                  docker-compose --version
+                elif docker compose version >/dev/null 2>&1; then
+                  docker compose version
+                else
+                  echo "docker-compose no está instalado. Si deseas usar despliegues con Docker, instala el plugin: sudo apt-get install -y docker-compose-plugin"
+                fi
+                echo "=== Verificando Node.js ==="
+                node --version || echo "Node.js no está instalado"
+                npm --version || echo "npm no está instalado"
+                echo "=== Verificando Git ==="
+                git --version
+            '''
+            echo "✅ Entorno configurado correctamente"
+        }
+        
+        stage('Build Backend') {
+            echo "🔨 Iniciando build del backend..."
+            echo "   Compilando aplicación Quarkus..."
+            dir('backend') {
+                sh '''
+                    echo "=== Empaquetando backend (Quarkus fast-jar) ==="
+                    mvn clean package -DskipTests -Dquarkus.package.type=fast-jar
+                    echo "=== Backend empaquetado exitosamente ==="
+                '''
+            }
+            echo "✅ Build del backend completado"
+        }
+        
+        stage('Unit Tests Backend') {
+            echo "🧪 Ejecutando tests unitarios del backend..."
+            dir('backend') {
+                sh '''
+                    echo "=== Ejecutando tests unitarios ==="
+                    mvn test -DskipITs
+                    echo "=== Tests unitarios completados ==="
+                '''
+            }
+            echo "✅ Tests unitarios del backend completados"
+        }
+        
         stage('Code Quality Check') {
             echo "🔍 Iniciando verificación de calidad del código con SonarQube..."
             echo "   Configurando SonarQube Scanner..."
@@ -64,12 +114,6 @@ node {
                 echo "=== Verificando SonarQube Scanner ==="
                 /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
             '''
-            
-            // Asegurar binarios de código y de pruebas antes del análisis
-            echo "   Compilando backend y tests (sin ejecutar) para SonarQube..."
-            dir('backend') {
-                sh 'mvn -q -DskipITs -DskipTests test-compile'
-            }
 
             echo "   Ejecutando análisis de calidad del código..."
             
@@ -132,56 +176,6 @@ node {
                 }
             }
             echo "✅ Verificación de calidad completada para ambos proyectos"
-        }
-        
-        stage('Setup Environment') {
-            echo "⚙️  Configurando entorno de desarrollo..."
-            sh '''
-                echo "=== Verificando Java ==="
-                java -version
-                mvn -version
-                echo "=== Verificando Docker ==="
-                docker --version
-                echo "=== Verificando Docker Compose ==="
-                if command -v docker-compose >/dev/null 2>&1; then
-                  docker-compose --version
-                elif docker compose version >/dev/null 2>&1; then
-                  docker compose version
-                else
-                  echo "docker-compose no está instalado. Si deseas usar despliegues con Docker, instala el plugin: sudo apt-get install -y docker-compose-plugin"
-                fi
-                echo "=== Verificando Node.js ==="
-                node --version || echo "Node.js no está instalado"
-                npm --version || echo "npm no está instalado"
-                echo "=== Verificando Git ==="
-                git --version
-            '''
-            echo "✅ Entorno configurado correctamente"
-        }
-        
-        stage('Build Backend') {
-            echo "🔨 Iniciando build del backend..."
-            echo "   Compilando aplicación Quarkus..."
-            dir('backend') {
-                sh '''
-                    echo "=== Empaquetando backend (Quarkus fast-jar) ==="
-                    mvn clean package -DskipTests -Dquarkus.package.type=fast-jar
-                    echo "=== Backend empaquetado exitosamente ==="
-                '''
-            }
-            echo "✅ Build del backend completado"
-        }
-        
-        stage('Unit Tests Backend') {
-            echo "🧪 Ejecutando tests unitarios del backend..."
-            dir('backend') {
-                sh '''
-                    echo "=== Ejecutando tests unitarios ==="
-                    mvn test -DskipITs
-                    echo "=== Tests unitarios completados ==="
-                '''
-            }
-            echo "✅ Tests unitarios del backend completados"
         }
         
         stage('Build Frontend') {
