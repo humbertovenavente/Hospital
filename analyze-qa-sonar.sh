@@ -5,9 +5,9 @@ echo "======================================"
 
 # Verificar que SonarQube esté funcionando
 echo "📡 Verificando conexión con SonarQube..."
-if ! curl -s http://localhost:9001/api/system/status | grep -q "UP"; then
-    echo "❌ SonarQube no está funcionando en http://localhost:9001"
-    echo "💡 Inicia SonarQube con: docker-compose -f docker-compose.sonarqube-dev.yml up -d"
+if ! curl -s http://localhost:9000/api/system/status | grep -q "UP"; then
+    echo "❌ SonarQube no está funcionando en http://localhost:9000"
+    echo "💡 Inicia SonarQube con: docker-compose -f docker-compose.sonarqube.yml up -d"
     exit 1
 fi
 
@@ -41,8 +41,8 @@ cd ..
 echo ""
 echo "🎉 ANÁLISIS COMPLETADO EXITOSAMENTE"
 echo "=================================="
-echo "📊 Frontend: http://localhost:9001/dashboard?id=hospital-frontend"
-echo "📊 Backend: http://localhost:9001/dashboard?id=hospital-backend"
-echo "🌿 Rama analizada: QA"
+echo "📊 Frontend: http://localhost:9000/dashboard?id=hospital-frontend"
+echo "📊 Backend: http://localhost:9000/dashboard?id=hospital-backend"
+echo "🌿 Análisis completado (Community no soporta ramas específicas)"
 echo ""
-echo "💡 Para ver los resultados, ve a SonarQube: http://localhost:9001"
+echo "💡 Para ver los resultados, ve a SonarQube: http://localhost:9000"
