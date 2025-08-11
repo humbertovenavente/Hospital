@@ -290,9 +290,19 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   $DC -f docker-compose.qa.yml down -v --remove-orphans
+                  
+                  # Limpieza agresiva de contenedores específicos
+                  docker rm -f hospital-oracle-qa 2>/dev/null || echo "Contenedor hospital-oracle-qa no encontrado"
+                  docker rm -f hospital-backend-qa 2>/dev/null || echo "Contenedor hospital-backend-qa no encontrado"
+                  docker rm -f hospital-frontend-qa 2>/dev/null || echo "Contenedor hospital-frontend-qa no encontrado"
+                  docker rm -f hospital-nginx-qa 2>/dev/null || echo "Contenedor hospital-nginx-qa no encontrado"
+                  
                   docker container prune -f
                   docker volume prune -f
                   docker network prune -f
+                  
+                  # Esperar un momento para que Docker procese la limpieza
+                  sleep 5
                 '''
                 echo "   Etiquetando imágenes para QA..."
                 sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
