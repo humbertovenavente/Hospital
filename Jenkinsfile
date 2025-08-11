@@ -318,13 +318,18 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Detener y eliminar contenedores existentes
-                  echo "Deteniendo servicios existentes..."
-                  $DC -f docker-compose.prod.yml down --remove-orphans
+                  # LIMPIEZA AGRESIVA - ESTA ES LA CLAVE PARA EVITAR CONFLICTOS
+                  echo "🛑 Deteniendo TODOS los contenedores hospital-..."
+                  docker stop $(docker ps -q --filter name=hospital-) 2>/dev/null || true
                   
-                  # Limpiar contenedores huérfanos que puedan tener el mismo nombre
-                  echo "Limpiando contenedores huérfanos..."
-                  docker container prune -f
+                  echo "🗑️ Eliminando TODOS los contenedores hospital-..."
+                  docker rm $(docker ps -aq --filter name=hospital-) 2>/dev/null || true
+                  
+                  echo "🌐 Limpiando redes huérfanas..."
+                  docker network prune -f
+                  
+                  echo "💾 Limpiando volúmenes no utilizados..."
+                  docker volume prune -f
                   
                   # Verificar que no queden contenedores con nombres conflictivos
                   echo "Verificando contenedores existentes..."
