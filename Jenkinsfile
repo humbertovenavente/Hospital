@@ -152,25 +152,45 @@ node {
                         echo "=== Análisis de SonarQube para BACKEND completado ==="
                     '''
                     
-                    // ANÁLISIS DEL FRONTEND (sin tests, solo calidad de código)
+                    // ANÁLISIS DEL FRONTEND (usando script robusto)
                     echo "   🔍 Analizando FRONTEND..."
                     sh '''
                         echo "=== Ejecutando SonarQube Analysis para FRONTEND ==="
                         export PATH=$PATH:/opt/sonar-scanner/bin
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
-                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+                        export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+                        export BUILD_NUMBER=${BUILD_NUMBER}
 
-                        sonar-scanner \
-                          -Dsonar.projectKey=hospital-frontend \
-                          -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
-                          -Dsonar.projectVersion=${BUILD_NUMBER} \
-                          -Dsonar.sources=src \
-                          -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
-                          -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
-                          -Dsonar.host.url=${SONAR_HOST} \
-                          -Dsonar.token=${TOKEN_TO_USE} \
-                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css \
-                          -Dsonar.qualitygate.wait=true
+                        # Usar script robusto para el frontend
+                        if [ -f "./analyze-frontend-sonar.sh" ]; then
+                            echo "   Usando script robusto para análisis del frontend..."
+                            chmod +x ./analyze-frontend-sonar.sh
+                            ./analyze-frontend-sonar.sh
+                        else
+                            echo "   Script robusto no encontrado, usando configuración estándar..."
+                            # Configuración robusta para evitar timeouts en JS/TS analysis
+                            sonar-scanner \
+                              -Dsonar.projectKey=hospital-frontend \
+                              -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
+                              -Dsonar.projectVersion=${BUILD_NUMBER} \
+                              -Dsonar.sources=src \
+                              -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
+                              -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
+                              -Dsonar.host.url=${SONAR_HOST} \
+                              -Dsonar.token=${SONAR_TOKEN} \
+                              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/** \
+                              -Dsonar.qualitygate.wait=true \
+                              -Dsonar.javascript.timeout=600000 \
+                              -Dsonar.typescript.timeout=600000 \
+                              -Dsonar.javascript.bridge.timeout=600000 \
+                              -Dsonar.javascript.bridge.connectionTimeout=600000 \
+                              -Dsonar.javascript.bridge.readTimeout=600000 \
+                              -Dsonar.javascript.bridge.serverTimeout=600000 \
+                              -Dsonar.javascript.bridge.keepAlive=true \
+                              -Dsonar.javascript.bridge.maxRetries=5 \
+                              -Dsonar.javascript.bridge.memory=4096 \
+                              -Dsonar.javascript.bridge.maxMemory=8192
+                        fi
                         echo "=== Análisis de SonarQube para FRONTEND completado ==="
                     '''
                 }

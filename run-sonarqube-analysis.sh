@@ -1,120 +1,90 @@
 #!/bin/bash
 
-# Script para ejecutar análisis de SonarQube por separado
-# Hospital Management System - Análisis de Calidad
+# Script robusto para ejecutar análisis de SonarQube
+# Maneja problemas de timeout y bridge server
 
-echo "🔍 Iniciando análisis de calidad con SonarQube..."
-echo "=================================================="
+set -e
+
+echo "🔍 Iniciando análisis de SonarQube robusto..."
+
+# Configuración de variables
+SONAR_HOST="${SONAR_HOST:-http://localhost:9000}"
+SONAR_TOKEN="${SONAR_TOKEN:-}"
+PROJECT_KEY="${1:-hospital-frontend}"
+PROJECT_NAME="${2:-Hospital Frontend - Vue.js/TypeScript}"
+PROJECT_VERSION="${3:-1.0}"
 
 # Verificar que SonarQube esté disponible
-echo "📡 Verificando conexión con SonarQube..."
-if ! curl -f http://localhost:9000/api/system/status > /dev/null 2>&1; then
-    echo "❌ Error: SonarQube no está disponible en http://localhost:9000"
-    echo "   Asegúrate de que esté ejecutándose: docker-compose up -d"
+echo "=== Verificando SonarQube ==="
+if ! curl -f "${SONAR_HOST}/api/system/status" > /dev/null 2>&1; then
+    echo "❌ SonarQube no está disponible en ${SONAR_HOST}"
     exit 1
 fi
+
 echo "✅ SonarQube está disponible"
 
-# Verificar que SonarQube Scanner esté instalado
+# Verificar que SonarQube Scanner esté disponible
+echo "=== Verificando SonarQube Scanner ==="
 if ! command -v sonar-scanner > /dev/null 2>&1; then
-    echo "❌ Error: SonarQube Scanner no está instalado"
-    echo "   Instala con: sudo apt-get install sonarqube-scanner"
+    echo "❌ SonarQube Scanner no está disponible"
     exit 1
 fi
+
 echo "✅ SonarQube Scanner está disponible"
 
-# Variables de configuración
-SONAR_HOST="http://localhost:9000"
-SONAR_TOKEN="${SONAR_TOKEN:-your-sonarqube-token-here}"
+# Función para ejecutar análisis con reintentos
+run_analysis() {
+    local max_retries=3
+    local retry_count=0
+    
+    while [ $retry_count -lt $max_retries ]; do
+        echo "🔄 Intento $((retry_count + 1)) de $max_retries"
+        
+        if sonar-scanner \
+            -Dsonar.projectKey="${PROJECT_KEY}" \
+            -Dsonar.projectName="${PROJECT_NAME}" \
+            -Dsonar.projectVersion="${PROJECT_VERSION}" \
+            -Dsonar.sources=src \
+            -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
+            -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
+            -Dsonar.host.url="${SONAR_HOST}" \
+            -Dsonar.token="${SONAR_TOKEN}" \
+            -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/**" \
+            -Dsonar.qualitygate.wait=true \
+            -Dsonar.javascript.timeout=300000 \
+            -Dsonar.typescript.timeout=300000 \
+            -Dsonar.javascript.bridge.timeout=300000 \
+            -Dsonar.javascript.bridge.connectionTimeout=300000 \
+            -Dsonar.javascript.bridge.readTimeout=300000 \
+            -Dsonar.javascript.bridge.serverTimeout=300000 \
+            -Dsonar.javascript.bridge.keepAlive=true \
+            -Dsonar.javascript.bridge.maxRetries=3 \
+            -Dsonar.javascript.bridge.memory=2048 \
+            -Dsonar.javascript.bridge.maxMemory=4096; then
+            
+            echo "✅ Análisis completado exitosamente"
+            return 0
+        else
+            retry_count=$((retry_count + 1))
+            if [ $retry_count -lt $max_retries ]; then
+                echo "⚠️  Intento falló, esperando antes del siguiente intento..."
+                sleep 30
+            fi
+        fi
+    done
+    
+    echo "❌ Todos los intentos fallaron"
+    return 1
+}
 
-if [ "$SONAR_TOKEN" = "your-sonarqube-token-here" ]; then
-    echo "⚠️  ADVERTENCIA: No se ha configurado SONAR_TOKEN"
-    echo "   Exporta la variable: export SONAR_TOKEN=tu-token-aqui"
-    echo "   O edita este script para incluir tu token"
-fi
-
-echo ""
-echo "🚀 Iniciando análisis del BACKEND..."
-echo "====================================="
-
-# Compilar backend para generar clases
-echo "🔨 Compilando backend..."
-cd backend
-mvn clean compile test-compile -q
-if [ $? -ne 0 ]; then
-    echo "❌ Error compilando backend"
+# Ejecutar análisis
+echo "=== Ejecutando análisis de SonarQube ==="
+if run_analysis; then
+    echo "🎉 Análisis de SonarQube completado exitosamente"
+    echo "📊 Resultados disponibles en: ${SONAR_HOST}/dashboard?id=${PROJECT_KEY}"
+else
+    echo "❌ Análisis de SonarQube falló después de múltiples intentos"
     exit 1
 fi
-cd ..
-
-# Análisis del BACKEND
-echo "🔍 Analizando BACKEND con SonarQube..."
-sonar-scanner \
-    -Dsonar.projectKey=hospital-backend \
-    -Dsonar.projectName="Hospital Backend - Java/Quarkus" \
-    -Dsonar.projectVersion=1.0 \
-    -Dsonar.sources=backend/src/main/java \
-    -Dsonar.tests=backend/src/test/java \
-    -Dsonar.java.source=17 \
-    -Dsonar.java.binaries=backend/target/classes \
-    -Dsonar.java.test.binaries=backend/target/test-classes \
-    -Dsonar.coverage.jacoco.xmlReportPaths=backend/target/site/jacoco/jacoco.xml \
-    -Dsonar.host.url="$SONAR_HOST" \
-    -Dsonar.token="$SONAR_TOKEN" \
-    -Dsonar.exclusions="**/target/**,**/*.min.js,**/*.min.css,**/generated/**" \
-    -Dsonar.qualitygate.wait=true
-
-if [ $? -eq 0 ]; then
-    echo "✅ Análisis del BACKEND completado exitosamente"
-    echo "   📊 Ver resultados en: $SONAR_HOST/dashboard?id=hospital-backend"
-else
-    echo "❌ Error en el análisis del BACKEND"
-fi
-
-echo ""
-echo "🚀 Iniciando análisis del FRONTEND..."
-echo "======================================"
-
-# Generar cobertura del frontend
-echo "🧪 Ejecutando tests del frontend para generar cobertura..."
-npm run test:unit -- --coverage
-if [ $? -ne 0 ]; then
-    echo "⚠️  Advertencia: Los tests del frontend fallaron, pero continuaremos con el análisis"
-fi
-
-# Análisis del FRONTEND
-echo "🔍 Analizando FRONTEND con SonarQube..."
-sonar-scanner \
-    -Dsonar.projectKey=hospital-frontend \
-    -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
-    -Dsonar.projectVersion=1.0 \
-    -Dsonar.sources=src \
-    -Dsonar.language=js,ts \
-    -Dsonar.typescript.tsconfigPath=tsconfig.json \
-    -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
-    -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
-    -Dsonar.host.url="$SONAR_HOST" \
-    -Dsonar.token="$SONAR_TOKEN" \
-    -Dsonar.exclusions="**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/public/**,**/e2e/**" \
-    -Dsonar.qualitygate.wait=true
-
-if [ $? -eq 0 ]; then
-    echo "✅ Análisis del FRONTEND completado exitosamente"
-    echo "   📊 Ver resultados en: $SONAR_HOST/dashboard?id=hospital-frontend"
-else
-    echo "❌ Error en el análisis del FRONTEND"
-fi
-
-echo ""
-echo "🎉 Análisis de calidad completado!"
-echo "=================================="
-echo "📊 Proyectos en SonarQube:"
-echo "   • Backend: $SONAR_HOST/dashboard?id=hospital-backend"
-echo "   • Frontend: $SONAR_HOST/dashboard?id=hospital-frontend"
-echo ""
-echo "💡 Consejos:"
-echo "   • El backend mostrará cobertura de tests si tienes tests unitarios"
-echo "   • El frontend mostrará calidad de código JavaScript/TypeScript"
-echo "   • Revisa los Quality Gates en cada proyecto"
 
 
