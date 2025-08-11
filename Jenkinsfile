@@ -65,36 +65,73 @@ node {
                 /opt/sonar-scanner/bin/sonar-scanner --version || echo "SonarQube Scanner no está disponible"
             '''
             
+            // Asegurar binarios de código y de pruebas antes del análisis
+            echo "   Compilando backend y tests (sin ejecutar) para SonarQube..."
+            dir('backend') {
+                sh 'mvn -q -DskipITs -DskipTests test-compile'
+            }
+
             echo "   Ejecutando análisis de calidad del código..."
             
             // Usar la integración oficial de Jenkins con SonarQube y credenciales explícitas
             // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
             withSonarQubeEnv('SonarQube') {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    // ANÁLISIS DEL BACKEND (con cobertura de tests)
+                    echo "   🔍 Analizando BACKEND con cobertura de tests..."
                     sh '''
-                        echo "=== Ejecutando SonarQube Analysis ==="
+                        echo "=== Ejecutando SonarQube Analysis para BACKEND ==="
                         export PATH=$PATH:/opt/sonar-scanner/bin
                         # Fallbacks: si la integración no expone variables, usar valores por defecto
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+
+                        TEST_ARGS=""
+                        if [ -d backend/target/test-classes ] && [ -d backend/src/test/java ]; then
+                          TEST_ARGS="-Dsonar.tests=backend/src/test/java -Dsonar.java.test.binaries=backend/target/test-classes"
+                        else
+                          echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
+                        fi
+
                         sonar-scanner \
-                            -Dsonar.projectKey=hospital-project \
-                            -Dsonar.projectName="Hospital Management System" \
-                            -Dsonar.projectVersion=${BUILD_NUMBER} \
-                            -Dsonar.sources=src,backend/src/main/java \
-                            -Dsonar.tests=backend/src/test/java \
-                            -Dsonar.java.source=17 \
-                            -Dsonar.java.binaries=backend/target/classes \
-                            -Dsonar.java.test.binaries=backend/target/test-classes \
-                            -Dsonar.host.url=${SONAR_HOST} \
-                            -Dsonar.token=${TOKEN_TO_USE} \
-                            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**,**/*.min.js,**/*.min.css \
-                            -Dsonar.qualitygate.wait=true
-                        echo "=== Análisis de SonarQube completado ==="
+                          -Dsonar.projectKey=hospital-backend \
+                          -Dsonar.projectName="Hospital Backend - Java/Quarkus" \
+                          -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.sources=backend/src/main/java \
+                          -Dsonar.java.source=17 \
+                          -Dsonar.java.binaries=backend/target/classes \
+                          ${TEST_ARGS} \
+                          -Dsonar.host.url=${SONAR_HOST} \
+                          -Dsonar.token=${TOKEN_TO_USE} \
+                          -Dsonar.exclusions=**/target/**,**/*.min.js,**/*.min.css \
+                          -Dsonar.qualitygate.wait=true
+                        echo "=== Análisis de SonarQube para BACKEND completado ==="
+                    '''
+                    
+                    // ANÁLISIS DEL FRONTEND (sin tests, solo calidad de código)
+                    echo "   🔍 Analizando FRONTEND..."
+                    sh '''
+                        echo "=== Ejecutando SonarQube Analysis para FRONTEND ==="
+                        export PATH=$PATH:/opt/sonar-scanner/bin
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+
+                        sonar-scanner \
+                          -Dsonar.projectKey=hospital-frontend \
+                          -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
+                          -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.sources=src \
+                          -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.host.url=${SONAR_HOST} \
+                          -Dsonar.token=${TOKEN_TO_USE} \
+                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css \
+                          -Dsonar.qualitygate.wait=true
+                        echo "=== Análisis de SonarQube para FRONTEND completado ==="
                     '''
                 }
             }
-            echo "✅ Verificación de calidad completada"
+            echo "✅ Verificación de calidad completada para ambos proyectos"
         }
         
         stage('Setup Environment') {
