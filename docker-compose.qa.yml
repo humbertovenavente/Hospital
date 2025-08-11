@@ -22,7 +22,7 @@ services:
   # Backend Quarkus para QA
   backend-qa:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: hospital-backend-qa
     environment:

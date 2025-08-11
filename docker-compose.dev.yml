@@ -22,7 +22,7 @@ services:
   # Backend Quarkus para DESARROLLO (con configuración de PRODUCCIÓN)
   backend-dev:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: hospital-backend-dev
     environment:

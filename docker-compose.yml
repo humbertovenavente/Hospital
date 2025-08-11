@@ -20,7 +20,7 @@ services:
   # Backend del Hospital para PRODUCCIÓN
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
     container_name: hospital-backend-prod
     environment:
