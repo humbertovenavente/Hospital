@@ -1,5 +1,5 @@
 services:
-  # Base de datos Oracle para PRODUCCIÓN
+  # Base de datos Oracle compartida para todos los entornos
   oracle:
     image: oracle-xe-con-datos:latest
     container_name: hospital-oracle-xe
@@ -7,9 +7,11 @@ services:
       ORACLE_PWD: Unis
       ORACLE_CHARACTERSET: AL32UTF8
     ports:
-      - "1525:1521"  # Puerto para docker-compose
+      - "1521:1521"  # Puerto estándar para todos los entornos
     volumes:
       - oracle_data:/opt/oracle/oradata
+      - ./backend/src/main/resources/import.sql:/opt/oracle/scripts/startup/import.sql
+      - ./setup-oracle-users.sql:/opt/oracle/scripts/startup/setup-oracle-users.sql
     healthcheck:
       test: ["CMD", "sqlplus", "-L", "sys/Unis@//localhost:1521/XE", "AS", "SYSDBA", "@healthcheck.sql"]
       interval: 30s

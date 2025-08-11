@@ -18,6 +18,7 @@ import jakarta.ws.rs.ext.Provider;
  */
 // @Provider
 // @ApplicationScoped
+// Comentado porque Quarkus maneja CORS automáticamente con la configuración en application.properties
 public class CorsFilter implements ContainerResponseFilter {
 
     /**
