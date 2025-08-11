@@ -37,7 +37,7 @@ services:
       oracle-qa:
         condition: service_healthy
     volumes:
-      - ./backend/src/main/resources/application.properties:/app/config/application.properties
+      - ./backend/src/main/resources/application-qa.properties:/app/config/application.properties
     restart: unless-stopped
 
   # Frontend Vue.js para QA
