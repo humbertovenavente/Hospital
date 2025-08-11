@@ -1,1 +1,0 @@
-t 2javaX³hr=backend/src/main/java/com/unis/resource/ServicioResource.java

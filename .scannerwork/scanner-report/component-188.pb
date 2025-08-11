@@ -1,1 +1,0 @@
-¼ 2webX hr8backend/src/main/resources/META-INF/resources/index.html

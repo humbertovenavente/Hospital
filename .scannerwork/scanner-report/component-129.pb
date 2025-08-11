@@ -1,1 +1,0 @@
- 2javaXÙhr0backend/src/main/java/com/unis/model/Receta.java
