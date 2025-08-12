@@ -4,6 +4,8 @@
 
 Este sistema está configurado para realizar análisis de calidad de código con SonarQube específicamente para cada rama del proyecto, creando proyectos separados y organizados.
 
+> **⚠️ IMPORTANTE**: Esta configuración está optimizada para SonarQube Community Edition. Para funcionalidades avanzadas de ramas, se requiere Developer Edition o superior.
+
 ## 🌿 Ramas Soportadas
 
 ### 1. **Rama `prod` (PRODUCCIÓN)**
@@ -126,10 +128,32 @@ SonarQube Dashboard
        PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
    ```
 
-3. **Análisis específico por rama**
+3. **Proyectos separados por rama** (Community Edition)
    ```groovy
-   -Dsonar.branch.name=${BRANCH_NAME}
+   # En lugar de sonar.branch.name (solo Developer Edition+)
+   -Dsonar.projectKey=hospital-backend-{rama}
+   -Dsonar.projectName=Hospital Backend - {RAMA}
    ```
+
+## ⚠️ Limitaciones de Community Edition
+
+### **Lo que SÍ funciona:**
+- ✅ Proyectos separados por rama (`hospital-backend-prod`, `hospital-backend-qa`)
+- ✅ Nombres descriptivos por rama
+- ✅ Análisis completo de código
+- ✅ Quality Gates
+- ✅ Métricas y reportes
+
+### **Lo que NO funciona (requiere Developer Edition+):**
+- ❌ `sonar.branch.name` - Análisis de ramas nativo
+- ❌ Historial de ramas en un solo proyecto
+- ❌ Comparación automática entre ramas
+- ❌ Merge de análisis de ramas
+
+### **Alternativa para Community Edition:**
+- 🔄 **Proyectos separados**: Cada rama tiene su propio proyecto
+- 🔄 **Nombres descriptivos**: Identificación clara por rama
+- 🔄 **Análisis independiente**: Cada proyecto mantiene su historial
 
 ## 📈 Métricas y Quality Gates
 

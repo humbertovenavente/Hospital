@@ -163,7 +163,6 @@ node {
                           -Dsonar.projectKey=$PROJECT_KEY \
                           -Dsonar.projectName="$PROJECT_NAME" \
                           -Dsonar.projectVersion=${BUILD_NUMBER} \
-                          -Dsonar.branch.name=${BRANCH_NAME} \
                           -Dsonar.sources=backend/src/main/java \
                           -Dsonar.java.source=17 \
                           -Dsonar.java.binaries=backend/target/classes \
@@ -214,7 +213,6 @@ node {
                               -Dsonar.projectKey=$PROJECT_KEY \
                               -Dsonar.projectName="$PROJECT_NAME" \
                               -Dsonar.projectVersion=${BUILD_NUMBER} \
-                              -Dsonar.branch.name=${BRANCH_NAME} \
                               -Dsonar.sources=src \
                               -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
                               -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
