@@ -808,11 +808,11 @@ def formatSonarMetrics(String metricsResponse, String qgResponse, String issuesR
         }
         
     } catch (Exception e) {
-        formattedMetrics += "⚠️ Error parseando métricas: ${e.getMessage()}\n"
+        formattedMetrics += "Error parseando métricas: ${e.getMessage()}\n"
     }
     
     if (!formattedMetrics) {
-        formattedMetrics = "📊 Métricas no disponibles o proyecto no encontrado\n"
+        formattedMetrics = " Métricas no disponibles o proyecto no encontrado\n"
     }
     
     return formattedMetrics
