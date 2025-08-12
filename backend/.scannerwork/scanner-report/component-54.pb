@@ -1,0 +1,1 @@
+6 2javaX/hr9src/main/java/com/unis/resource/FichaTecnicaResource.java
