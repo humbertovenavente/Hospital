@@ -574,35 +574,30 @@ Error: ${err.getMessage()}
             def body = """
 Hola equipo,
 
-🎉 El pipeline se ha ejecutado exitosamente.
+ El pipeline se ha ejecutado exitosamente.
 
-📋 INFORMACIÓN DEL BUILD:
+ INFORMACIÓN DEL BUILD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME}
 - URL: ${env.BUILD_URL}
-- Estado: ✅ EXITOSO
+- Estado:  EXITOSO
 
 🔍 RESULTADOS DE CALIDAD:
-- Tests Backend: ✅ Completados
-- Tests Frontend: ✅ Completados
-- Análisis SonarQube: ✅ Completado
-- Quality Gate: ✅ PASÓ
+- Tests Backend:  Completados
+- Tests Frontend: Completados
+- Análisis SonarQube:  Completado
+- Quality Gate:  PASÓ
 
 ${sonarMetrics}
 
-🌐 URLs DE ACCESO:
+ URLs DE ACCESO:
 - Backend: http://localhost:8080
 - Frontend: http://localhost:5173
 - SonarQube: http://localhost:9000
 - Jenkins: ${env.BUILD_URL}
 
-📧 REPORTE DE DEUDA TÉCNICA:
-El análisis de calidad se completó exitosamente. Se ejecutaron 174 tests sin fallos.
-El código nuevo tiene cobertura completa y cumple con los estándares de calidad.
-
-El sistema está funcionando correctamente.
-
+ 
 Saludos,
 Sistema de CI/CD del Hospital
 """
@@ -645,22 +640,22 @@ INFORMACIÓN DEL BUILD:
 
 RESULTADOS DE CALIDAD:
 - Tests Backend:  Verificar estado
-- Tests Frontend: ⚠️ Verificar estado
-- Análisis SonarQube: ⚠️ Verificar estado
+- Tests Frontend:  Verificar estado
+- Análisis SonarQube:  Verificar estado
 
-📊 MÉTRICAS DE CALIDAD:
+ MÉTRICAS DE CALIDAD:
 - Cobertura de código: Verificar estado
 - Deuda técnica: Verificar estado
 - Vulnerabilidades: Verificar estado
 - Code smells: Verificar estado
 
-🔧 ACCIONES REQUERIDAS:
+ACCIONES REQUERIDAS:
 1. Revisar la consola de Jenkins para más detalles
 2. Verificar logs de los servicios
 3. Revisar métricas de SonarQube
 4. Corregir el problema identificado
 
-🌐 URLs DE ACCESO:
+ URLs DE ACCESO:
 - Jenkins: ${env.BUILD_URL}
 - SonarQube: http://localhost:9000
 
