@@ -264,6 +264,84 @@ node {
             echo "✅ Verificación de calidad completada para rama: ${env.BRANCH_NAME}"
         }
         
+        stage('Send Technical Debt Report') {
+            echo "📧 Enviando reporte de deuda técnica por correo..."
+            echo "   Esperando a que SonarQube procese los resultados..."
+            
+            // Esperar un poco para que SonarQube termine de procesar
+            sleep 30
+            
+            try {
+                sh '''
+                    echo "=== Enviando reporte de deuda técnica ==="
+                    
+                    # Configurar email según la rama
+                    if [ "$BRANCH_NAME" = "prod" ]; then
+                        EMAIL_RECIPIENT="humbertovenavente7@gmail.com"
+                        PROJECT_TYPE="PRODUCCIÓN"
+                    elif [ "$BRANCH_NAME" = "QA" ]; then
+                        EMAIL_RECIPIENT="humbertovenavente7@gmail.com"
+                        PROJECT_TYPE="QA"
+                    elif [ "$BRANCH_NAME" = "dev" ]; then
+                        EMAIL_RECIPIENT="humbertovenavente7@gmail.com"
+                        PROJECT_TYPE="DESARROLLO"
+                    else
+                        EMAIL_RECIPIENT="humbertovenavente7@gmail.com"
+                        PROJECT_TYPE="$BRANCH_NAME"
+                    fi
+                    
+                    echo "📧 Enviando reporte a: $EMAIL_RECIPIENT"
+                    echo "🏥 Proyecto: $PROJECT_TYPE"
+                    
+                    # Verificar que el backend esté disponible
+                    echo "🔍 Verificando disponibilidad del backend..."
+                    if curl -f http://localhost:8090/health >/dev/null 2>&1; then
+                        echo "✅ Backend disponible en puerto 8090"
+                        
+                        # Enviar reporte de deuda técnica
+                        echo "📊 Enviando reporte de deuda técnica..."
+                        curl -X POST "http://localhost:8090/api/technical-debt/send-report" \
+                             -H "Content-Type: application/json" \
+                             -d "{\"recipientEmail\": \"$EMAIL_RECIPIENT\"}" \
+                             -s -w "\\nHTTP Status: %{http_code}\\n"
+                        
+                        if [ $? -eq 0 ]; then
+                            echo "✅ Reporte de deuda técnica enviado exitosamente"
+                        else
+                            echo "⚠️  Error al enviar reporte de deuda técnica"
+                        fi
+                    else
+                        echo "⚠️  Backend no disponible en puerto 8090, intentando puerto 8080..."
+                        if curl -f http://localhost:8080/health >/dev/null 2>&1; then
+                            echo "✅ Backend disponible en puerto 8080"
+                            
+                            # Enviar reporte de deuda técnica
+                            echo "📊 Enviando reporte de deuda técnica..."
+                            curl -X POST "http://localhost:8080/api/technical-debt/send-report" \
+                                 -H "Content-Type: application/json" \
+                                 -d "{\"recipientEmail\": \"$EMAIL_RECIPIENT\"}" \
+                                 -s -w "\\nHTTP Status: %{http_code}\\n"
+                            
+                            if [ $? -eq 0 ]; then
+                                echo "✅ Reporte de deuda técnica enviado exitosamente"
+                            else
+                                echo "⚠️  Error al enviar reporte de deuda técnica"
+                            fi
+                        else
+                            echo "❌ Backend no disponible en ningún puerto"
+                            echo "⚠️  No se pudo enviar el reporte de deuda técnica"
+                        fi
+                    fi
+                    
+                    echo "=== Reporte de deuda técnica completado ==="
+                '''
+                echo "✅ Reporte de deuda técnica enviado"
+            } catch (err) {
+                echo "⚠️  Error al enviar reporte de deuda técnica: ${err}"
+                echo "   El pipeline continuará sin enviar el reporte"
+            }
+        }
+        
         stage('Build Frontend') {
             echo "🎨 Iniciando build del frontend..."
             echo "   Instalando dependencias..."
