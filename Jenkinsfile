@@ -293,44 +293,30 @@ node {
                     echo "📧 Enviando reporte a: $EMAIL_RECIPIENT"
                     echo "🏥 Proyecto: $PROJECT_TYPE"
                     
-                    # Verificar que el backend esté disponible
+                    # Verificar que el backend esté disponible en el puerto correcto (8080)
                     echo "🔍 Verificando disponibilidad del backend..."
-                    if curl -f http://localhost:8090/health >/dev/null 2>&1; then
-                        echo "✅ Backend disponible en puerto 8090"
+                    if curl -f http://localhost:8080/health >/dev/null 2>&1; then
+                        echo "✅ Backend disponible en puerto 8080"
                         
-                        # Enviar reporte de deuda técnica
+                        # Enviar reporte de deuda técnica usando el endpoint correcto
                         echo "📊 Enviando reporte de deuda técnica..."
-                        curl -X POST "http://localhost:8090/api/technical-debt/send-report" \
+                        RESPONSE=$(curl -X POST "http://localhost:8080/api/email/technical-debt/send-report" \
                              -H "Content-Type: application/json" \
                              -d "{\"recipientEmail\": \"$EMAIL_RECIPIENT\"}" \
-                             -s -w "\\nHTTP Status: %{http_code}\\n"
+                             -s -w "\\nHTTP Status: %{http_code}\\n")
+                        
+                        echo "📨 Respuesta del servidor: $RESPONSE"
                         
                         if [ $? -eq 0 ]; then
                             echo "✅ Reporte de deuda técnica enviado exitosamente"
+                            echo "📧 Se envió automáticamente a: $EMAIL_RECIPIENT y jflores@unis.edu.gt"
                         else
                             echo "⚠️  Error al enviar reporte de deuda técnica"
                         fi
                     else
-                        echo "⚠️  Backend no disponible en puerto 8090, intentando puerto 8080..."
-                        if curl -f http://localhost:8080/health >/dev/null 2>&1; then
-                            echo "✅ Backend disponible en puerto 8080"
-                            
-                            # Enviar reporte de deuda técnica
-                            echo "📊 Enviando reporte de deuda técnica..."
-                            curl -X POST "http://localhost:8080/api/technical-debt/send-report" \
-                                 -H "Content-Type: application/json" \
-                                 -d "{\"recipientEmail\": \"$EMAIL_RECIPIENT\"}" \
-                                 -s -w "\\nHTTP Status: %{http_code}\\n"
-                            
-                            if [ $? -eq 0 ]; then
-                                echo "✅ Reporte de deuda técnica enviado exitosamente"
-                            else
-                                echo "⚠️  Error al enviar reporte de deuda técnica"
-                            fi
-                        else
-                            echo "❌ Backend no disponible en ningún puerto"
-                            echo "⚠️  No se pudo enviar el reporte de deuda técnica"
-                        fi
+                        echo "❌ Backend no disponible en puerto 8080"
+                        echo "⚠️  No se pudo enviar el reporte de deuda técnica"
+                        echo "🔍 Verificar que el contenedor hospital-backend-local esté ejecutándose"
                     fi
                     
                     echo "=== Reporte de deuda técnica completado ==="
