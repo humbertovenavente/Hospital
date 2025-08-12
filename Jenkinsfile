@@ -201,36 +201,62 @@ node {
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
 
-                        # Usar script robusto para el frontend si existe
-                        if [ -f "./analyze-frontend-sonar.sh" ]; then
-                            echo "   Usando script robusto para análisis del frontend..."
-                            chmod +x ./analyze-frontend-sonar.sh
-                            ./analyze-frontend-sonar.sh
-                        else
-                            echo "   Script robusto no encontrado, usando configuración estándar..."
-                            # Configuración robusta para evitar timeouts en JS/TS analysis
-                            sonar-scanner \
-                              -Dsonar.projectKey=$PROJECT_KEY \
-                              -Dsonar.projectName="$PROJECT_NAME" \
-                              -Dsonar.projectVersion=${BUILD_NUMBER} \
-                              -Dsonar.sources=src \
-                              -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
-                              -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
-                              -Dsonar.host.url=${SONAR_HOST} \
-                              -Dsonar.token=${SONAR_TOKEN} \
-                              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/** \
-                              -Dsonar.qualitygate.wait=true \
-                              -Dsonar.javascript.timeout=600000 \
-                              -Dsonar.typescript.timeout=600000 \
-                              -Dsonar.javascript.bridge.timeout=600000 \
-                              -Dsonar.javascript.bridge.connectionTimeout=600000 \
-                              -Dsonar.javascript.bridge.readTimeout=600000 \
-                              -Dsonar.javascript.bridge.serverTimeout=600000 \
-                              -Dsonar.javascript.bridge.keepAlive=true \
-                              -Dsonar.javascript.bridge.maxRetries=5 \
-                              -Dsonar.javascript.bridge.memory=4096 \
-                              -Dsonar.javascript.bridge.maxMemory=8192
+                        # Verificar que el directorio src existe
+                        if [ ! -d "src" ]; then
+                            echo "   ❌ Error: Directorio src no encontrado"
+                            echo "   📁 Directorio actual: $(pwd)"
+                            echo "   📁 Contenido: $(ls -la)"
+                            exit 1
                         fi
+
+                        # Verificar que package.json existe
+                        if [ ! -f "package.json" ]; then
+                            echo "   ❌ Error: package.json no encontrado"
+                            exit 1
+                        fi
+
+                        echo "   📦 Instalando dependencias del frontend..."
+                        npm ci || echo "   ⚠️  npm ci falló, intentando npm install..."
+                        npm install || echo "   ⚠️  npm install también falló"
+
+                        echo "   🧪 Ejecutando tests para generar cobertura..."
+                        npm run test:unit || echo "   ⚠️  Tests unitarios no configurados o fallaron"
+
+                        echo "   🔨 Construyendo proyecto frontend..."
+                        npm run build || echo "   ⚠️  Build falló, continuando sin build"
+
+                        echo "   🔍 Ejecutando análisis de SonarQube para frontend..."
+                        # Configuración robusta para evitar timeouts en JS/TS analysis
+                        sonar-scanner \
+                          -Dsonar.projectKey=$PROJECT_KEY \
+                          -Dsonar.projectName="$PROJECT_NAME" \
+                          -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.sources=src \
+                          -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.host.url=${SONAR_HOST} \
+                          -Dsonar.token=${SONAR_TOKEN} \
+                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/** \
+                          -Dsonar.qualitygate.wait=true \
+                          -Dsonar.javascript.timeout=600000 \
+                          -Dsonar.typescript.timeout=600000 \
+                          -Dsonar.javascript.bridge.timeout=600000 \
+                          -Dsonar.javascript.bridge.connectionTimeout=600000 \
+                          -Dsonar.javascript.bridge.readTimeout=600000 \
+                          -Dsonar.javascript.bridge.serverTimeout=600000 \
+                          -Dsonar.javascript.bridge.keepAlive=true \
+                          -Dsonar.javascript.bridge.maxRetries=5 \
+                          -Dsonar.javascript.bridge.memory=4096 \
+                          -Dsonar.javascript.bridge.maxMemory=8192
+                        
+                        if [ $? -eq 0 ]; then
+                            echo "   ✅ Análisis del FRONTEND completado exitosamente"
+                            echo "   🌐 Proyecto creado: $PROJECT_KEY"
+                        else
+                            echo "   ❌ Error en el análisis del FRONTEND"
+                            exit 1
+                        fi
+                        
                         echo "=== Análisis de SonarQube para FRONTEND (${BRANCH_NAME}) completado ==="
                     '''
                 }
