@@ -13,8 +13,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuración
-API_URL="http://localhost:8080"
-DEFAULT_EMAIL="admin@hospital.com"
+API_URL="http://localhost:8090"
+DEFAULT_EMAIL="humbertovenavente7@gmail.com"
 
 # Función para mostrar ayuda
 show_help() {

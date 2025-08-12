@@ -8,16 +8,17 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import javax.mail.*;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import io.quarkus.mailer.Mail;
+import io.quarkus.mailer.Mailer;
 import java.util.List;
-import java.util.Properties;
 
 @ApplicationScoped
 public class TechnicalDebtEmailService {
 
     private static final Logger LOG = Logger.getLogger(TechnicalDebtEmailService.class);
+
+    @Inject
+    Mailer mailer;
 
     @ConfigProperty(name = "quarkus.mailer.host", defaultValue = "localhost")
     String mailHost;
@@ -48,8 +49,11 @@ public class TechnicalDebtEmailService {
             String subject = "📊 Reporte de Deuda Técnica - " + projectName;
             String htmlContent = generateTechnicalDebtReportHTML(projectKey, projectName);
             
-            // Enviar email
-            sendEmail(recipientEmail, subject, htmlContent);
+            // Enviar email usando Quarkus Mailer
+            Mail mail = Mail.withHtml(recipientEmail, subject, htmlContent)
+                .setFrom(mailFrom);
+            
+            mailer.send(mail);
             
             LOG.info("Reporte de deuda técnica enviado exitosamente a: " + recipientEmail);
             
@@ -99,57 +103,56 @@ public class TechnicalDebtEmailService {
                 <meta charset="UTF-8">
                 <title>Reporte de Deuda Técnica - %s</title>
                 <style>
-                    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f5f5f5; }
-                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-                    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; text-align: center; }
-                    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0; }
-                    .metric-card { border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: white; }
+                    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f5f5f5; }
+                    .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                    .header { text-align: center; border-bottom: 3px solid #007bff; padding-bottom: 20px; margin-bottom: 30px; }
+                    .header h1 { color: #007bff; margin: 0; }
+                    .header .timestamp { color: #666; font-size: 14px; }
+                    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 30px 0; }
+                    .metric-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #007bff; }
                     .metric-card h3 { margin-top: 0; color: #333; }
-                    .rating { font-size: 24px; font-weight: bold; margin: 10px 0; }
-                    .rating-A { color: #27ae60; }
-                    .rating-B { color: #2ecc71; }
-                    .rating-C { color: #f39c12; }
-                    .rating-D { color: #e67e22; }
-                    .rating-E { color: #e74c3c; }
-                    .summary { background: #ecf0f1; padding: 20px; border-radius: 8px; margin: 20px 0; }
-                    .footer { text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 12px; }
-                    .alert { padding: 15px; border-radius: 5px; margin: 10px 0; }
-                    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
-                    .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-                    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+                    .rating { font-weight: bold; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; }
+                    .rating-A { background: #d4edda; color: #155724; }
+                    .rating-B { background: #d1ecf1; color: #0c5460; }
+                    .rating-C { background: #fff3cd; color: #856404; }
+                    .rating-D { background: #f8d7da; color: #721c24; }
+                    .rating-E { background: #f5c6cb; color: #721c24; }
+                    .alert { padding: 10px; border-radius: 4px; margin: 10px 0; }
+                    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+                    .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+                    .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+                    .summary { background: #e9ecef; padding: 20px; border-radius: 8px; margin: 30px 0; }
+                    .summary h3 { margin-top: 0; color: #495057; }
+                    .summary ol { margin: 0; padding-left: 20px; }
+                    .summary li { margin: 10px 0; }
+                    .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #dee2e6; color: #6c757d; font-size: 12px; }
+                    .footer a { color: #007bff; text-decoration: none; }
                 </style>
             </head>
             <body>
                 <div class="container">
                     <div class="header">
                         <h1>📊 Reporte de Deuda Técnica</h1>
-                        <h2>%s</h2>
-                        <p>Generado el: %s</p>
-                        <p>Proyecto: %s</p>
+                        <p class="timestamp">Generado el: %s</p>
+                        <p><strong>Proyecto:</strong> %s</p>
                     </div>
 
-                    <div class="summary">
-                        <h3>📋 Resumen Ejecutivo</h3>
-                        <p>Este reporte detalla el estado actual de la deuda técnica del proyecto, incluyendo métricas de calidad, seguridad y mantenibilidad.</p>
-                        <p><strong>⚠️ IMPORTANTE:</strong> La deuda técnica debe ser monitoreada y reducida regularmente para mantener la calidad del código.</p>
-                    </div>
-
-                    <div class="metric-grid">
+                    <div class="metrics-grid">
                         <div class="metric-card">
                             <h3>🛡️ Seguridad</h3>
                             <div class="rating rating-E">Rating: E</div>
                             <div class="alert alert-danger">
-                                <strong>🚨 CRÍTICO:</strong> 11 Security Hotspots detectados
+                                <strong>🚨 CRÍTICO:</strong> Rating E en seguridad
                             </div>
                             <p><strong>Security Hotspots:</strong> 11</p>
                             <p><strong>Vulnerabilidades:</strong> 0</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>🔧 Confiabilidad</h3>
+                            <h3>🔒 Confiabilidad</h3>
                             <div class="rating rating-C">Rating: C</div>
                             <div class="alert alert-warning">
-                                <strong>⚠️ ATENCIÓN:</strong> 2 issues de confiabilidad
+                                <strong>⚠️ ATENCIÓN:</strong> Rating C en confiabilidad
                             </div>
                             <p><strong>Bugs:</strong> 0</p>
                             <p><strong>Issues de Confiabilidad:</strong> 2</p>
@@ -220,32 +223,5 @@ public class TechnicalDebtEmailService {
                 projectKey,
                 projectKey
             );
-    }
-
-    /**
-     * Envía el email usando JavaMail
-     */
-    private void sendEmail(String to, String subject, String htmlContent) throws MessagingException {
-        Properties props = new Properties();
-        props.put("mail.smtp.host", mailHost);
-        props.put("mail.smtp.port", mailPort);
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", !mailSsl);
-        props.put("mail.smtp.ssl.enable", mailSsl);
-
-        Session session = Session.getInstance(props, new Authenticator() {
-            @Override
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(mailUsername, mailPassword);
-            }
-        });
-
-        Message message = new MimeMessage(session);
-        message.setFrom(new InternetAddress(mailFrom));
-        message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-        message.setSubject(subject);
-        message.setContent(htmlContent, "text/html; charset=utf-8");
-
-        Transport.send(message);
     }
 }
