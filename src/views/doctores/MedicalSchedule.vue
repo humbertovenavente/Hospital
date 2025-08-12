@@ -457,7 +457,7 @@ async reasignarCita() {
     async obtenerCitas() {
       try {
         console.log("Llamando a obtenerCitas()...");
-        let response = await axios.get(`${API_URL}/citas`);
+        const response = await axios.get(`${API_URL}/citas`);
         this.citas = response.data;
         console.log("Citas obtenidas:", this.citas);
       } catch (error) {

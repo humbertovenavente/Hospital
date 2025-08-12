@@ -47,7 +47,7 @@ import EmpleadosAdmin       from "../views/EmpleadosAdmin.vue";
 import AdminServiciosView   from "@/views/admin/AdminServiciosView.vue";
 import DoctorAdmin          from "../views/DoctorAdmin.vue";
 import AdminFichasTecnicas  from "../views/admin/AdminFichasTecnicas.vue";
-import ReporteView          from "@/views/admin/ReporteView.vue";
+// import ReporteView          from "@/views/admin/ReporteView.vue";
 import ReporteMedicinasView from "@/views/admin/ReporteMedicinasView.vue";
 import ReporteModeracionView from "@/views/admin/ReporteModeracionView.vue";
 import AdminDynamicPages    from "@/views/admin/AdminDynamicPages.vue";
@@ -68,10 +68,10 @@ const ROLES = {
 } as const;
 
 // ** Guards **
-const requireAuth = (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-  const userId = localStorage.getItem("userId");
-  return userId ? next() : next("/login");
-};
+// const requireAuth = (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+//   const userId = localStorage.getItem("userId");
+//   return userId ? next() : next("/login");
+// };
 
 const requireRole = (allowedRoles: number[]) => (
   to: RouteLocationNormalized,
