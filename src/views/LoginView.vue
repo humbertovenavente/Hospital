@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { loginUser } from "@/services/authService.js";
 import { useRouter } from "vue-router";
@@ -23,7 +23,7 @@ const login = async () => {
     } else {
       errorMensaje.value = "Error en los datos del usuario.";
     }
-  } catch (error) {
+  } catch {
     errorMensaje.value = "Error al iniciar sesión. Inténtalo nuevamente.";
   }
 };

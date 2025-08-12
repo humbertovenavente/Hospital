@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import API_URL from "../config"; // Importamos API_URL desde config.ts
@@ -21,10 +21,10 @@ const rolesMap = {
 };
 
 // Mapeo de estados
-const estadoMap = {
-  1: "Activo",
-  0: "Inactivo",
-};
+// const estadoMap = {
+//   1: "Activo",
+//   0: "Inactivo",
+// };
 
 // Cargar datos del usuario y del doctor
 onMounted(async () => {

@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { obtenerPreguntas } from "@/services/faqService.js"; // Usamos la función correcta
 

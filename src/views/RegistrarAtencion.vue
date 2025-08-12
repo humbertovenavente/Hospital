@@ -75,7 +75,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { enviarSolicitudHospital } from '@/services/solicitudesService'
 import API_URL from '@/config'
@@ -107,8 +107,8 @@ const cargarAseguradoras = async () => {
         url: a.urlBase
       }))
     }
-  } catch (err) {
-    console.error("Error conexión aseguradoras:", err)
+  } catch {
+    console.error("Error conexión aseguradoras")
   }
 }
 
@@ -126,8 +126,8 @@ const cargarClientes = async () => {
     if (res.ok) {
       clientes.value = await res.json()
     }
-  } catch (err) {
-    console.error("Error cargando clientes:", err)
+  } catch {
+    console.error("Error cargando clientes")
   }
 }
 
@@ -146,7 +146,7 @@ const buscarPorDPI = async () => {
     datosCliente.value = cliente
     mensaje.value = "Cliente encontrado."
     autorizacionId.value = null
-  } catch (err) {
+  } catch {
     mensaje.value = "Cliente no encontrado."
     clientes.value = []
     datosCliente.value = null
@@ -162,8 +162,8 @@ const cargarServicios = async () => {
     if (res.ok) {
       servicios.value = await res.json()
     }
-  } catch (err) {
-    console.error("Error cargando servicios:", err)
+  } catch {
+    console.error("Error cargando servicios")
   }
 }
 
@@ -196,7 +196,7 @@ const registrarAtencion = async () => {
     form.value.servicio = ''
     form.value.monto = 0
 
-  } catch (err) {
+  } catch {
     mensaje.value = "Error al enviar solicitud."
     autorizacionId.value = null
   }

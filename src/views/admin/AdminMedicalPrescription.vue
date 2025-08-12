@@ -125,7 +125,7 @@
     </div>
   </template>
 
-<script>
+<script lang="ts">
 import API_URL from "../config"; // Importamos API_URL desde config.ts
 
 export default {

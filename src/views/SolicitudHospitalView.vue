@@ -126,9 +126,9 @@ interface Aseguradora {
 
 const form = ref({ nombre: "", direccion: "", telefono: "", aseguradora: null as Aseguradora | null });
 const mensaje = ref("");
-const estadoSolicitud = ref<any>(null);
+const estadoSolicitud = ref<unknown>(null);
 const seguros = ref<Aseguradora[]>([]);
-const historialSolicitudes = ref<any[]>([]);
+const historialSolicitudes = ref<unknown[]>([]);
 const nuevaAseguradora = ref({ nombre: "", url: "" });
 const mensajeRegistro = ref("");
 
@@ -194,7 +194,7 @@ const cargarSeguros = async () => {
     const res = await fetch(`${API_URL}/api/conexiones-aseguradoras`);
     if (!res.ok) throw new Error("Fallo al obtener aseguradoras");
     const aseguradoras = await res.json();
-    seguros.value = aseguradoras.map((a: any) => ({ id: a.id, nombre: a.nombre, url: a.urlBase }));
+    seguros.value = aseguradoras.map((a: unknown) => ({ id: a.id, nombre: a.nombre, url: a.urlBase }));
   } catch (err) {
     console.error("Error al cargar aseguradoras:", err);
   }
@@ -205,7 +205,7 @@ const cargarHistorial = async () => {
   try {
     const res = await fetch(`${API_URL}/api/conexiones-aseguradoras`);
     const aseguradoras = await res.json();
-    const resultados: any[] = [];
+    const resultados: unknown[] = [];
     for (const a of aseguradoras) {
       try {
         const resHist = await fetch(`${a.urlBase}/solicitudes-atencion`);
@@ -213,7 +213,7 @@ const cargarHistorial = async () => {
           const data = await resHist.json();
           resultados.push(...data);
         }
-      } catch (e) {
+      } catch {
         console.error("Error cargando historial desde:", a.urlBase);
       }
     }
@@ -224,12 +224,12 @@ const cargarHistorial = async () => {
 };
 
 const enviar = async () => {
-  const aseg = form.value.aseguradora as any;
+  const aseg = form.value.aseguradora as unknown;
   if (!aseg?.url) {
     mensaje.value = "No se encontró la URL de la aseguradora seleccionada.";
     return;
   }
-  const yaAprobada = historialSolicitudes.value.some((s: any) => s.estado === "aprobado" && s.aseguradora === aseg.nombre);
+  const yaAprobada = historialSolicitudes.value.some((s: unknown) => s.estado === "aprobado" && s.aseguradora === aseg.nombre);
   if (yaAprobada) {
     mensaje.value = "Ya existe una solicitud aprobada.";
     return;
@@ -252,7 +252,7 @@ const enviar = async () => {
       const data = await res.json();
       mensaje.value = "Solicitud enviada a la aseguradora.";
       estadoSolicitud.value = data;
-      form.value = { nombre: "", direccion: "", telefono: "", aseguradora: null as any };
+      form.value = { nombre: "", direccion: "", telefono: "", aseguradora: null as unknown };
       await cargarHistorial();
     } else {
       mensaje.value = "Error al enviar solicitud.";

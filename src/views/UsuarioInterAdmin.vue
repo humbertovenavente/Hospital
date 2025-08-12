@@ -116,7 +116,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import usuarioInterService from "@/services/usuarioInterService.js";
 import emailjs from 'emailjs-com';
 
