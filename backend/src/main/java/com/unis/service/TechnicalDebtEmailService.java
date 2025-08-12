@@ -129,7 +129,7 @@ public class TechnicalDebtEmailService {
     /**
      * Genera el contenido HTML del reporte de deuda técnica
      */
-    private String generateTechnicalDebtReportHTML(String projectKey, String projectName) {
+    public String generateTechnicalDebtReportHTML(String projectKey, String projectName) {
         return """
             <!DOCTYPE html>
             <html>
