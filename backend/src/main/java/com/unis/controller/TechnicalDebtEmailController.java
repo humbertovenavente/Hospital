@@ -78,4 +78,28 @@ public class TechnicalDebtEmailController {
                 .build();
         }
     }
+
+    @POST
+    @Path("/technical-debt/send-report")
+    @Operation(summary = "Envía reporte de deuda técnica por email (simplificado para pipeline)", 
+               description = "Envía un reporte de deuda técnica usando solo el email del destinatario")
+    public Response sendTechnicalDebtReportSimple(TechnicalDebtEmailRequest request) {
+        try {
+            // Usar valores por defecto para el pipeline
+            String projectKey = "hospital-pipeline";
+            String projectName = "Hospital Pipeline - Análisis Automático";
+            
+            TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+                projectKey,
+                projectName,
+                request.getRecipientEmail()
+            );
+            
+            return Response.ok(response).build();
+        } catch (Exception e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                .entity(new TechnicalDebtEmailResponse(false, "Error enviando reporte: " + e.getMessage()))
+                .build();
+        }
+    }
 }

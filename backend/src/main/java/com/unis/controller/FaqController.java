@@ -145,6 +145,17 @@ public class FaqController {
     }
 
     /**
+     * Lists all FAQ entries with "PUBLICADO" status.
+     *
+     * @return list of published FAQs
+     */
+    @GET
+    @Path("/publicadas")
+    public List<Faq> listarPublicadas() {
+        return faqService.listarPorEstado("PUBLICADO");
+    }
+
+    /**
      * Approves a FAQ entry and changes its status to "PUBLICADO".
      *
      * @param id the ID of the FAQ to approve
