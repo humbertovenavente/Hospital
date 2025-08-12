@@ -506,6 +506,71 @@ node {
             def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
             def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
             
+            // Obtener métricas reales de SonarQube usando comandos shell
+            def sonarMetrics = ""
+            def projectKey = "hospital-backend-${env.BRANCH_NAME}"
+            
+            try {
+                echo "🔍 Obteniendo métricas de SonarQube para: ${projectKey}"
+                
+                // Verificar si SonarQube está disponible
+                def sonarStatus = sh(
+                    script: "curl -s -f 'http://localhost:9000/api/system/status' >/dev/null 2>&1 && echo 'UP' || echo 'DOWN'",
+                    returnStdout: true
+                ).trim()
+                
+                if (sonarStatus == "UP") {
+                    // Obtener métricas básicas usando curl
+                    def metricsResponse = sh(
+                        script: """
+                            curl -s "http://localhost:9000/api/measures/component?component=${projectKey}&metricKeys=coverage,duplicated_lines_density,security_rating,reliability_rating,maintainability_rating,bugs,vulnerabilities,code_smells,technical_debt,lines,functions,classes" || echo "{}"
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    
+                    // Obtener Quality Gate
+                    def qgResponse = sh(
+                        script: """
+                            curl -s "http://localhost:9000/api/qualitygates/project_status?projectKey=${projectKey}" || echo "{}"
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    
+                    // Obtener issues recientes
+                    def issuesResponse = sh(
+                        script: """
+                            curl -s "http://localhost:9000/api/issues/search?componentKeys=${projectKey}&ps=5&s=SEVERITY&asc=false" || echo "{}"
+                        """,
+                        returnStdout: true
+                    ).trim()
+                    
+                    // Formatear métricas para el correo
+                    sonarMetrics = formatSonarMetrics(metricsResponse, qgResponse, issuesResponse)
+                    
+                    echo "✅ Métricas de SonarQube obtenidas exitosamente"
+                } else {
+                    throw new Exception("SonarQube no está disponible")
+                }
+                
+            } catch (err) {
+                echo "⚠️ Error obteniendo métricas de SonarQube: ${err.getMessage()}"
+                sonarMetrics = """
+⚠️ No se pudieron obtener métricas de SonarQube
+Error: ${err.getMessage()}
+
+📊 MÉTRICAS DE CALIDAD (Estimadas):
+- Cobertura de código: Mejorada con tests nuevos
+- Deuda técnica: Analizada y reportada
+- Vulnerabilidades: Verificadas
+- Code smells: Identificados y corregidos
+
+💡 Para obtener métricas reales, asegúrate de que:
+1. SonarQube esté ejecutándose en http://localhost:9000
+2. El proyecto ${projectKey} exista en SonarQube
+3. Se haya ejecutado un análisis reciente
+                """
+            }
+            
             def body = """
 Hola equipo,
 
@@ -524,11 +589,7 @@ Hola equipo,
 - Análisis SonarQube: ✅ Completado
 - Quality Gate: ✅ PASÓ
 
-📊 MÉTRICAS DE CALIDAD:
-- Cobertura de código: Mejorada con tests nuevos
-- Deuda técnica: Analizada y reportada
-- Vulnerabilidades: Verificadas
-- Code smells: Identificados y corregidos
+${sonarMetrics}
 
 🌐 URLs DE ACCESO:
 - Backend: http://localhost:8080
@@ -561,9 +622,9 @@ Sistema de CI/CD del Hospital
     } catch (Exception e) {
         // Error handling
         if (env.CHANGE_ID) {
-            echo "❌ Pull Request #${env.CHANGE_ID} falló: ${e.getMessage()}"
+            echo " Pull Request #${env.CHANGE_ID} falló: ${e.getMessage()}"
         } else {
-            echo "❌ Pipeline falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
+            echo " Pipeline falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
         }
         // Notificación por correo a Lead Developer y Product Owner
         try {
@@ -573,18 +634,17 @@ Sistema de CI/CD del Hospital
             def body = """
 Hola equipo,
 
-❌ El pipeline ha fallado.
-
-📋 INFORMACIÓN DEL BUILD:
+El pipeline ha fallado.
+INFORMACIÓN DEL BUILD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME}
 - URL: ${env.BUILD_URL}
-- Estado: ❌ FALLÓ
+- Estado:  FALLÓ
 - Motivo: ${e.getMessage()}
 
-🔍 RESULTADOS DE CALIDAD:
-- Tests Backend: ⚠️ Verificar estado
+RESULTADOS DE CALIDAD:
+- Tests Backend:  Verificar estado
 - Tests Frontend: ⚠️ Verificar estado
 - Análisis SonarQube: ⚠️ Verificar estado
 
@@ -622,5 +682,161 @@ Sistema de CI/CD del Hospital
             echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
         }
         throw e
+    }
+}
+
+// Función helper para formatear métricas de SonarQube
+def formatSonarMetrics(String metricsResponse, String qgResponse, String issuesResponse) {
+    def formattedMetrics = ""
+    
+    try {
+        // Parsear métricas básicas
+        if (metricsResponse && metricsResponse != "{}") {
+            def metrics = readJSON text: metricsResponse
+            
+            if (metrics.component && metrics.component.measures) {
+                formattedMetrics += "📈 MÉTRICAS PRINCIPALES:\n"
+                
+                metrics.component.measures.each { measure ->
+                    switch(measure.metric) {
+                        case "coverage":
+                            def status = measure.value.toDouble() >= 80 ? "✅" : "⚠️"
+                            formattedMetrics += "${status} Cobertura: ${measure.value}%\n"
+                            break
+                        case "duplicated_lines_density":
+                            def status = measure.value.toDouble() <= 3 ? "✅" : "⚠️"
+                            formattedMetrics += "${status} Duplicación: ${measure.value}%\n"
+                            break
+                        case "security_rating":
+                            def emoji = getRatingEmoji(measure.value)
+                            formattedMetrics += "${emoji} Seguridad: ${measure.value}/5\n"
+                            break
+                        case "reliability_rating":
+                            def emoji = getRatingEmoji(measure.value)
+                            formattedMetrics += "${emoji} Confiabilidad: ${measure.value}/5\n"
+                            break
+                        case "maintainability_rating":
+                            def emoji = getRatingEmoji(measure.value)
+                            formattedMetrics += "${emoji} Mantenibilidad: ${measure.value}/5\n"
+                            break
+                        case "bugs":
+                            def status = measure.value.toInteger() == 0 ? "✅" : "⚠️"
+                            formattedMetrics += "${status} Bugs: ${measure.value}\n"
+                            break
+                        case "vulnerabilities":
+                            def status = measure.value.toInteger() == 0 ? "✅" : "⚠️"
+                            formattedMetrics += "${status} Vulnerabilidades: ${measure.value}\n"
+                            break
+                        case "code_smells":
+                            def status = measure.value.toInteger() <= 10 ? "✅" : "⚠️"
+                            formattedMetrics += "${status} Code Smells: ${measure.value}\n"
+                            break
+                        case "technical_debt":
+                            def status = getDebtStatus(measure.value)
+                            formattedMetrics += "${status} Deuda Técnica: ${formatDebt(measure.value)}\n"
+                            break
+                        case "lines":
+                            formattedMetrics += "📝 Líneas de código: ${measure.value}\n"
+                            break
+                        case "functions":
+                            formattedMetrics += "🔧 Funciones: ${measure.value}\n"
+                            break
+                        case "classes":
+                            formattedMetrics += "🏗️ Clases: ${measure.value}\n"
+                            break
+                    }
+                }
+                formattedMetrics += "\n"
+            }
+        }
+        
+        // Parsear Quality Gate
+        if (qgResponse && qgResponse != "{}") {
+            def qg = readJSON text: qgResponse
+            
+            if (qg.projectStatus) {
+                def status = qg.projectStatus.status == "OK" ? "✅" : "❌"
+                formattedMetrics += "${status} QUALITY GATE: ${qg.projectStatus.status}\n\n"
+                
+                if (qg.projectStatus.conditions) {
+                    formattedMetrics += "📋 CONDICIONES:\n"
+                    qg.projectStatus.conditions.each { condition ->
+                        def conditionStatus = condition.status == "OK" ? "✅" : "❌"
+                        formattedMetrics += "   ${conditionStatus} ${condition.metricKey}: ${condition.actualValue} (${condition.operator} ${condition.errorThreshold})\n"
+                    }
+                    formattedMetrics += "\n"
+                }
+            }
+        }
+        
+        // Parsear issues recientes
+        if (issuesResponse && issuesResponse != "{}") {
+            def issues = readJSON text: issuesResponse
+            
+            if (issues.issues && issues.issues.size() > 0) {
+                formattedMetrics += "🚨 ISSUES RECIENTES (Top 5):\n"
+                formattedMetrics += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                
+                issues.issues.take(5).each { issue ->
+                    def severity = getSeverityEmoji(issue.severity)
+                    formattedMetrics += "${severity} ${issue.severity.toUpperCase()}: ${issue.message}\n"
+                    if (issue.line) {
+                        formattedMetrics += "   📍 ${issue.component}:${issue.line}\n"
+                    }
+                    formattedMetrics += "   🏷️ ${issue.type}\n\n"
+                }
+            }
+        }
+        
+    } catch (Exception e) {
+        formattedMetrics += "⚠️ Error parseando métricas: ${e.getMessage()}\n"
+    }
+    
+    if (!formattedMetrics) {
+        formattedMetrics = "📊 Métricas no disponibles o proyecto no encontrado\n"
+    }
+    
+    return formattedMetrics
+}
+
+def getRatingEmoji(rating) {
+    switch(rating.toInteger()) {
+        case 1: return "🟢"
+        case 2: return "🟡"
+        case 3: return "🟠"
+        case 4: return "🔴"
+        case 5: return "⚫"
+        default: return "❓"
+    }
+}
+
+def getSeverityEmoji(severity) {
+    switch(severity.toLowerCase()) {
+        case "blocker": return "🚫"
+        case "critical": return "💥"
+        case "major": return "⚠️"
+        case "minor": return "💡"
+        case "info": return "ℹ️"
+        default: return "❓"
+    }
+}
+
+def getDebtStatus(hours) {
+    def debtHours = hours.toInteger()
+    if (debtHours <= 8) return "✅"
+    if (debtHours <= 16) return "⚠️"
+    return "❌"
+}
+
+def formatDebt(hours) {
+    def debtHours = hours.toInteger()
+    if (debtHours < 24) {
+        return "${debtHours}h"
+    } else if (debtHours < 168) { // 7 días
+        def days = debtHours / 24
+        return "${days.round(1)}d"
+    } else {
+        def weeks = debtHours / 168
+        return "${weeks.round(1)}w"
     }
 } 
