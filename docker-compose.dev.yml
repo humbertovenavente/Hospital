@@ -19,6 +19,7 @@ services:
       - oracle
     volumes:
       - ./backend/src/main/resources/application.properties:/app/config/application.properties
+      - ./backend/src/main/resources/application-dev.properties:/app/config/application-dev.properties
     restart: unless-stopped
     external_links:
       - hospital-oracle-xe:oracle
