@@ -225,7 +225,7 @@ const cargarHistorial = async () => {
 
 const enviar = async () => {
   const aseg = form.value.aseguradora as any;
-  if (!aseg || !aseg.url) {
+  if (!aseg?.url) {
     mensaje.value = "No se encontró la URL de la aseguradora seleccionada.";
     return;
   }

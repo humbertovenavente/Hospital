@@ -109,7 +109,7 @@ const importData = (event) => {
 
 // Confirmar y aplicar datos importados
 const applyImportedData = async () => {
-  if (!importedData.value || !importedData.value.usuario || !importedData.value.empleado) {
+  if (!importedData.value?.usuario || !importedData.value?.empleado) {
     alert("No hay datos importados válidos para aplicar.");
     return;
   }
