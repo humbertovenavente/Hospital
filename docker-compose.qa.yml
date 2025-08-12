@@ -26,7 +26,7 @@ services:
   frontend-qa:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile.frontend.qa
     container_name: hospital-frontend-qa
     environment:
       VITE_API_URL: http://localhost:8090
@@ -44,7 +44,7 @@ services:
     image: nginx:alpine
     container_name: hospital-nginx-qa
     ports:
-      - "8081:80"  # Puerto QA: 8081
+      - "8083:80"  # Puerto QA: 8083
     volumes:
       - ./nginx.qa.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -91,8 +91,15 @@ services:
     container_name: hospital-prometheus-qa
     ports:
       - "9091:9090"  # Puerto QA: 9091
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
     volumes:
-      - ./prometheus.qa.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.qa.yml:/etc/prometheus/prometheus.yml:ro
     restart: unless-stopped
     networks:
       - hospital-network

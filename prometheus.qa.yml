@@ -1,0 +1,62 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus-qa'
+    static_configs:
+      - targets: ['localhost:9091']
+
+  # Backend Quarkus QA
+  - job_name: 'hospital-backend-qa'
+    static_configs:
+      - targets: ['hospital-backend-qa:8080']
+    metrics_path: '/q/metrics'
+    scrape_interval: 10s
+
+  # Frontend QA (si tiene métricas)
+  - job_name: 'hospital-frontend-qa'
+    static_configs:
+      - targets: ['hospital-frontend-qa:80']
+    scrape_interval: 30s
+
+  # Nginx QA
+  - job_name: 'nginx-qa'
+    static_configs:
+      - targets: ['hospital-nginx-qa:80']
+    scrape_interval: 30s
+
+  # Oracle Database XE2
+  - job_name: 'oracle-database-qa'
+    static_configs:
+      - targets: ['oracle_xe2:1521']
+    scrape_interval: 60s
+
+  # Jenkins QA
+  - job_name: 'jenkins-qa'
+    static_configs:
+      - targets: ['hospital-jenkins-qa:8080']
+    scrape_interval: 30s
+
+  # SonarQube QA
+  - job_name: 'sonarqube-qa'
+    static_configs:
+      - targets: ['hospital-sonarqube-qa:9000']
+    scrape_interval: 30s
+
+  # Grafana QA
+  - job_name: 'grafana-qa'
+    static_configs:
+      - targets: ['hospital-grafana-qa:3000']
+    scrape_interval: 30s
+
+  # Node Exporter para métricas del sistema
+  - job_name: 'node-exporter-qa'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 15s
