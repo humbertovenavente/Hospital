@@ -107,7 +107,7 @@ node {
         
         stage('Code Quality Check') {
             echo "🔍 Iniciando verificación de calidad del código con SonarQube..."
-            echo "   Configurando SonarQube Scanner..."
+            echo "   Configurando SonarQube Scanner para rama: ${env.BRANCH_NAME}..."
             
             // Verificar que SonarQube esté disponible
             sh '''
@@ -123,14 +123,34 @@ node {
             // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
             withSonarQubeEnv('SonarQube') {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
-                    // ANÁLISIS DEL BACKEND (con cobertura de tests)
-                    echo "   🔍 Analizando BACKEND con cobertura de tests..."
+                    // ANÁLISIS DEL BACKEND (con cobertura de tests y rama específica)
+                    echo "   🔍 Analizando BACKEND para rama: ${env.BRANCH_NAME}..."
                     sh '''
-                        echo "=== Ejecutando SonarQube Analysis para BACKEND ==="
+                        echo "=== Ejecutando SonarQube Analysis para BACKEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
                         export PATH=$PATH:/opt/sonar-scanner/bin
+                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
+                        
                         # Fallbacks: si la integración no expone variables, usar valores por defecto
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+
+                        # Configurar projectKey y projectName según la rama
+                        if [ "$BRANCH_NAME" = "prod" ]; then
+                            PROJECT_KEY="hospital-backend-prod"
+                            PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
+                        elif [ "$BRANCH_NAME" = "QA" ]; then
+                            PROJECT_KEY="hospital-backend-qa"
+                            PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
+                        elif [ "$BRANCH_NAME" = "dev" ]; then
+                            PROJECT_KEY="hospital-backend-dev"
+                            PROJECT_NAME="Hospital Backend - DESARROLLO (Java/Quarkus)"
+                        else
+                            PROJECT_KEY="hospital-backend-${BRANCH_NAME}"
+                            PROJECT_NAME="Hospital Backend - ${BRANCH_NAME} (Java/Quarkus)"
+                        fi
+
+                        echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
 
                         TEST_ARGS=""
                         if [ -d backend/target/test-classes ] && [ -d backend/src/test/java ]; then
@@ -140,9 +160,10 @@ node {
                         fi
 
                         sonar-scanner \
-                          -Dsonar.projectKey=hospital-backend \
-                          -Dsonar.projectName="Hospital Backend - Java/Quarkus" \
+                          -Dsonar.projectKey=$PROJECT_KEY \
+                          -Dsonar.projectName="$PROJECT_NAME" \
                           -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.branch.name=${BRANCH_NAME} \
                           -Dsonar.sources=backend/src/main/java \
                           -Dsonar.java.source=17 \
                           -Dsonar.java.binaries=backend/target/classes \
@@ -151,19 +172,37 @@ node {
                           -Dsonar.token=${TOKEN_TO_USE} \
                           -Dsonar.exclusions=**/target/**,**/*.min.js,**/*.min.css \
                           -Dsonar.qualitygate.wait=true
-                        echo "=== Análisis de SonarQube para BACKEND completado ==="
+                        echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
                     '''
                     
-                    // ANÁLISIS DEL FRONTEND (usando script robusto)
-                    echo "   🔍 Analizando FRONTEND..."
+                    // ANÁLISIS DEL FRONTEND (con rama específica)
+                    echo "   🔍 Analizando FRONTEND para rama: ${env.BRANCH_NAME}..."
                     sh '''
-                        echo "=== Ejecutando SonarQube Analysis para FRONTEND ==="
+                        echo "=== Ejecutando SonarQube Analysis para FRONTEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
                         export PATH=$PATH:/opt/sonar-scanner/bin
+                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
-                        export BUILD_NUMBER=${BUILD_NUMBER}
 
-                        # Usar script robusto para el frontend
+                        # Configurar projectKey y projectName según la rama
+                        if [ "$BRANCH_NAME" = "prod" ]; then
+                            PROJECT_KEY="hospital-frontend-prod"
+                            PROJECT_NAME="Hospital Frontend - PRODUCCIÓN (Vue.js/TypeScript)"
+                        elif [ "$BRANCH_NAME" = "QA" ]; then
+                            PROJECT_KEY="hospital-frontend-qa"
+                            PROJECT_NAME="Hospital Frontend - QA (Vue.js/TypeScript)"
+                        elif [ "$BRANCH_NAME" = "dev" ]; then
+                            PROJECT_KEY="hospital-frontend-dev"
+                            PROJECT_NAME="Hospital Frontend - DESARROLLO (Vue.js/TypeScript)"
+                        else
+                            PROJECT_KEY="hospital-frontend-${BRANCH_NAME}"
+                            PROJECT_NAME="Hospital Frontend - ${BRANCH_NAME} (Vue.js/TypeScript)"
+                        fi
+
+                        echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
+
+                        # Usar script robusto para el frontend si existe
                         if [ -f "./analyze-frontend-sonar.sh" ]; then
                             echo "   Usando script robusto para análisis del frontend..."
                             chmod +x ./analyze-frontend-sonar.sh
@@ -172,9 +211,10 @@ node {
                             echo "   Script robusto no encontrado, usando configuración estándar..."
                             # Configuración robusta para evitar timeouts en JS/TS analysis
                             sonar-scanner \
-                              -Dsonar.projectKey=hospital-frontend \
-                              -Dsonar.projectName="Hospital Frontend - Vue.js/TypeScript" \
+                              -Dsonar.projectKey=$PROJECT_KEY \
+                              -Dsonar.projectName="$PROJECT_NAME" \
                               -Dsonar.projectVersion=${BUILD_NUMBER} \
+                              -Dsonar.branch.name=${BRANCH_NAME} \
                               -Dsonar.sources=src \
                               -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
                               -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
@@ -193,11 +233,11 @@ node {
                               -Dsonar.javascript.bridge.memory=4096 \
                               -Dsonar.javascript.bridge.maxMemory=8192
                         fi
-                        echo "=== Análisis de SonarQube para FRONTEND completado ==="
+                        echo "=== Análisis de SonarQube para FRONTEND (${BRANCH_NAME}) completado ==="
                     '''
                 }
             }
-            echo "✅ Verificación de calidad completada para ambos proyectos"
+            echo "✅ Verificación de calidad completada para rama: ${env.BRANCH_NAME}"
         }
         
         stage('Build Frontend') {
