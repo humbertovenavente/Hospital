@@ -46,20 +46,26 @@ public class TechnicalDebtEmailService {
             LOG.info("Enviando reporte de deuda técnica para proyecto: " + projectKey);
             
             // Generar contenido del email
-            String subject = "📊 Reporte de Deuda Técnica - " + projectName;
+            String subject = " Reporte de Deuda Técnica - " + projectName;
             String htmlContent = generateTechnicalDebtReportHTML(projectKey, projectName);
             
-            // Enviar email usando Quarkus Mailer
-            Mail mail = Mail.withHtml(recipientEmail, subject, htmlContent)
-                .setFrom(mailFrom);
+            // Lista de destinatarios (incluyendo jflores@unis.edu.gt)
+            List<String> recipients = List.of(recipientEmail, "jflores@unis.edu.gt");
             
-            mailer.send(mail);
+            // Enviar email a todos los destinatarios usando Quarkus Mailer
+            for (String email : recipients) {
+                Mail mail = Mail.withHtml(email, subject, htmlContent)
+                    .setFrom(mailFrom);
+                
+                mailer.send(mail);
+                LOG.info("Reporte de deuda técnica enviado exitosamente a: " + email);
+            }
             
-            LOG.info("Reporte de deuda técnica enviado exitosamente a: " + recipientEmail);
+            LOG.info("Reporte de deuda técnica enviado exitosamente a " + recipients.size() + " destinatarios");
             
             return new TechnicalDebtEmailResponse(true, 
-                "Reporte de deuda técnica enviado exitosamente", 
-                projectKey, projectName, recipientEmail);
+                "Reporte de deuda técnica enviado exitosamente a " + recipients.size() + " destinatarios", 
+                projectKey, projectName, String.join(", ", recipients));
                 
         } catch (Exception e) {
             LOG.error("Error enviando reporte de deuda técnica: " + e.getMessage(), e);
@@ -132,64 +138,64 @@ public class TechnicalDebtEmailService {
             <body>
                 <div class="container">
                     <div class="header">
-                        <h1>📊 Reporte de Deuda Técnica</h1>
+                        <h1>Reporte de Deuda Técnica</h1>
                         <p class="timestamp">Generado el: %s</p>
                         <p><strong>Proyecto:</strong> %s</p>
                     </div>
 
                     <div class="metrics-grid">
                         <div class="metric-card">
-                            <h3>🛡️ Seguridad</h3>
+                            <h3> Seguridad</h3>
                             <div class="rating rating-E">Rating: E</div>
                             <div class="alert alert-danger">
-                                <strong>🚨 CRÍTICO:</strong> Rating E en seguridad
+                                <strong>CRÍTICO:</strong> Rating E en seguridad
                             </div>
                             <p><strong>Security Hotspots:</strong> 11</p>
                             <p><strong>Vulnerabilidades:</strong> 0</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>🔒 Confiabilidad</h3>
+                            <h3>Confiabilidad</h3>
                             <div class="rating rating-C">Rating: C</div>
                             <div class="alert alert-warning">
-                                <strong>⚠️ ATENCIÓN:</strong> Rating C en confiabilidad
+                                <strong>ATENCIÓN:</strong> Rating C en confiabilidad
                             </div>
                             <p><strong>Bugs:</strong> 0</p>
                             <p><strong>Issues de Confiabilidad:</strong> 2</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>🔨 Mantenibilidad</h3>
+                            <h3>Mantenibilidad</h3>
                             <div class="rating rating-A">Rating: A</div>
                             <div class="alert alert-success">
-                                <strong>✅ BUENO:</strong> Calificación A en mantenibilidad
+                                <strong>BUENO:</strong> Calificación A en mantenibilidad
                             </div>
                             <p><strong>Code Smells:</strong> 0</p>
                             <p><strong>Issues de Mantenibilidad:</strong> 84</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>🧪 Cobertura de Tests</h3>
+                            <h3> Cobertura de Tests</h3>
                             <div class="alert alert-danger">
-                                <strong>🚨 CRÍTICO:</strong> 0%% de cobertura
+                                <strong>CRÍTICO:</strong> 0%% de cobertura
                             </div>
                             <p><strong>Cobertura:</strong> 0%%</p>
                             <p><strong>Líneas por Cubrir:</strong> 2.2k</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>📝 Duplicación de Código</h3>
+                            <h3> Duplicación de Código</h3>
                             <div class="alert alert-warning">
-                                <strong>⚠️ ATENCIÓN:</strong> 9.1%% de duplicación
+                                <strong>ATENCIÓN:</strong> 9.1%% de duplicación
                             </div>
                             <p><strong>Duplicación:</strong> 9.1%%</p>
                             <p><strong>Líneas Duplicadas:</strong> 12k</p>
                         </div>
 
                         <div class="metric-card">
-                            <h3>🚨 Issues Críticos</h3>
+                            <h3> Issues Críticos</h3>
                             <div class="alert alert-danger">
-                                <strong>🚨 CRÍTICO:</strong> 13 issues de alta prioridad
+                                <strong> CRÍTICO:</strong> 13 issues de alta prioridad
                             </div>
                             <p><strong>High:</strong> 13</p>
                             <p><strong>Medium:</strong> 52</p>
@@ -198,7 +204,7 @@ public class TechnicalDebtEmailService {
                     </div>
 
                     <div class="summary">
-                        <h3>🎯 Recomendaciones Prioritarias</h3>
+                        <h3>Recomendaciones Prioritarias</h3>
                         <ol>
                             <li><strong>URGENTE:</strong> Revisar los 11 Security Hotspots (Rating E)</li>
                             <li><strong>ALTO:</strong> Implementar tests para mejorar cobertura de 0%%</li>
