@@ -102,7 +102,7 @@
 </div>
 </template>
 
-<script>
+<script lang="ts">
 import empleadoService from "@/services/empleadoService.js";
 import emailjs from "emailjs-com";
 

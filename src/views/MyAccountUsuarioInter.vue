@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import API_URL from "../config"; // Importamos API_URL desde config.ts

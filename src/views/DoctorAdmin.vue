@@ -88,7 +88,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import doctorService from "@/services/doctorService.js";
 import emailjs from "emailjs-com";
 

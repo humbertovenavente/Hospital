@@ -34,7 +34,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from "axios";
 import API_URL from "@/config";
 

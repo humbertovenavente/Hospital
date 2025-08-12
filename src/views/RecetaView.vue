@@ -58,13 +58,13 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import recetaService from "../services/RecetaService.js";
 import { obtenerCitas, obtenerMedicamentos } from "@/services/selectService.js";
 import { useRouter } from "vue-router";
 
-const recetas = ref([]);
+// const recetas = ref([]);
 const recetaGenerada = ref(false);
 const nuevaReceta = ref({
   idReceta: null,

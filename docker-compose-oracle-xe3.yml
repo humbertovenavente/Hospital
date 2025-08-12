@@ -1,0 +1,35 @@
+services:
+  # Backend del Hospital (conectándose a oracle_xe3 existente)
+  backend:
+    image: hospital-backend-local
+    container_name: hospital-backend-local
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend/src/main/resources/application.properties:/app/config/application.properties
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # Frontend del Hospital
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: hospital-frontend-local
+    environment:
+      VITE_API_URL: http://localhost:8080
+      NODE_ENV: production
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # El contenedor oracle_xe3 ya existe y está conectado a la red
+
+networks:
+  hospital-network:
+    driver: bridge

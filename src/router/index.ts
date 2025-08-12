@@ -6,16 +6,16 @@ import HomeView             from "../views/HomeView.vue";
 import SubhomeUView         from "../views/SubhomeUView.vue";
 import SubhomeDView         from "../views/SubhomeDView.vue";
 import SignUp               from "../views/SignUp.vue";
-import Login                from "../views/Login.vue";
+import Login                from "../views/LoginView.vue";
 import FaqView              from "../views/FaqView.vue";
 import MedicalServices      from "../views/MedicalServices.vue";
 import HistoriaView         from "../views/HistoriaView.vue";
 import CatalogoDoctores     from "../views/CatalogoDoctores.vue";
 import DynamicPage          from "../views/DynamicPage.vue";
-import Draft                from "../views/admin/Draft.vue";
+import DraftView                from "../views/admin/DraftView.vue";
 
 // ** Paciente **
-import Patient              from "../components/Patient.vue";
+import Patient              from "../components/PatientView.vue";
 import ConsultarHistorial   from "../views/ConsultarHistorial.vue";
 import PacienteHistorialPagos from "@/views/vistasSimuladas/PacienteHistorialPagos.vue";
 import PacienteReportes     from "@/views/vistasSimuladas/PacienteReportes.vue";
@@ -32,7 +32,7 @@ import MyAccountDoctor      from "../views/myAccountDoctor.vue";
 // ** Empleado **
 import FichaTecnicaView     from "../views/FichaTecnicaView.vue";
 import HistorialPagos       from "@/views/vistasSimuladas/HistorialPagos.vue";
-import Reportes             from "@/views/vistasSimuladas/Reportes.vue";
+import Reportes             from "@/views/vistasSimuladas/ReportesView.vue";
 import StockMedicamentos    from "@/views/vistasSimuladas/StockMedicamentos.vue";
 import MyAccountEmpleado    from "../views/MyAccountEmpleado.vue";
 
@@ -47,7 +47,7 @@ import EmpleadosAdmin       from "../views/EmpleadosAdmin.vue";
 import AdminServiciosView   from "@/views/admin/AdminServiciosView.vue";
 import DoctorAdmin          from "../views/DoctorAdmin.vue";
 import AdminFichasTecnicas  from "../views/admin/AdminFichasTecnicas.vue";
-import ReporteView          from "@/views/admin/ReporteView.vue";
+// import ReporteView          from "@/views/admin/ReporteView.vue";
 import ReporteMedicinasView from "@/views/admin/ReporteMedicinasView.vue";
 import ReporteModeracionView from "@/views/admin/ReporteModeracionView.vue";
 import AdminDynamicPages    from "@/views/admin/AdminDynamicPages.vue";
@@ -68,10 +68,10 @@ const ROLES = {
 } as const;
 
 // ** Guards **
-const requireAuth = (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
-  const userId = localStorage.getItem("userId");
-  return userId ? next() : next("/login");
-};
+// const requireAuth = (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+//   const userId = localStorage.getItem("userId");
+//   return userId ? next() : next("/login");
+// };
 
 const requireRole = (allowedRoles: number[]) => (
   to: RouteLocationNormalized,
@@ -96,7 +96,7 @@ const router = createRouter({
     { path: "/historia",      name: "historia",            component: HistoriaView },
     { path: "/doctores",      name: "catalogo-doctores",   component: CatalogoDoctores },
     { path: "/pages/:pageName", name: "dynamic-pages",     component: DynamicPage },
-    { path: "/drafts/:id",    name: "draft-hospital",      component: Draft },
+    { path: "/drafts/:id",    name: "draft-hospital",      component: DraftView },
 
     // — Paciente (4) + Admin (1) —
     {

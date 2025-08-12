@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
 import config from "../config"; // Importamos config desde config.ts
@@ -108,7 +108,7 @@ const importData = (event) => {
 
 // Confirmar y aplicar datos importados
 const applyImportedData = async () => {
-  if (!importedData.value || !importedData.value.usuario || !importedData.value.paciente) {
+  if (!importedData.value?.usuario || !importedData.value?.paciente) {
     alert("No hay datos importados válidos para aplicar.");
     return;
   }

@@ -1,0 +1,6 @@
+projectKey=hospital-backend-prod
+serverUrl=https://ee473a93a732.ngrok-free.app
+serverVersion=10.4.1.88267
+dashboardUrl=https://ee473a93a732.ngrok-free.app/dashboard?id=hospital-backend-prod
+ceTaskId=e75870ac-6c73-4375-bca2-ca1771c6689a
+ceTaskUrl=https://ee473a93a732.ngrok-free.app/api/ce/task?id=e75870ac-6c73-4375-bca2-ca1771c6689a

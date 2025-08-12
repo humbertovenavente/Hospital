@@ -85,8 +85,8 @@
   </div>
 </template>
 
-<script>
-import config from '@/config';
+<script lang="ts">
+import API_URL from '@/config';
 
 export default {
   data() {
