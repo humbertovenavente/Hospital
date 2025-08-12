@@ -1,28 +1,26 @@
 version: '3.8'
 
 services:
-  # Backend Quarkus para QA (usando Oracle compartido)
+  # Backend Quarkus para QA (usando oracle_xe2 existente)
   backend-qa:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: hospital-backend-qa
     environment:
-      QUARKUS_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/XE
-      QUARKUS_DATASOURCE_USERNAME: Hospital2
+      QUARKUS_DATASOURCE_URL: jdbc:oracle:thin:@oracle_xe2:1521/XEPDB1
+      QUARKUS_DATASOURCE_USERNAME: C##PROYECTO
       QUARKUS_DATASOURCE_PASSWORD: Unis
       QUARKUS_HTTP_PORT: 8080
       QUARKUS_PROFILE: qa
     ports:
-      - "8082:8080"  # Puerto diferente para QA
-    depends_on:
-      - oracle
+      - "8090:8080"  # Puerto QA: 8090
     volumes:
       - ./backend/src/main/resources/application.properties:/app/config/application.properties
       - ./backend/src/main/resources/application-qa.properties:/app/config/application-qa.properties
     restart: unless-stopped
-    external_links:
-      - hospital-oracle-xe:oracle
+    networks:
+      - hospital-network
 
   # Frontend Vue.js para QA
   frontend-qa:
@@ -31,23 +29,95 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: hospital-frontend-qa
     environment:
-      VITE_API_URL: http://localhost:8082
+      VITE_API_URL: http://localhost:8090
       NODE_ENV: qa
     ports:
-      - "5175:80"  # Puerto diferente para QA
+      - "5174:80"  # Puerto QA: 5174
     depends_on:
       - backend-qa
     restart: unless-stopped
+    networks:
+      - hospital-network
 
   # Nginx reverse proxy para QA
   nginx-qa:
     image: nginx:alpine
     container_name: hospital-nginx-qa
     ports:
-      - "8083:80"
+      - "8081:80"  # Puerto QA: 8081
     volumes:
       - ./nginx.qa.conf:/etc/nginx/nginx.conf
     depends_on:
       - frontend-qa
       - backend-qa
-    restart: unless-stopped 
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # Jenkins para QA
+  jenkins-qa:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: hospital-jenkins-qa
+    ports:
+      - "8082:8080"  # Puerto QA: 8082
+    environment:
+      JENKINS_OPTS: --httpPort=8080
+    volumes:
+      - jenkins_qa_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # SonarQube para QA
+  sonarqube-qa:
+    image: sonarqube:10.4.1-community
+    container_name: hospital-sonarqube-qa
+    ports:
+      - "9001:9000"  # Puerto QA: 9001
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: true
+    volumes:
+      - sonarqube_qa_data:/opt/sonarqube/data
+      - sonarqube_qa_extensions:/opt/sonarqube/extensions
+      - sonarqube_qa_logs:/opt/sonarqube/logs
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # Monitoreo para QA
+  prometheus-qa:
+    image: prom/prometheus:latest
+    container_name: hospital-prometheus-qa
+    ports:
+      - "9091:9090"  # Puerto QA: 9091
+    volumes:
+      - ./prometheus.qa.yml:/etc/prometheus/prometheus.yml
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+  # Grafana para dashboards de QA
+  grafana-qa:
+    image: grafana/grafana:latest
+    container_name: hospital-grafana-qa
+    ports:
+      - "3001:3000"  # Puerto QA: 3001
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin123
+    volumes:
+      - grafana_qa_data:/var/lib/grafana
+    restart: unless-stopped
+    networks:
+      - hospital-network
+
+volumes:
+  jenkins_qa_data:
+  sonarqube_qa_data:
+  sonarqube_qa_extensions:
+  sonarqube_qa_logs:
+  grafana_qa_data:
+
+networks:
+  hospital-network:
+    driver: bridge 
