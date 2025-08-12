@@ -374,18 +374,8 @@ node {
         stage('Deploy to QA') {
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
-                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
+                echo "   🧹 Limpiando contenedores de QA existentes..."
                 sh '''
-                  # Construir backend local
-                  echo "🔨 Construyendo backend local..."
-                  docker build -t hospital-backend-local .
-                  
-                  # Construir frontend local
-                  echo "🎨 Construyendo frontend local..."
-                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
-                  
-                  # Desplegar usando docker-compose-oracle-xe3.yml
-                  echo "📦 Desplegando con configuración local..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -394,13 +384,33 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Asegurar que oracle_xe3 esté en la red correcta
-                  echo "🌐 Configurando red para oracle_xe3..."
+                  # Detener y limpiar contenedores de QA existentes
+                  echo "🛑 Deteniendo contenedores de QA..."
+                  $DC -f docker-compose.qa.yml down 2>/dev/null || true
+                  
+                  # Limpiar contenedores huérfanos de QA
+                  echo "🗑️ Limpiando contenedores huérfanos de QA..."
+                  docker container prune -f 2>/dev/null || true
+                '''
+                
+                echo "   🐳 Construyendo y desplegando contenedores de QA..."
+                sh '''
+                  # Construir backend para QA
+                  echo "🔨 Construyendo backend para QA..."
+                  docker build -t hospital-backend-qa .
+                  
+                  # Construir frontend para QA
+                  echo "🎨 Construyendo frontend para QA..."
+                  docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
+                  
+                  # Configurar red para oracle_xe2 (usado en QA)
+                  echo "🌐 Configurando red para oracle_xe2..."
                   docker network create hospital-network 2>/dev/null || true
-                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  docker network connect hospital-network oracle_xe2 2>/dev/null || true
                   
                   # Desplegar servicios de QA
-                  $DC -f docker-compose.qa.yml up -d
+                  echo "📦 Desplegando servicios de QA..."
+                  $DC -f docker-compose.qa.yml up -d --build
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
@@ -408,6 +418,11 @@ node {
                 echo "🌐 URLs de acceso:"
                 echo "   - Backend: http://localhost:8090"
                 echo "   - Frontend: http://localhost:5174"
+                echo "   - Nginx Reverse Proxy: http://localhost:8083"
+                echo "   - Jenkins: http://localhost:8082"
+                echo "   - SonarQube: http://localhost:9001"
+                echo "   - Prometheus: http://localhost:9091"
+                echo "   - Grafana: http://localhost:3001"
                 echo "   - Base de datos: localhost:1522 (oracle_xe2)"
             } else {
                 echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
