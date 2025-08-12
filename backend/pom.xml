@@ -83,6 +83,23 @@
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
 
+    <!-- Email y JavaMail -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-mailer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>javax.mail</artifactId>
+      <version>1.6.2</version>
+    </dependency>
+
+    <!-- OpenAPI y Documentación -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
+
     <!-- Utilidades -->
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
