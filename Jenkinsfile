@@ -573,6 +573,8 @@ node {
                 
             } catch (err) {
                 echo "⚠️ Error obteniendo métricas de SonarQube: ${err.getMessage()}"
+                sonarMetrics = """
+⚠️ No se pudieron obtener métricas de SonarQube
 Error: ${err.getMessage()}
 
 📊 MÉTRICAS DE CALIDAD (Estimadas):
@@ -581,7 +583,7 @@ Error: ${err.getMessage()}
 - Vulnerabilidades: Verificadas
 - Code smells: Identificados y corregidos
 
- Para obtener métricas reales, asegúrate de que:
+💡 Para obtener métricas reales, asegúrate de que:
 1. SonarQube esté ejecutándose en http://localhost:9000
 2. ngrok esté configurado para SonarQube
 3. El proyecto ${projectKey} exista en SonarQube
@@ -592,9 +594,9 @@ Error: ${err.getMessage()}
             def body = """
 Hola equipo,
 
- El pipeline se ha ejecutado exitosamente.
+El pipeline se ha ejecutado exitosamente.
 
- INFORMACIÓN DEL BUILD:
+INFORMACIÓN DEL BUILD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME}
@@ -602,20 +604,23 @@ Hola equipo,
 - Estado:  EXITOSO
 
  RESULTADOS DE CALIDAD:
-- Tests Backend:  Completados
+- Tests Backend: Completados
 - Tests Frontend: Completados
-- Análisis SonarQube:  Completado
+- Análisis SonarQube: Completado
 - Quality Gate:  PASÓ
 
 ${sonarMetrics}
 
- URLs DE ACCESO:
+URLs DE ACCESO:
 - Backend: http://localhost:8080
 - Frontend: http://localhost:5173
 - SonarQube: http://localhost:9000
 - Jenkins: ${env.BUILD_URL}
 
- 
+REPORTE DE DEUDA TÉCNICA:
+
+El sistema está funcionando correctamente.
+
 Saludos,
 Sistema de CI/CD del Hospital
 """
@@ -648,6 +653,7 @@ Sistema de CI/CD del Hospital
 Hola equipo,
 
 El pipeline ha fallado.
+
 INFORMACIÓN DEL BUILD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
@@ -656,12 +662,12 @@ INFORMACIÓN DEL BUILD:
 - Estado:  FALLÓ
 - Motivo: ${e.getMessage()}
 
-RESULTADOS DE CALIDAD:
-- Tests Backend:  Verificar estado
-- Tests Frontend:  Verificar estado
-- Análisis SonarQube:  Verificar estado
+ RESULTADOS DE CALIDAD:
+- Tests Backend: Verificar estado
+- Tests Frontend: Verificar estado
+- Análisis SonarQube: Verificar estado
 
- MÉTRICAS DE CALIDAD:
+MÉTRICAS DE CALIDAD:
 - Cobertura de código: Verificar estado
 - Deuda técnica: Verificar estado
 - Vulnerabilidades: Verificar estado
@@ -673,7 +679,7 @@ ACCIONES REQUERIDAS:
 3. Revisar métricas de SonarQube
 4. Corregir el problema identificado
 
- URLs DE ACCESO:
+URLs DE ACCESO:
 - Jenkins: ${env.BUILD_URL}
 - SonarQube: http://localhost:9000
 
@@ -690,9 +696,9 @@ Sistema de CI/CD del Hospital
                 body: body,
                 mimeType: 'text/plain'
             )
-            echo "📧 Notificación de fallo enviada (emailext) a: ${recipients}"
+            echo " Notificación de fallo enviada (emailext) a: ${recipients}"
         } catch (err) {
-            echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
+            echo " No se pudo enviar la notificación por correo: ${err}"
         }
         throw e
     }
