@@ -39,8 +39,8 @@ node {
                     echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
             } catch (err) {
-                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
-                env.BRANCH_NAME = env.BRANCH_NAME ?: 'prod'
+                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
+                env.BRANCH_NAME = env.BRANCH_NAME ?: 'QA'
             }
         }
         
