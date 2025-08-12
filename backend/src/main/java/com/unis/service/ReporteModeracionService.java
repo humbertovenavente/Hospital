@@ -52,6 +52,7 @@ public class ReporteModeracionService {
         nativeQuery.setParameter("fechaFin", fin);
         nativeQuery.setParameter("limite", limite);
 
+        @SuppressWarnings("unchecked")
         List<Object[]> results = nativeQuery.getResultList();
         List<ModeracionReporteDTO> lista = new ArrayList<>();
         int i = 1;
