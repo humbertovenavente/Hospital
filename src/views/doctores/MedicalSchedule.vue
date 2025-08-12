@@ -218,11 +218,11 @@
 
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
 import config from '@/config';
 import recetaService from "@/services/RecetaService.js";
-import { userRole, userId } from '@/stores/authStore';
+import { userRole } from '@/stores/authStore';
 
 export default {
   data() {
@@ -297,23 +297,23 @@ async cancelarCita(cita) {
   }
 },
 
-async reasignarCita() {
-  if (!this.nuevoDoctorId) {
-    alert("Debe seleccionar un doctor.");
-    return;
-  }
-  try {
-    await axios.put(`${API_URL}/citas/${this.citaSeleccionada.idCita}/reasignar`, {
-      idDoctor: this.nuevoDoctorId
-    });
-    alert("Cita reasignada exitosamente.");
-    this.obtenerCitas();
-  } catch (error) {
-    console.error("Error al reasignar cita:", error);
-  } finally {
-    this.cerrarModalReasignar();
-  }
-},
+// async reasignarCita() {
+//   if (!this.nuevoDoctorId) {
+//     alert("Debe seleccionar un doctor.");
+//     return;
+//   }
+//   try {
+//     await axios.put(`${API_URL}/citas/${this.citaSeleccionada.idCita}/reasignar`, {
+//       idDoctor: this.nuevoDoctorId
+//     });
+//     alert("Cita reasignada exitosamente.");
+//     this.obtenerCitas();
+//   } catch (error) {
+//     console.error("Error al reasignar cita:", error);
+//   } finally {
+//     this.cerrarModalReasignar();
+//   }
+// },
 
 async procesarCita() {
   try {
@@ -457,7 +457,7 @@ async reasignarCita() {
     async obtenerCitas() {
       try {
         console.log("Llamando a obtenerCitas()...");
-        let response = await axios.get(`${API_URL}/citas`);
+        const response = await axios.get(`${API_URL}/citas`);
         this.citas = response.data;
         console.log("Citas obtenidas:", this.citas);
       } catch (error) {
@@ -624,7 +624,7 @@ async editarReceta() {
         this.receta = response.data || {};
         this.recetaExistente = Boolean(response.data);
         console.log("Receta encontrada:", this.receta);
-      } catch (error) {
+      } catch {
         console.warn("No hay receta registrada para esta cita.");
         this.recetaExistente = false;
       }
@@ -649,8 +649,8 @@ async editarReceta() {
     this.mostrarAgregarMedicamento = true;
 
     console.log(" Receta creada con éxito:", this.receta);
-  } catch (error) {
-    console.error(" Error al generar la receta:", error);
+  } catch {
+    console.error(" Error al generar la receta");
     alert("Error al generar la receta.");
   }
 }

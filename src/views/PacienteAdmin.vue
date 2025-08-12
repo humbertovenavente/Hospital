@@ -115,7 +115,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import pacienteService from "@/services/pacienteService.js";
 import emailjs from 'emailjs-com';
 

@@ -10,7 +10,7 @@
 
     <!-- Grid de doctores -->
     <div v-else class="doctor-grid">
-      <div v-for="(doctor, index) in doctores" :key="doctor.idDoctor" class="card">
+      <div v-for="doctor in doctores" :key="doctor.idDoctor" class="card">
         <div class="card-content">
           <img
             :src="doctor.fotografia || '/default-doctor.jpg'"
@@ -26,7 +26,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import catalogoService from '@/services/catalogoService';
 
 export default {

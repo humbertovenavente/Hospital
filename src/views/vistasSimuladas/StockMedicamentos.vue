@@ -81,7 +81,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import MedicamentoService from '@/services/MedicamentoService';
 
 export default {

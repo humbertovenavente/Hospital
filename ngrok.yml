@@ -1,0 +1,13 @@
+version: "2"
+authtoken: 2y0VGgZEKDSVsjkImjiNE1feiRd_38io6TPdS9To8E717e8rb
+
+tunnels:
+  jenkins:
+    addr: 8081
+    proto: http
+    inspect: true
+    
+  sonarqube:
+    addr: 9000
+    proto: http
+    inspect: true

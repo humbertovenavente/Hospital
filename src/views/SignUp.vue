@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
 import { registerUser } from "@/services/authService.js";
 import { useRouter } from "vue-router";
@@ -22,7 +22,7 @@ const registrar = async () => {
     setTimeout(() => {
       router.push("/login");
     }, 2000);
-  } catch (error) {
+  } catch {
     errorMensaje.value = "Error al registrar usuario. Inténtalo nuevamente.";
   }
 };

@@ -83,7 +83,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, computed, onMounted } from "vue";
 import fichasApi from "@/services/fichasApi";
 import pacienteService from "@/services/pacienteService";
@@ -112,7 +112,7 @@ export default {
     const cargarFichas = async () => {
       try {
         fichas.value = await fichasApi.getAllFichas();
-      } catch (err) {
+      } catch {
         error.value = "Error al cargar fichas.";
       } finally {
         loading.value = false;
@@ -187,7 +187,7 @@ export default {
         try {
           await fichasApi.deleteFicha(idFicha);
           await cargarFichas();
-        } catch (err) {
+        } catch {
           alert("Error al eliminar ficha.");
         }
       }

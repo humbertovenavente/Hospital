@@ -74,7 +74,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { generarReporte } from '@/services/ReporteService';
