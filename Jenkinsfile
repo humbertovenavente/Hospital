@@ -410,7 +410,7 @@ node {
                   
                   # Desplegar servicios de QA
                   echo "📦 Desplegando servicios de QA..."
-                  $DC -f docker-compose.qa.yml up -d --build
+                  docker-compose -f docker-compose.qa.yml up -d --build
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
