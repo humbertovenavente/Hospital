@@ -513,33 +513,52 @@ node {
             try {
                 echo "🔍 Obteniendo métricas de SonarQube para: ${projectKey}"
                 
+                // Obtener URL pública de SonarQube desde ngrok
+                def sonarPublicUrl = ""
+                try {
+                    def ngrokResponse = sh(
+                        script: "curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[] | select(.config.addr == \"http://localhost:9000\") | .public_url'",
+                        returnStdout: true
+                    ).trim()
+                    
+                    if (ngrokResponse && ngrokResponse != "null" && ngrokResponse != "") {
+                        sonarPublicUrl = ngrokResponse
+                        echo "✅ URL pública de SonarQube obtenida: ${sonarPublicUrl}"
+                    } else {
+                        throw new Exception("No se pudo obtener URL pública de SonarQube")
+                    }
+                } catch (err) {
+                    echo "⚠️ Error obteniendo URL pública de SonarQube: ${err.getMessage()}"
+                    throw new Exception("SonarQube no está disponible públicamente")
+                }
+                
                 // Verificar si SonarQube está disponible
                 def sonarStatus = sh(
-                    script: "curl -s -f 'http://localhost:9000/api/system/status' >/dev/null 2>&1 && echo 'UP' || echo 'DOWN'",
+                    script: "curl -s -f '${sonarPublicUrl}/api/system/status' >/dev/null 2>&1 && echo 'UP' || echo 'DOWN'",
                     returnStdout: true
                 ).trim()
                 
                 if (sonarStatus == "UP") {
-                    // Obtener métricas básicas usando curl
+                    // Obtener métricas básicas usando curl con URL pública
                     def metricsResponse = sh(
                         script: """
-                            curl -s "http://localhost:9000/api/measures/component?component=${projectKey}&metricKeys=coverage,duplicated_lines_density,security_rating,reliability_rating,maintainability_rating,bugs,vulnerabilities,code_smells,technical_debt,lines,functions,classes" || echo "{}"
+                            curl -s "${sonarPublicUrl}/api/measures/component?component=${projectKey}&metricKeys=coverage,duplicated_lines_density,security_rating,reliability_rating,maintainability_rating,bugs,vulnerabilities,code_smells,technical_debt,lines,functions,classes" || echo "{}"
                         """,
                         returnStdout: true
                     ).trim()
                     
-                    // Obtener Quality Gate
+                    // Obtener Quality Gate con URL pública
                     def qgResponse = sh(
                         script: """
-                            curl -s "http://localhost:9000/api/qualitygates/project_status?projectKey=${projectKey}" || echo "{}"
+                            curl -s "${sonarPublicUrl}/api/qualitygates/project_status?projectKey=${projectKey}" || echo "{}"
                         """,
                         returnStdout: true
                     ).trim()
                     
-                    // Obtener issues recientes
+                    // Obtener issues recientes con URL pública
                     def issuesResponse = sh(
                         script: """
-                            curl -s "http://localhost:9000/api/issues/search?componentKeys=${projectKey}&ps=5&s=SEVERITY&asc=false" || echo "{}"
+                            curl -s "${sonarPublicUrl}/api/issues/search?componentKeys=${projectKey}&ps=5&s=SEVERITY&asc=false" || echo "{}"
                         """,
                         returnStdout: true
                     ).trim()
@@ -547,15 +566,13 @@ node {
                     // Formatear métricas para el correo
                     sonarMetrics = formatSonarMetrics(metricsResponse, qgResponse, issuesResponse)
                     
-                    echo "✅ Métricas de SonarQube obtenidas exitosamente"
+                    echo "✅ Métricas de SonarQube obtenidas exitosamente desde: ${sonarPublicUrl}"
                 } else {
-                    throw new Exception("SonarQube no está disponible")
+                    throw new Exception("SonarQube no está disponible en: ${sonarPublicUrl}")
                 }
                 
             } catch (err) {
                 echo "⚠️ Error obteniendo métricas de SonarQube: ${err.getMessage()}"
-                sonarMetrics = """
-⚠️ No se pudieron obtener métricas de SonarQube
 Error: ${err.getMessage()}
 
 📊 MÉTRICAS DE CALIDAD (Estimadas):
@@ -564,10 +581,11 @@ Error: ${err.getMessage()}
 - Vulnerabilidades: Verificadas
 - Code smells: Identificados y corregidos
 
-💡 Para obtener métricas reales, asegúrate de que:
+ Para obtener métricas reales, asegúrate de que:
 1. SonarQube esté ejecutándose en http://localhost:9000
-2. El proyecto ${projectKey} exista en SonarQube
-3. Se haya ejecutado un análisis reciente
+2. ngrok esté configurado para SonarQube
+3. El proyecto ${projectKey} exista en SonarQube
+4. Se haya ejecutado un análisis reciente
                 """
             }
             
@@ -583,7 +601,7 @@ Hola equipo,
 - URL: ${env.BUILD_URL}
 - Estado:  EXITOSO
 
-🔍 RESULTADOS DE CALIDAD:
+ RESULTADOS DE CALIDAD:
 - Tests Backend:  Completados
 - Tests Frontend: Completados
 - Análisis SonarQube:  Completado
@@ -609,9 +627,9 @@ Sistema de CI/CD del Hospital
                 body: body,
                 mimeType: 'text/plain'
             )
-            echo "📧 Notificación de éxito enviada a: ${recipients}"
+            echo "Notificación de éxito enviada a: ${recipients}"
         } catch (err) {
-            echo "⚠️  No se pudo enviar la notificación por correo: ${err}"
+            echo " No se pudo enviar la notificación por correo: ${err}"
         }
         
     } catch (Exception e) {
