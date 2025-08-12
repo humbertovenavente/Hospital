@@ -255,11 +255,18 @@ node {
         stage('Deploy to Development') {
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
-                echo "   Etiquetando imágenes para desarrollo..."
-                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
-                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
-                echo "   Desplegando con Docker Compose..."
+                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
                 sh '''
+                  # Construir backend local
+                  echo "🔨 Construyendo backend local..."
+                  docker build -t hospital-backend-local .
+                  
+                  # Construir frontend local
+                  echo "🎨 Construyendo frontend local..."
+                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
+                  
+                  # Desplegar usando docker-compose-oracle-xe3.yml
+                  echo "📦 Desplegando con configuración local..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -267,11 +274,22 @@ node {
                   else
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
-                  $DC -f docker-compose.yml up -d
+                  
+                  # Asegurar que oracle_xe3 esté en la red correcta
+                  echo "🌐 Configurando red para oracle_xe3..."
+                  docker network create hospital-network 2>/dev/null || true
+                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  
+                  # Desplegar backend y frontend
+                  $DC -f docker-compose-oracle-xe3.yml up -d
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 10
                 echo "✅ Despliegue en desarrollo completado exitosamente"
+                echo "🌐 URLs de acceso:"
+                echo "   - Backend: http://localhost:8080"
+                echo "   - Frontend: http://localhost:5173"
+                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
             } else {
                 echo "⏭️  Saltando despliegue de desarrollo (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
@@ -280,11 +298,18 @@ node {
         stage('Deploy to QA') {
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
-                echo "   Etiquetando imágenes para QA..."
-                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
-                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
-                echo "   Desplegando con Docker Compose QA..."
+                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
                 sh '''
+                  # Construir backend local
+                  echo "🔨 Construyendo backend local..."
+                  docker build -t hospital-backend-local .
+                  
+                  # Construir frontend local
+                  echo "🎨 Construyendo frontend local..."
+                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
+                  
+                  # Desplegar usando docker-compose-oracle-xe3.yml
+                  echo "📦 Desplegando con configuración local..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -292,11 +317,22 @@ node {
                   else
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
-                  $DC -f docker-compose.qa.yml up -d
+                  
+                  # Asegurar que oracle_xe3 esté en la red correcta
+                  echo "🌐 Configurando red para oracle_xe3..."
+                  docker network create hospital-network 2>/dev/null || true
+                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  
+                  # Desplegar backend y frontend
+                  $DC -f docker-compose-oracle-xe3.yml up -d
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
+                echo "🌐 URLs de acceso:"
+                echo "   - Backend: http://localhost:8080"
+                echo "   - Frontend: http://localhost:5173"
+                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
             } else {
                 echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
@@ -307,8 +343,8 @@ node {
                 echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
                 echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
                 
-                // Limpiar contenedores existentes para evitar conflictos
-                echo "   🧹 Limpiando contenedores existentes..."
+                // Limpiar solo los contenedores específicos que no necesitamos
+                echo "   🧹 Limpiando contenedores hospital innecesarios..."
                 sh '''
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
@@ -318,28 +354,33 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # LIMPIEZA AGRESIVA - ESTA ES LA CLAVE PARA EVITAR CONFLICTOS
-                  echo "🛑 Deteniendo TODOS los contenedores hospital-..."
-                  docker stop $(docker ps -q --filter name=hospital-) 2>/dev/null || true
+                  # LIMPIAR SOLO CONTENEDORES HOSPITAL INNECESARIOS
+                  echo "🛑 Deteniendo contenedores hospital innecesarios..."
+                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-grafana --filter name=hospital-prometheus --filter name=hospital-nginx) 2>/dev/null || true
                   
-                  echo "🗑️ Eliminando TODOS los contenedores hospital-..."
-                  docker rm $(docker ps -aq --filter name=hospital-) 2>/dev/null || true
+                  echo "🗑️ Eliminando contenedores hospital innecesarios..."
+                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-grafana --filter name=hospital-prometheus --filter name=hospital-nginx) 2>/dev/null || true
                   
-                  echo "🌐 Limpiando redes huérfanas..."
-                  docker network prune -f
+                  # PRESERVAR oracle_xe3, hospital-backend-local, hospital-frontend-local
+                  echo "✅ Preservando contenedores esenciales: oracle_xe3, hospital-backend-local, hospital-frontend-local"
                   
-                  echo "💾 Limpiando volúmenes no utilizados..."
-                  docker volume prune -f
-                  
-                  # Verificar que no queden contenedores con nombres conflictivos
+                  # Verificar contenedores existentes
                   echo "Verificando contenedores existentes..."
-                  docker ps -a --filter "name=hospital-" --format "table {{.Names}}\t{{.Status}}"
+                  docker ps -a --format "table {{.Names}}\t{{.Status}}"
                 '''
                 
-                sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
-                sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
-                echo "   Desplegando con Docker Compose Producción..."
+                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
                 sh '''
+                  # Construir backend local
+                  echo "🔨 Construyendo backend local..."
+                  docker build -t hospital-backend-local .
+                  
+                  # Construir frontend local
+                  echo "🎨 Construyendo frontend local..."
+                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
+                  
+                  # Desplegar usando docker-compose-oracle-xe3.yml
+                  echo "📦 Desplegando con configuración local..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -347,11 +388,34 @@ node {
                   else
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
-                  $DC -f docker-compose.prod.yml up -d
+                  
+                  # Asegurar que oracle_xe3 esté en la red correcta
+                  echo "🌐 Configurando red para oracle_xe3..."
+                  docker network create hospital-network 2>/dev/null || true
+                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  
+                  # Desplegar backend y frontend
+                  $DC -f docker-compose-oracle-xe3.yml up -d
                 '''
-                echo "   Verificando salud de los servicios..."
-                sleep 20
+                
+                echo "   🔍 Verificando salud de los servicios..."
+                sleep 15
+                sh '''
+                  echo "=== Estado de los contenedores ==="
+                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+                  
+                  echo "=== Verificando backend ==="
+                  curl -f http://localhost:8080/faq || echo "⚠️ Backend no responde aún"
+                  
+                  echo "=== Verificando frontend ==="
+                  curl -f http://localhost:5173 || echo "⚠️ Frontend no responde aún"
+                '''
+                
                 echo "✅ Despliegue en producción completado exitosamente"
+                echo "🌐 URLs de acceso:"
+                echo "   - Backend: http://localhost:8080"
+                echo "   - Frontend: http://localhost:5173"
+                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
             } else {
                 echo "⏭️  Saltando despliegue de producción (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
