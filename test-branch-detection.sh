@@ -65,7 +65,7 @@ if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
     print_warning "ENTORNO: QA"
     echo "📊 PROYECTOS SONARQUBE: hospital-backend-qa, hospital-frontend-qa"
     echo "🐳 DOCKER COMPOSE: docker-compose.qa.yml"
-    echo "🌐 PUERTOS: Backend 8090, Frontend 5174"
+    echo "🌐 PUERTOS: Backend 8060, Frontend 5174"
 elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
     print_warning "ENTORNO: PRODUCCIÓN"
     echo "📊 PROYECTOS SONARQUBE: hospital-backend-prod, hospital-frontend-prod"

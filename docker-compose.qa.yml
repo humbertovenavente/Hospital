@@ -14,7 +14,7 @@ services:
       QUARKUS_HTTP_PORT: 8080
       QUARKUS_PROFILE: qa
     ports:
-      - "8060:8080"  # Puerto QA: 8060
+      - "8090:8080"  # Puerto QA: 8090
     volumes:
       - ./backend/src/main/resources/application.properties:/app/config/application.properties
       - ./backend/src/main/resources/application-qa.properties:/app/config/application-qa.properties
@@ -29,7 +29,7 @@ services:
       dockerfile: Dockerfile.frontend.qa
     container_name: hospital-frontend-qa
     environment:
-      VITE_API_URL: http://localhost:8060
+      VITE_API_URL: http://localhost:8090
       NODE_ENV: qa
     ports:
       - "5174:80"  # Puerto QA: 5174
