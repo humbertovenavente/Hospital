@@ -128,13 +128,33 @@ node {
         }
         
         stage('Unit Tests Backend') {
-            echo "🧪 Ejecutando tests unitarios del backend..."
+            echo "🧪 Ejecutando tests unitarios del backend con cobertura JaCoCo..."
             dir('backend') {
                 sh '''
-                    echo "=== Ejecutando tests unitarios ==="
-                    mvn test -DskipITs
+                    echo "=== Ejecutando tests unitarios con JaCoCo ==="
+                    mvn test jacoco:report -DskipITs
+                    
+                    echo "📊 Verificando reportes generados..."
+                    if [ -f "target/site/jacoco/jacoco.xml" ]; then
+                        echo "✅ Reporte JaCoCo XML generado: target/site/jacoco/jacoco.xml"
+                        ls -la target/site/jacoco/ || true
+                    else
+                        echo "⚠️  Reporte JaCoCo XML no encontrado en target/site/jacoco/"
+                        find target -name "jacoco.xml" -type f || echo "No se encontró jacoco.xml"
+                    fi
+                    
+                    if [ -d "target/surefire-reports" ]; then
+                        test_count=$(find target/surefire-reports -name "*.xml" | wc -l)
+                        echo "✅ Encontrados $test_count reportes de tests"
+                        ls -la target/surefire-reports/ | head -5 || true
+                    else
+                        echo "⚠️  No se encontraron reportes de tests"
+                    fi
+                    
                     echo "=== Tests unitarios completados ==="
                 '''
+                // Publicar resultados de tests
+                publishTestResults testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
             }
             echo "✅ Tests unitarios del backend completados"
         }
