@@ -50,7 +50,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import config from "@/config";
+// URL de la API para QA
+const config = {
+  API_URL: 'http://localhost:8090'
+};
 
 const historia = ref(null);
 const timelineData = ref([]);

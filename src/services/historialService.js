@@ -1,6 +1,7 @@
 // src/services/historialService.js
 import axios from "axios";
-import API_URL from "../config"; // Importa el config
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 const ASEGURADORA_API = `${API_URL}/clientes`;
 

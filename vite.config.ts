@@ -10,7 +10,7 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig(({ command, mode }) => {
   // Cargar variables de entorno basadas en el modo
   const env = loadEnv(mode, process.cwd(), '')
-  
+
   return {
     plugins: [
       vue(),
@@ -32,7 +32,7 @@ export default defineConfig(({ command, mode }) => {
     define: {
       __APP_ENV__: JSON.stringify(mode),
       __API_URL__: JSON.stringify(
-        mode === 'qa' ? 'http://localhost:8082' : 'http://localhost:8080'
+        mode === 'qa' ? 'http://localhost:8090' : 'http://localhost:8080'
       )
     }
   }

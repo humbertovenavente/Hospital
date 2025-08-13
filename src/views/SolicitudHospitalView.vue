@@ -116,7 +116,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import API_URL from "@/config";
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 interface Aseguradora {
   id?: number;

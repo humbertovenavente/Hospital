@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "../config"; // 👈 importa tu config
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 const CLIENTES_API_URL = `${API_URL}/clientes`;
 

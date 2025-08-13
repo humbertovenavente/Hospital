@@ -220,7 +220,10 @@
 
 <script lang="ts">
 import axios from 'axios';
-import config from '@/config';
+// URL de la API para QA
+const config = {
+  API_URL: 'http://localhost:8090'
+};
 import recetaService from "@/services/RecetaService.js";
 import { userRole } from '@/stores/authStore';
 

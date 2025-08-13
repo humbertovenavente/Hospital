@@ -1,5 +1,7 @@
 import axios from "axios";
-import API_URL from "@/config";
+
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 // ✅ Crear una nueva pregunta (se guarda con estado PROCESO)
 export const enviarPregunta = async (pregunta, autor) => {

@@ -78,7 +78,8 @@
 import { ref, reactive, onMounted, watch } from 'vue';
 import axios from 'axios';
 import { generarReporte } from '@/services/ReporteService';
-import API_URL from '@/config';
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 export default {
   name: 'ReporteView',

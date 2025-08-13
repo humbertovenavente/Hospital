@@ -1,4 +1,5 @@
-import API_URL from "../config"; //  Importa tu configuración de URL
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 export async function descargarReporteExcel({ inicio, fin, limite, usuario }) {
   const params = new URLSearchParams({

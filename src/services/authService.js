@@ -1,6 +1,8 @@
 import axios from "axios";
-import API_URL from "@/config";
 import emailjs from "emailjs-com";
+
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 // Configuración de EmailJS
 const SERVICE_ID = "service_f70s6q3";

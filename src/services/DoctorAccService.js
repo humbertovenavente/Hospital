@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "../config"; // Ajusta la ruta según sea necesario
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 const DOCTORES_API = `${API_URL}/doctores`;
 

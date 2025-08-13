@@ -86,7 +86,8 @@
 </template>
 
 <script lang="ts">
-import API_URL from '@/config';
+// URL de la API para QA
+const API_URL = 'http://localhost:8090';
 
 export default {
   data() {
