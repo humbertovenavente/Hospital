@@ -77,7 +77,7 @@ node {
                     echo "✅ Tests del Backend completados"
                 '''
                 // Publicar resultados de tests
-                publishTestResults testResultsPattern: 'target/surefire-reports/*.xml'
+                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
             }
         }
 

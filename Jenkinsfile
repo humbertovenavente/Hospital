@@ -154,7 +154,7 @@ node {
                     echo "=== Tests unitarios completados ==="
                 '''
                 // Publicar resultados de tests
-                publishTestResults testResultsPattern: 'target/surefire-reports/*.xml', allowEmptyResults: true
+                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
             }
             echo "✅ Tests unitarios del backend completados"
         }
