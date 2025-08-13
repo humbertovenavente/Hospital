@@ -4,7 +4,7 @@ node {
         parameters([
             booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
             ,
-            booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para QA)')
         ])
     ])
     def DOCKER_REGISTRY = 'hospital-registry'
@@ -32,15 +32,22 @@ node {
                 if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
                     def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     if (detected == 'HEAD') {
-                        // En estado detached (p.ej., PR). Preferir destino u origen del PR
-                        detected = env.CHANGE_TARGET ?: (env.CHANGE_BRANCH ?: 'QA')
+                        // En estado detached, forzar uso de 'QA' para evitar confusiones
+                        detected = 'QA'
+                        echo "🔍 Estado detached detectado, forzando rama: QA"
                     }
                     env.BRANCH_NAME = detected
                     echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
+                
+                // Verificación adicional: si estamos en la rama QA, forzar el nombre
+                if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
+                    env.BRANCH_NAME = 'QA'
+                    echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                }
             } catch (err) {
                 echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
-                env.BRANCH_NAME = env.BRANCH_NAME ?: 'QA'
+                env.BRANCH_NAME = 'QA'
             }
         }
         
