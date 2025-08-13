@@ -429,6 +429,14 @@ node {
                   # Desplegar servicios de QA
                   echo "📦 Desplegando servicios de QA..."
                   docker-compose -f docker-compose.qa.yml up -d --build
+                  
+                  # Asegurar que el backend esté en la red correcta
+                  echo "🔗 Conectando backend a la red hospital-network..."
+                  docker network connect hospital-network hospital-backend-qa 2>/dev/null || true
+                  
+                  # Verificar conectividad de red
+                  echo "🔍 Verificando conectividad de red..."
+                  docker exec hospital-backend-qa ping -c 1 oracle_xe2 || echo "⚠️  Advertencia: No se pudo hacer ping a oracle_xe2"
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
