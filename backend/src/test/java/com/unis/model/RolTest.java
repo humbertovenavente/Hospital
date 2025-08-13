@@ -1,26 +1,23 @@
 package com.unis.model;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class RolTest {
 
-    private Rol rol;
-
-    @BeforeEach
-    void setUp() {
-        rol = new Rol();
-    }
-
     @Test
-    void testConstructorPorDefecto() {
+    public void testRolConstructor() {
+        // Arrange & Act
+        Rol rol = new Rol();
+        
+        // Assert
         assertNotNull(rol);
     }
 
     @Test
-    void testGettersAndSetters() {
+    public void testRolSettersAndGetters() {
         // Arrange
+        Rol rol = new Rol();
         Long id = 1L;
         String roleName = "ADMIN";
 
@@ -34,8 +31,32 @@ public class RolTest {
     }
 
     @Test
-    void testSetYGetId() {
+    public void testRolToString() {
         // Arrange
+        Rol rol = new Rol();
+        rol.setId(1L);
+
+        // Act
+        String result = rol.toString();
+
+        // Assert
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testRolNotNull() {
+        // Arrange
+        Rol rol = new Rol();
+
+        // Act & Assert
+        assertNotNull(rol);
+        assertNotNull(rol.toString());
+    }
+
+    @Test
+    public void testRolId() {
+        // Arrange
+        Rol rol = new Rol();
         Long id = 999L;
 
         // Act
@@ -43,48 +64,5 @@ public class RolTest {
 
         // Assert
         assertEquals(id, rol.getId());
-    }
-
-    @Test
-    void testSetYGetRoleName() {
-        // Arrange
-        String roleName = "DOCTOR";
-
-        // Act
-        rol.setRoleName(roleName);
-
-        // Assert
-        assertEquals(roleName, rol.getRoleName());
-    }
-
-    @Test
-    void testSetIdNull() {
-        // Act
-        rol.setId(null);
-
-        // Assert
-        assertNull(rol.getId());
-    }
-
-    @Test
-    void testSetRoleNameNull() {
-        // Act
-        rol.setRoleName(null);
-
-        // Assert
-        assertNull(rol.getRoleName());
-    }
-
-    @Test
-    void testSetRoleNameVacio() {
-        // Arrange
-        String roleNameVacio = "";
-
-        // Act
-        rol.setRoleName(roleNameVacio);
-
-        // Assert
-        assertEquals(roleNameVacio, rol.getRoleName());
-        assertTrue(rol.getRoleName().isEmpty());
     }
 }

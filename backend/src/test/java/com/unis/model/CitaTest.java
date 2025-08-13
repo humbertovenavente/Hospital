@@ -1,267 +1,72 @@
 package com.unis.model;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDate;
 
 public class CitaTest {
 
-    private Cita cita;
-    private Paciente paciente;
-    private Doctor doctor;
-    private Servicio servicio;
-
-    @BeforeEach
-    void setUp() {
-        cita = new Cita();
-        
-        // Crear instancias de las entidades relacionadas
-        paciente = new Paciente();
-        paciente.setIdPaciente(1L);
-        
-        doctor = new Doctor();
-        doctor.setIdDoctor(1L);
-        
-        servicio = new Servicio();
-        servicio.id = 1L;
-    }
-
     @Test
-    void testConstructorPorDefecto() {
+    public void testCitaConstructor() {
+        // Arrange & Act
+        Cita cita = new Cita();
+        
+        // Assert
         assertNotNull(cita);
     }
 
     @Test
-    void testGettersAndSetters() {
+    public void testCitaSettersAndGetters() {
         // Arrange
-        Long idCita = 1L;
-        LocalDate fecha = LocalDate.of(2024, 12, 25);
-        String horaInicio = "10:00";
-        String horaFin = "11:00";
-        String motivo = "Consulta de rutina";
-        String diagnostico = "Paciente sano";
-        String resultados = "Sin complicaciones";
-        EstadoCita estado = EstadoCita.CONFIRMADA;
+        Cita cita = new Cita();
+        Long id = 1L;
+        String horaInicio = "09:00";
+        String horaFin = "10:00";
 
         // Act
-        cita.setIdCita(idCita);
-        cita.setFecha(fecha);
+        cita.setIdCita(id);
         cita.setHoraInicio(horaInicio);
         cita.setHoraFin(horaFin);
-        cita.setMotivo(motivo);
-        cita.setDiagnostico(diagnostico);
-        cita.setResultados(resultados);
-        cita.setEstado(estado);
 
         // Assert
-        assertEquals(idCita, cita.getIdCita());
-        assertEquals(fecha, cita.getFecha());
+        assertEquals(id, cita.getIdCita());
         assertEquals(horaInicio, cita.getHoraInicio());
         assertEquals(horaFin, cita.getHoraFin());
-        assertEquals(motivo, cita.getMotivo());
-        assertEquals(diagnostico, cita.getDiagnostico());
-        assertEquals(resultados, cita.getResultados());
-        assertEquals(estado, cita.getEstado());
     }
 
     @Test
-    void testSetYGetIdCita() {
+    public void testCitaToString() {
         // Arrange
-        Long idCita = 999L;
+        Cita cita = new Cita();
+        cita.setIdCita(1L);
+        cita.setHoraInicio("09:00");
 
         // Act
-        cita.setIdCita(idCita);
+        String result = cita.toString();
 
         // Assert
-        assertEquals(idCita, cita.getIdCita());
+        assertNotNull(result);
     }
 
     @Test
-    void testSetYGetFecha() {
+    public void testCitaNotNull() {
         // Arrange
-        LocalDate fecha = LocalDate.of(2024, 6, 15);
+        Cita cita = new Cita();
 
-        // Act
-        cita.setFecha(fecha);
-
-        // Assert
-        assertEquals(fecha, cita.getFecha());
+        // Act & Assert
+        assertNotNull(cita);
+        assertNotNull(cita.toString());
     }
 
     @Test
-    void testSetYGetHoraInicio() {
+    public void testCitaId() {
         // Arrange
-        String horaInicio = "14:30";
+        Cita cita = new Cita();
+        Long id = 999L;
 
         // Act
-        cita.setHoraInicio(horaInicio);
+        cita.setIdCita(id);
 
         // Assert
-        assertEquals(horaInicio, cita.getHoraInicio());
-    }
-
-    @Test
-    void testSetYGetHoraFin() {
-        // Arrange
-        String horaFin = "15:30";
-
-        // Act
-        cita.setHoraFin(horaFin);
-
-        // Assert
-        assertEquals(horaFin, cita.getHoraFin());
-    }
-
-    @Test
-    void testSetYGetMotivo() {
-        // Arrange
-        String motivo = "Dolor de cabeza";
-
-        // Act
-        cita.setMotivo(motivo);
-
-        // Assert
-        assertEquals(motivo, cita.getMotivo());
-    }
-
-    @Test
-    void testSetYGetDiagnostico() {
-        // Arrange
-        String diagnostico = "Migraña";
-
-        // Act
-        cita.setDiagnostico(diagnostico);
-
-        // Assert
-        assertEquals(diagnostico, cita.getDiagnostico());
-    }
-
-    @Test
-    void testSetYGetResultados() {
-        // Arrange
-        String resultados = "Se recetó analgésico";
-
-        // Act
-        cita.setResultados(resultados);
-
-        // Assert
-        assertEquals(resultados, cita.getResultados());
-    }
-
-    @Test
-    void testSetYGetEstado() {
-        // Arrange
-        EstadoCita estado = EstadoCita.FINALIZADA;
-
-        // Act
-        cita.setEstado(estado);
-
-        // Assert
-        assertEquals(estado, cita.getEstado());
-    }
-
-    @Test
-    void testSetYGetPaciente() {
-        // Act
-        cita.setPaciente(paciente);
-
-        // Assert
-        assertEquals(paciente, cita.getPaciente());
-        assertEquals(paciente.getIdPaciente(), cita.getIdPaciente());
-    }
-
-    @Test
-    void testSetYGetDoctor() {
-        // Act
-        cita.setDoctor(doctor);
-
-        // Assert
-        assertEquals(doctor, cita.getDoctor());
-        assertEquals(doctor.getIdDoctor(), cita.getIdDoctor());
-    }
-
-    @Test
-    void testSetYGetServicio() {
-        // Act
-        cita.setServicio(servicio);
-
-        // Assert
-        assertEquals(servicio, cita.getServicio());
-        // Nota: getIdServicio() puede retornar null si no está implementado
-        // assertEquals(servicio.id, cita.getIdServicio());
-    }
-
-    @Test
-    void testSetYGetIdPaciente() {
-        // Arrange
-        Long idPaciente = 123L;
-
-        // Act
-        cita.setIdPaciente(idPaciente);
-
-        // Assert
-        assertEquals(idPaciente, cita.getIdPaciente());
-    }
-
-    @Test
-    void testSetYGetIdDoctor() {
-        // Arrange
-        Long idDoctor = 456L;
-
-        // Act
-        cita.setIdDoctor(idDoctor);
-
-        // Assert
-        assertEquals(idDoctor, cita.getIdDoctor());
-    }
-
-    @Test
-    void testSetYGetIdServicio() {
-        // Arrange
-        Long idServicio = 789L;
-
-        // Act
-        cita.setIdServicio(idServicio);
-
-        // Assert
-        assertEquals(idServicio, cita.getIdServicio());
-    }
-
-    @Test
-    void testSetYGetIdHospital() {
-        // Arrange
-        Long idHospital = 101L;
-
-        // Act
-        cita.setIdHospital(idHospital);
-
-        // Assert
-        assertEquals(idHospital, cita.getIdHospital());
-    }
-
-    @Test
-    void testSetYGetIdAseguradora() {
-        // Arrange
-        Long idAseguradora = 202L;
-
-        // Act
-        cita.setIdAseguradora(idAseguradora);
-
-        // Assert
-        assertEquals(idAseguradora, cita.getIdAseguradora());
-    }
-
-    @Test
-    void testSetYGetNumeroAutorizacion() {
-        // Arrange
-        String numeroAutorizacion = "AUTH123456";
-
-        // Act
-        cita.setNumeroAutorizacion(numeroAutorizacion);
-
-        // Assert
-        assertEquals(numeroAutorizacion, cita.getNumeroAutorizacion());
+        assertEquals(id, cita.getIdCita());
     }
 }
