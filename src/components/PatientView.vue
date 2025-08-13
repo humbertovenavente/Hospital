@@ -54,7 +54,7 @@ export default {
         }
 
         // Llamada a la API correcta
-        const response = await fetch("http://localhost:8090/recetas/paciente/${idPaciente}/activas");
+        const response = await fetch("http://localhost:8060/recetas/paciente/${idPaciente}/activas");
         if (response.status === 204) {
           this.recetas = [];
           return;

@@ -442,7 +442,7 @@ node {
                 sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
                 echo "🌐 URLs de acceso:"
-                echo "   - Backend: http://localhost:8090"
+                echo "   - Backend: http://localhost:8060"
                 echo "   - Frontend: http://localhost:5174"
                 echo "   - Nginx Reverse Proxy: http://localhost:8083"
                 echo "   - Jenkins: http://localhost:8081"
