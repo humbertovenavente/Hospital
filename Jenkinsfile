@@ -142,19 +142,17 @@ node {
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName según la rama
-                        if [ "$BRANCH_NAME" = "QA" ]; then
+                        # Configurar projectKey y projectName según la rama - DEV por defecto
+                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
                             PROJECT_KEY="hospital-backend-prod"
                             PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
-                        elif [ "$BRANCH_NAME" = "QA" ]; then
+                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
                             PROJECT_KEY="hospital-backend-qa"
                             PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
-                        elif [ "$BRANCH_NAME" = "dev" ]; then
-                            PROJECT_KEY="hospital-backend-dev"
-                            PROJECT_NAME="Hospital Backend - DESARROLLO (Java/Quarkus)"
                         else
-                            PROJECT_KEY="hospital-backend-${BRANCH_NAME}"
-                            PROJECT_NAME="Hospital Backend - ${BRANCH_NAME} (Java/Quarkus)"
+                            # Por defecto usar DEV para desarrollo
+                            PROJECT_KEY="hospital-backend-dev"
+                            PROJECT_NAME="Hospital Backend - DEV (Java/Quarkus)"
                         fi
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
@@ -166,23 +164,16 @@ node {
                           echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
                         fi
 
-                        # Usar archivo de configuración específico para QA
-                        if [ "$BRANCH_NAME" = "QA" ]; then
+                        # Usar archivos de configuración específicos según el entorno
+                        if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
                             echo "   🔧 Usando configuración específica de QA para backend..."
                             sonar-scanner -Dproject.settings=sonar-project-backend-qa.properties
+                        elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                            echo "   🔧 Usando configuración específica de PROD para backend..."
+                            sonar-scanner -Dproject.settings=sonar-project-backend.properties
                         else
-                            sonar-scanner \
-                              -Dsonar.projectKey=$PROJECT_KEY \
-                              -Dsonar.projectName="$PROJECT_NAME" \
-                              -Dsonar.projectVersion=${BUILD_NUMBER} \
-                              -Dsonar.sources=backend/src/main/java \
-                              -Dsonar.java.source=17 \
-                              -Dsonar.java.binaries=backend/target/classes \
-                              ${TEST_ARGS} \
-                              -Dsonar.host.url=${SONAR_HOST} \
-                              -Dsonar.token=${TOKEN_TO_USE} \
-                              -Dsonar.exclusions=**/target/**,**/*.min.js,**/*.min.css \
-                              -Dsonar.qualitygate.wait=true
+                            echo "   🔧 Usando configuración específica de DEV para backend..."
+                            sonar-scanner -Dproject.settings=sonar-project-backend-dev.properties
                         fi
                         echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
                     '''
@@ -197,19 +188,17 @@ node {
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName según la rama
-                        if [ "$BRANCH_NAME" = "QA" ]; then
+                        # Configurar projectKey y projectName según la rama - DEV por defecto
+                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
                             PROJECT_KEY="hospital-frontend-prod"
                             PROJECT_NAME="Hospital Frontend - PRODUCCIÓN (Vue.js/TypeScript)"
-                        elif [ "$BRANCH_NAME" = "QA" ]; then
+                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
                             PROJECT_KEY="hospital-frontend-qa"
                             PROJECT_NAME="Hospital Frontend - QA (Vue.js/TypeScript)"
-                        elif [ "$BRANCH_NAME" = "dev" ]; then
-                            PROJECT_KEY="hospital-frontend-dev"
-                            PROJECT_NAME="Hospital Frontend - DESARROLLO (Vue.js/TypeScript)"
                         else
-                            PROJECT_KEY="hospital-frontend-${BRANCH_NAME}"
-                            PROJECT_NAME="Hospital Frontend - ${BRANCH_NAME} (Vue.js/TypeScript)"
+                            # Por defecto usar DEV para desarrollo
+                            PROJECT_KEY="hospital-frontend-dev"
+                            PROJECT_NAME="Hospital Frontend - DEV (Vue.js/TypeScript)"
                         fi
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
@@ -239,33 +228,16 @@ node {
                         npm run build || echo "   ⚠️  Build falló, continuando sin build"
 
                         echo "   🔍 Ejecutando análisis de SonarQube para frontend..."
-                        # Usar archivo de configuración específico para QA
-                        if [ "$BRANCH_NAME" = "QA" ]; then
+                        # Usar archivos de configuración específicos según el entorno
+                        if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
                             echo "   🔧 Usando configuración específica de QA para frontend..."
                             sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
+                        elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                            echo "   🔧 Usando configuración específica de PROD para frontend..."
+                            sonar-scanner -Dproject.settings=sonar-project-frontend.properties
                         else
-                            # Configuración robusta para evitar timeouts en JS/TS analysis
-                            sonar-scanner \
-                              -Dsonar.projectKey=$PROJECT_KEY \
-                              -Dsonar.projectName="$PROJECT_NAME" \
-                              -Dsonar.projectVersion=${BUILD_NUMBER} \
-                              -Dsonar.sources=src \
-                              -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
-                              -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
-                              -Dsonar.host.url=${SONAR_HOST} \
-                              -Dsonar.token=${SONAR_TOKEN} \
-                              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/** \
-                              -Dsonar.qualitygate.wait=true \
-                              -Dsonar.javascript.timeout=600000 \
-                              -Dsonar.typescript.timeout=600000 \
-                              -Dsonar.javascript.bridge.timeout=600000 \
-                              -Dsonar.javascript.bridge.connectionTimeout=600000 \
-                              -Dsonar.javascript.bridge.readTimeout=600000 \
-                              -Dsonar.javascript.bridge.serverTimeout=600000 \
-                              -Dsonar.javascript.bridge.keepAlive=true \
-                              -Dsonar.javascript.bridge.maxRetries=5 \
-                              -Dsonar.javascript.bridge.memory=4096 \
-                              -Dsonar.javascript.bridge.maxMemory=8192
+                            echo "   🔧 Usando configuración específica de DEV para frontend..."
+                            sonar-scanner -Dproject.settings=sonar-project-frontend-dev.properties
                         fi
                         
                         if [ $? -eq 0 ]; then
@@ -336,20 +308,16 @@ node {
         }
         
         stage('Deploy to Development') {
-            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
-                echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
-                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
+            // Forzar BUILD_DOCKER = true para cualquier rama que no sea QA o PROD
+            if (env.BRANCH_NAME != 'qa' && env.BRANCH_NAME != 'QA' && env.BRANCH_NAME != 'prod' && env.BRANCH_NAME != 'production') {
+                env.BUILD_DOCKER = true
+                echo "✅ Forzando BUILD_DOCKER = true para rama DEV: ${env.BRANCH_NAME}"
+            }
+            
+            if (params.BUILD_DOCKER && env.BRANCH_NAME != 'qa' && env.BRANCH_NAME != 'QA' && env.BRANCH_NAME != 'prod' && env.BRANCH_NAME != 'production' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de DESARROLLO (DEV)..."
+                echo "   🐳 Construyendo y desplegando contenedores DEV..."
                 sh '''
-                  # Construir backend local
-                  echo "🔨 Construyendo backend local..."
-                  docker build -t hospital-backend-local .
-                  
-                  # Construir frontend local
-                  echo "🎨 Construyendo frontend local..."
-                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
-                  
-                  # Desplegar usando docker-compose-oracle-xe3.yml
-                  echo "📦 Desplegando con configuración local..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -358,21 +326,30 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Asegurar que oracle_xe3 esté en la red correcta
-                  echo "🌐 Configurando red para oracle_xe3..."
-                  docker network create hospital-network 2>/dev/null || true
-                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  # Detener contenedores existentes del entorno de desarrollo
+                  echo "🛑 Deteniendo contenedores de desarrollo..."
+                  $DC -f docker-compose.dev.yml down 2>/dev/null || true
                   
-                  # Desplegar backend y frontend
-                  $DC -f docker-compose-oracle-xe3.yml up -d
+                  # Limpiar contenedores y redes huérfanas
+                  echo "🗑️ Limpiando contenedores huérfanos..."
+                  docker container prune -f 2>/dev/null || true
+                  
+                  # Desplegar servicios de desarrollo
+                  echo "📦 Desplegando servicios de DEV..."
+                  $DC -f docker-compose.dev.yml up -d --build
+                  
+                  # Conectar backend a la red de Oracle
+                  echo "🔗 Conectando backend a la red de Oracle..."
+                  sleep 10
+                  docker network connect bridge hospital-backend-dev 2>/dev/null || true
                 '''
-                echo "   Verificando salud de los servicios..."
-                sleep 10
-                echo "✅ Despliegue en desarrollo completado exitosamente"
-                echo "🌐 URLs de acceso:"
-                echo "   - Backend: http://localhost:8080"
-                echo "   - Frontend: http://localhost:5173"
-                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
+                echo "   ⏳ Verificando salud de los servicios..."
+                sleep 15
+                echo "✅ Despliegue en DEV completado exitosamente"
+                echo "🌐 URLs de acceso DEV:"
+                echo "   - Backend: http://localhost:8060"
+                echo "   - Frontend: http://localhost:5180"
+                echo "   - SonarQube: http://localhost:9000"
             } else {
                 echo "⏭️  Saltando despliegue de desarrollo (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
