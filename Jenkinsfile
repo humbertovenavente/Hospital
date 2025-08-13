@@ -401,6 +401,11 @@ node {
                   echo "🛑 Deteniendo contenedores de QA..."
                   $DC -f docker-compose.qa.yml down 2>/dev/null || true
                   
+                  # Forzar detención y eliminación de contenedores de QA
+                  echo "🗑️ Forzando limpieza de contenedores de QA..."
+                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
+                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
+                  
                   # Limpiar contenedores huérfanos de QA
                   echo "🗑️ Limpiando contenedores huérfanos de QA..."
                   docker container prune -f 2>/dev/null || true
