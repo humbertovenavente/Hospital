@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ngrok Jenkins
+Comment=Inicia ngrok para Jenkins automáticamente
+Exec=/home/jose/Hospital-1/start-ngrok-autostart.sh
+Terminal=false
+Hidden=false
+X-GNOME-Autostart-enabled=true
