@@ -377,9 +377,12 @@ node {
                   echo "🛑 Deteniendo contenedores de desarrollo..."
                   $DC -f docker-compose.dev.yml down 2>/dev/null || true
                   
-                  # Limpiar contenedores y redes huérfanas
-                  echo "🗑️ Limpiando contenedores huérfanos..."
-                  docker container prune -f 2>/dev/null || true
+                  # Forzar detención y eliminación SOLO de contenedores de DEV existentes
+                  echo "🗑️ Forzando limpieza SOLO de contenedores de DEV..."
+                  docker stop hospital-backend-dev 2>/dev/null || true
+                  docker rm hospital-backend-dev 2>/dev/null || true
+                  docker stop hospital-frontend-dev 2>/dev/null || true
+                  docker rm hospital-frontend-dev 2>/dev/null || true
                   
                   # Desplegar servicios de desarrollo
                   echo "📦 Desplegando servicios de DEV..."

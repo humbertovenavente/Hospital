@@ -177,14 +177,12 @@ node {
                   echo "🛑 Deteniendo contenedores de DEV..."
                   $DC -f docker-compose.dev.yml down 2>/dev/null || true
                   
-                  # Forzar detención y eliminación de contenedores de DEV
-                  echo "🗑️ Forzando limpieza de contenedores de DEV..."
-                  docker stop $(docker ps -q --filter name=hospital-backend-dev --filter name=hospital-frontend-dev) 2>/dev/null || true
-                  docker rm $(docker ps -aq --filter name=hospital-backend-dev --filter name=hospital-frontend-dev) 2>/dev/null || true
-                  
-                  # Limpiar contenedores huérfanos de DEV
-                  echo "🗑️ Limpiando contenedores huérfanos de DEV..."
-                  docker container prune -f 2>/dev/null || true
+                  # Forzar detención y eliminación SOLO de contenedores de DEV existentes
+                  echo "🗑️ Forzando limpieza SOLO de contenedores de DEV..."
+                  docker stop hospital-backend-dev 2>/dev/null || true
+                  docker rm hospital-backend-dev 2>/dev/null || true
+                  docker stop hospital-frontend-dev 2>/dev/null || true
+                  docker rm hospital-frontend-dev 2>/dev/null || true
                 '''
                 
                 echo "   🐳 Construyendo y desplegando contenedores de DEV..."
