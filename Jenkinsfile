@@ -419,7 +419,7 @@ node {
                 echo "   - Backend: http://localhost:8090"
                 echo "   - Frontend: http://localhost:5174"
                 echo "   - Nginx Reverse Proxy: http://localhost:8083"
-                echo "   - Jenkins: http://localhost:8082"
+                echo "   - Jenkins: http://localhost:8081"
                 echo "   - SonarQube: http://localhost:9001"
                 echo "   - Prometheus: http://localhost:9091"
                 echo "   - Grafana: http://localhost:3001"

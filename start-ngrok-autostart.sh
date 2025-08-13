@@ -4,7 +4,7 @@
 echo "🚀 Iniciando ngrok para Jenkins..."
 
 # Iniciar ngrok en segundo plano
-ngrok http 8082 >/tmp/ngrok-jenkins.log 2>&1 &
+ngrok http 8081 >/tmp/ngrok-jenkins.log 2>&1 &
 
 # Esperar un poco
 sleep 3

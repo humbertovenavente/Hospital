@@ -54,21 +54,6 @@ services:
     networks:
       - hospital-network
 
-  # Jenkins para QA
-  jenkins-qa:
-    image: jenkins/jenkins:lts-jdk17
-    container_name: hospital-jenkins-qa
-    ports:
-      - "8082:8080"  # Puerto QA: 8082
-    environment:
-      JENKINS_OPTS: --httpPort=8080
-    volumes:
-      - jenkins_qa_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
-    networks:
-      - hospital-network
-
   # SonarQube para QA
   sonarqube-qa:
     image: sonarqube:10.4.1-community
@@ -119,7 +104,6 @@ services:
       - hospital-network
 
 volumes:
-  jenkins_qa_data:
   sonarqube_qa_data:
   sonarqube_qa_extensions:
   sonarqube_qa_logs:
