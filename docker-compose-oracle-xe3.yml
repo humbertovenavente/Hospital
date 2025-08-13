@@ -18,7 +18,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: hospital-frontend-local
     environment:
-      VITE_API_URL: http://localhost:8080
+      VITE_API_URL: http://localhost:8060
       NODE_ENV: production
     ports:
       - "5173:80"

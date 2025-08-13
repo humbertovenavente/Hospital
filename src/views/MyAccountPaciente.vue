@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import API_URL from "../config"; // Importamos API_URL desde config.ts
+import config from "../config"; // Importamos config desde config.ts
 
 const userId = localStorage.getItem("userId");
 const user = ref(null);

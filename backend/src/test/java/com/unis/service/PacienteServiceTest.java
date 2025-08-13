@@ -1,257 +1,229 @@
 package com.unis.service;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
-
 import com.unis.model.Paciente;
 import com.unis.model.Usuario;
 import com.unis.repository.PacienteRepository;
-
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class PacienteServiceTest {
 
     @Mock
-    PacienteRepository pacienteRepository;
+    private PacienteRepository pacienteRepository;
 
     @Mock
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Mock
-    Query query;
+    private Query query;
 
     @InjectMocks
-    PacienteService pacienteService;
+    private PacienteService pacienteService;
+
+    private Paciente testPaciente;
+    private Usuario testUsuario;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
+        
+        testUsuario = new Usuario();
+        testUsuario.setNombreUsuario("Juan");
+        testUsuario.setCorreo("juan@hospital.com");
+        testUsuario.setContrasena("password123");
+        
+        testPaciente = new Paciente();
+        testPaciente.setUsuario(testUsuario);
+        testPaciente.setApellido("Pérez");
+        testPaciente.setDocumento("12345678");
+        testPaciente.setTelefono("123456789");
     }
 
-    // Test para obtener todos los pacientes
     @Test
-    public void testGetAllPacientes() {
-        List<Paciente> expected = Arrays.asList(new Paciente(), new Paciente());
-        when(pacienteRepository.listAll()).thenReturn(expected);
-        
-        List<Paciente> result = pacienteService.getAllPacientes();
-        assertEquals(expected, result);
+    void testGetAllPacientes() {
+        // Arrange
+        List<Paciente> pacientesEsperados = Arrays.asList(testPaciente);
+        when(pacienteRepository.listAll()).thenReturn(pacientesEsperados);
+
+        // Act
+        List<Paciente> resultado = pacienteService.getAllPacientes();
+
+        // Assert
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        verify(pacienteRepository).listAll();
     }
 
-    // Test para obtener un paciente por ID (caso encontrado)
     @Test
-    public void testGetPacienteByIdFound() {
-        Paciente paciente = new Paciente();
-        when(pacienteRepository.findByIdOptional(1L)).thenReturn(Optional.of(paciente));
-        
-        Optional<Paciente> result = pacienteService.getPacienteById(1L);
-        assertTrue(result.isPresent());
-        assertEquals(paciente, result.get());
+    void testGetPacienteById() {
+        // Arrange
+        Long id = 1L;
+        when(pacienteRepository.findByIdOptional(id)).thenReturn(Optional.of(testPaciente));
+
+        // Act
+        Optional<Paciente> resultado = pacienteService.getPacienteById(id);
+
+        // Assert
+        assertTrue(resultado.isPresent());
+        assertEquals(testPaciente, resultado.get());
+        verify(pacienteRepository).findByIdOptional(id);
     }
 
-    // Test para obtener un paciente por ID (caso no encontrado)
     @Test
-    public void testGetPacienteByIdNotFound() {
-        when(pacienteRepository.findByIdOptional(1L)).thenReturn(Optional.empty());
-        
-        Optional<Paciente> result = pacienteService.getPacienteById(1L);
-        assertFalse(result.isPresent());
+    void testGetPacienteByIdNoEncontrado() {
+        // Arrange
+        Long id = 999L;
+        when(pacienteRepository.findByIdOptional(id)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Paciente> resultado = pacienteService.getPacienteById(id);
+
+        // Assert
+        assertFalse(resultado.isPresent());
+        verify(pacienteRepository).findByIdOptional(id);
     }
 
-    // Test para registrar un paciente exitosamente
     @Test
-    public void testRegistrarPacienteSuccess() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nombre");
-        usuario.setCorreo("correo@example.com");
-        usuario.setContrasena("password");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("apellido");
-        paciente.setDocumento("documento");
-        paciente.setFechaNacimiento(new Date(100000L));
-        paciente.setGenero("M");
-        paciente.setTelefono("123456789");
-        
-        // Simular el comportamiento de la consulta nativa
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testRegistrarPacienteExitoso() {
+        // Arrange
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
-        
-        // No debe lanzar excepción
-        assertDoesNotThrow(() -> pacienteService.registrarPaciente(paciente));
-        verify(query, times(1)).executeUpdate();
+
+        // Act & Assert
+        assertDoesNotThrow(() -> pacienteService.registrarPaciente(testPaciente));
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query, times(8)).setParameter(anyInt(), any());
+        verify(query).executeUpdate();
     }
 
-    // Test para registrar un paciente cuando se detecta correo duplicado
     @Test
-    public void testRegistrarPacienteDuplicateEmail() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nombre");
-        usuario.setCorreo("correo@example.com");
-        usuario.setContrasena("password");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("apellido");
-        paciente.setDocumento("documento");
-        paciente.setFechaNacimiento(new Date(100000L));
-        paciente.setGenero("M");
-        paciente.setTelefono("123456789");
-        
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testRegistrarPacienteCorreoDuplicado() {
+        // Arrange
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        // Simulamos una excepción que indique duplicado (contiene "ORA-20001")
-        when(query.executeUpdate()).thenThrow(new RuntimeException("ORA-20001: duplicate email"));
+        when(query.executeUpdate()).thenThrow(new RuntimeException("ORA-20001: Error"));
+
+        // Act & Assert
+        WebApplicationException exception = assertThrows(
+            WebApplicationException.class,
+            () -> pacienteService.registrarPaciente(testPaciente)
+        );
         
-        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> {
-            pacienteService.registrarPaciente(paciente);
-        });
-        assertEquals(" Error: El correo ya está registrado.", ex.getMessage());
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), ex.getResponse().getStatus());
+        assertEquals(400, exception.getResponse().getStatus());
+        assertEquals(" Error: El correo ya está registrado.", exception.getMessage());
     }
 
-    // Test para registrar un paciente con error interno
     @Test
-    public void testRegistrarPacienteInternalError() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nombre");
-        usuario.setCorreo("correo@example.com");
-        usuario.setContrasena("password");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("apellido");
-        paciente.setDocumento("documento");
-        paciente.setFechaNacimiento(new Date(100000L));
-        paciente.setGenero("M");
-        paciente.setTelefono("123456789");
-        
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testRegistrarPacienteErrorInterno() {
+        // Arrange
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        // Simulamos una excepción distinta a la de correo duplicado
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Other error"));
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
+
+        // Act & Assert
+        WebApplicationException exception = assertThrows(
+            WebApplicationException.class,
+            () -> pacienteService.registrarPaciente(testPaciente)
+        );
         
-        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> {
-            pacienteService.registrarPaciente(paciente);
-        });
-        assertEquals(" Error interno del servidor.", ex.getMessage());
-        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), ex.getResponse().getStatus());
+        assertEquals(500, exception.getResponse().getStatus());
+        assertEquals(" Error interno del servidor.", exception.getMessage());
     }
 
-    // Test para actualizar un paciente exitosamente
     @Test
-    public void testActualizarPacienteSuccess() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nuevoNombre");
-        usuario.setCorreo("nuevoCorreo@example.com");
-        usuario.setContrasena("nuevoPassword");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("nuevoApellido");
-        paciente.setDocumento("nuevoDocumento");
-        paciente.setFechaNacimiento(new Date(200000L));
-        paciente.setGenero("F");
-        paciente.setTelefono("987654321");
-        
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testActualizarPacienteExitoso() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
-        
-        boolean result = pacienteService.actualizarPaciente(1L, paciente);
-        assertTrue(result);
-        verify(query, times(1)).executeUpdate();
+
+        // Act
+        boolean resultado = pacienteService.actualizarPaciente(id, testPaciente);
+
+        // Assert
+        assertTrue(resultado);
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query, times(9)).setParameter(anyInt(), any());
+        verify(query).executeUpdate();
     }
 
-    // Test para actualizar un paciente con correo duplicado
     @Test
-    public void testActualizarPacienteDuplicateEmail() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nuevoNombre");
-        usuario.setCorreo("nuevoCorreo@example.com");
-        usuario.setContrasena("nuevoPassword");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("nuevoApellido");
-        paciente.setDocumento("nuevoDocumento");
-        paciente.setFechaNacimiento(new Date(200000L));
-        paciente.setGenero("F");
-        paciente.setTelefono("987654321");
-        
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testActualizarPacienteCorreoDuplicado() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        // Simulamos que se lanza una excepción que contenga el mensaje de correo duplicado
         when(query.executeUpdate()).thenThrow(new RuntimeException("El correo ya está registrado en el sistema"));
+
+        // Act & Assert
+        WebApplicationException exception = assertThrows(
+            WebApplicationException.class,
+            () -> pacienteService.actualizarPaciente(id, testPaciente)
+        );
         
-        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> {
-            pacienteService.actualizarPaciente(1L, paciente);
-        });
-        assertEquals("Error: El correo ya está registrado en el sistema.", ex.getMessage());
-        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), ex.getResponse().getStatus());
+        assertEquals(400, exception.getResponse().getStatus());
+        assertEquals("Error: El correo ya está registrado en el sistema.", exception.getMessage());
     }
 
-    // Test para actualizar un paciente con otro error (debe retornar false)
     @Test
-    public void testActualizarPacienteOtherError() {
-        Paciente paciente = new Paciente();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nuevoNombre");
-        usuario.setCorreo("nuevoCorreo@example.com");
-        usuario.setContrasena("nuevoPassword");
-        paciente.setUsuario(usuario);
-        paciente.setApellido("nuevoApellido");
-        paciente.setDocumento("nuevoDocumento");
-        paciente.setFechaNacimiento(new Date(200000L));
-        paciente.setGenero("F");
-        paciente.setTelefono("987654321");
-        
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testActualizarPacienteConError() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Some other error"));
-        
-        boolean result = pacienteService.actualizarPaciente(1L, paciente);
-        assertFalse(result);
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
+
+        // Act
+        boolean resultado = pacienteService.actualizarPaciente(id, testPaciente);
+
+        // Assert
+        assertFalse(resultado);
     }
 
-    // Test para eliminar un paciente exitosamente
     @Test
-    public void testEliminarPacienteSuccess() {
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testEliminarPacienteExitoso() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
-        
-        boolean result = pacienteService.eliminarPaciente(1L);
-        assertTrue(result);
-        verify(query, times(1)).executeUpdate();
+
+        // Act
+        boolean resultado = pacienteService.eliminarPaciente(id);
+
+        // Assert
+        assertTrue(resultado);
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query).setParameter(1, id);
+        verify(query).executeUpdate();
     }
 
-    // Test para eliminar un paciente con error
     @Test
-    public void testEliminarPacienteError() {
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testEliminarPacienteConError() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Error"));
-        
-        boolean result = pacienteService.eliminarPaciente(1L);
-        assertFalse(result);
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
+
+        // Act
+        boolean resultado = pacienteService.eliminarPaciente(id);
+
+        // Assert
+        assertFalse(resultado);
     }
 }

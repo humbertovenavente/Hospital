@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  sonarqube-dev:
+    image: sonarqube:10.4.1-developer
+    container_name: sonarqube-developer
+    environment:
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: true
+      SONAR_JDBC_URL: jdbc:postgresql://postgres-sonar:5432/sonar
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+      SONAR_WEB_JVM_OPTS: "-Xmx2g -Xms1g"
+      SONAR_CE_JVM_OPTS: "-Xmx2g -Xms1g"
+      SONAR_SEARCH_JVM_OPTS: "-Xmx2g -Xms1g"
+    ports:
+      - "9001:9000"
+    volumes:
+      - sonarqube_dev_data:/opt/sonarqube/data
+      - sonarqube_dev_extensions:/opt/sonarqube/extensions
+      - sonarqube_dev_logs:/opt/sonarqube/logs
+    depends_on:
+      - postgres-sonar
+    networks:
+      - sonarqube-dev-network
+    restart: unless-stopped
+
+  postgres-sonar:
+    image: postgres:15
+    container_name: postgres-sonar-dev
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonar
+    volumes:
+      - postgres_sonar_dev_data:/var/lib/postgresql/data
+    networks:
+      - sonarqube-dev-network
+    restart: unless-stopped
+
+volumes:
+  sonarqube_dev_data:
+  sonarqube_dev_extensions:
+  sonarqube_dev_logs:
+  postgres_sonar_dev_data:
+
+networks:
+  sonarqube-dev-network:
+    driver: bridge

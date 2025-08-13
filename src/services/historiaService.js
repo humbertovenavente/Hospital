@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "@/config";
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 // 🔹 Obtener solo historias con estado PUBLICADO (vista pública)
 export const getHistoriasPublicadas = async () => {

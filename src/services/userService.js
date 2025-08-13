@@ -1,5 +1,7 @@
 import axios from "axios";
-import API_URL from "../config"; // Ajusta la ruta según la ubicación del archivo
+
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 export default {
   async getUserData(id_usuario, rol_id) {

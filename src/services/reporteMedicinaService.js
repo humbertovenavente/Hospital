@@ -1,5 +1,6 @@
 import axios from 'axios';
-import API_URL from "../config"; //  Importa tu config para que no esté quemado el localhost
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 export async function obtenerReporteMedicinas(fechaInicio, fechaFin, limite = 10) {
   try {

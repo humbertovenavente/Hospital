@@ -41,6 +41,9 @@ public class TechnicalDebtEmailService {
     @ConfigProperty(name = "quarkus.mailer.start-tls", defaultValue = "false")
     boolean mailStartTls;
 
+    @ConfigProperty(name = "quarkus.profile", defaultValue = "prod")
+    String profile;
+
     /**
      * Envía reporte de deuda técnica por email
      */
@@ -58,7 +61,8 @@ public class TechnicalDebtEmailService {
             LOG.info("  StartTLS: " + mailStartTls);
             
             // Generar contenido del email
-            String subject = " Reporte de Deuda Técnica - " + projectName;
+            String environmentSuffix = "dev".equals(profile) ? " [RAMA DEV]" : "";
+            String subject = " Reporte de Deuda Técnica - " + projectName + environmentSuffix;
             String htmlContent = generateTechnicalDebtReportHTML(projectKey, projectName);
             
             // Lista de destinatarios (incluyendo jflores@unis.edu.gt)
@@ -130,6 +134,10 @@ public class TechnicalDebtEmailService {
      * Genera el contenido HTML del reporte de deuda técnica
      */
     public String generateTechnicalDebtReportHTML(String projectKey, String projectName) {
+        // Detectar si estamos en desarrollo para agregar indicador
+        String environmentBadge = "dev".equals(profile) ? 
+            "<div style='background: #ff6b6b; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; margin-bottom: 15px; font-weight: bold;'>🔧 RAMA DEV</div>" : 
+            "";
         return """
             <!DOCTYPE html>
             <html>
@@ -166,6 +174,7 @@ public class TechnicalDebtEmailService {
             <body>
                 <div class="container">
                     <div class="header">
+                        %s
                         <h1>Reporte de Deuda Técnica</h1>
                         <p class="timestamp">Generado el: %s</p>
                         <p><strong>Proyecto:</strong> %s</p>
@@ -252,8 +261,9 @@ public class TechnicalDebtEmailService {
             </html>
             """.formatted(
                 projectName,
-                projectName,
+                environmentBadge,
                 java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
+                projectName,
                 projectKey,
                 projectKey
             );

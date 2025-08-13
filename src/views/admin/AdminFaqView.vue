@@ -27,7 +27,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import API_URL from "@/config";
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 const faqs = ref([]);
 

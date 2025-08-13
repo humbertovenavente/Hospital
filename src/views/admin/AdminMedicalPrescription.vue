@@ -126,7 +126,8 @@
   </template>
 
 <script lang="ts">
-import API_URL from "../config"; // Importamos API_URL desde config.ts
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 export default {
   data() {

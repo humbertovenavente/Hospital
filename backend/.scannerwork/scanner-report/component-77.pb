@@ -1,1 +1,0 @@
-M 2javaX/hr5src/main/java/com/unis/model/AseguradoraConexion.java

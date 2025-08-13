@@ -2,11 +2,11 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import axios from 'axios'
-import API_URL from "@/config";
+import config from './config'
 import App from './App.vue'
 import router from './router'
 
-axios.defaults.baseURL = API_URL
+axios.defaults.baseURL = config.API_URL
 
 const app = createApp(App)
 

@@ -63,6 +63,9 @@ public class CitaController {
             }
 
             citaService.agendarCita(cita);
+        } catch (IllegalArgumentException e) {
+            // Re-lanzar las excepciones de validación sin modificar
+            throw e;
         } catch (Exception e) {
             throw new IllegalArgumentException("⚠️ Formato de hora incorrecto. Use el formato HH:mm");
         }

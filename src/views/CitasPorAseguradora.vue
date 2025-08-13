@@ -36,7 +36,8 @@
 
 <script lang="ts">
 import axios from "axios";
-import API_URL from "@/config";
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 export default {
   data() {

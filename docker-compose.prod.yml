@@ -1,24 +1,37 @@
-version: '3.8'
+# version: '3.8'  # Obsoleto en Docker Compose v2
 
 services:
-  # Base de datos Oracle para Producción (usando oracle_xe3 existente)
-  # El contenedor oracle_xe3 ya está corriendo en puerto 1523
-  # No se crea uno nuevo, solo se referencia
+  # Base de datos Oracle para Producción
+  oracle-prod:
+    image: container-registry.oracle.com/database/express:21.3.0-xe
+    container_name: hospital-oracle-prod
+    environment:
+      ORACLE_PWD: Unis
+      ORACLE_CHARACTERSET: AL32UTF8
+    ports:
+      - "1523:1521"  # Puerto diferente para producción
+    volumes:
+      - oracle_prod_data:/opt/oracle/oradata
+      - ./backend/src/main/resources/import.sql:/opt/oracle/scripts/startup/import.sql
+      - ./backend/src/main/resources/healthcheck.sql:/opt/oracle/scripts/startup/healthcheck.sql
+    # Sin health check para simplificar
 
   # Backend Quarkus para Producción
   backend-prod:
     build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: hospital-backend-prod-v2
+      context: ./backend
+      dockerfile: Dockerfile.jvm
+    container_name: hospital-backend-prod
     environment:
-      QUARKUS_DATASOURCE_URL: jdbc:oracle:thin:@oracle_xe3:1521/XEPDB1
+      QUARKUS_DATASOURCE_URL: jdbc:oracle:thin:@oracle-prod:1521/XEPDB1
       QUARKUS_DATASOURCE_USERNAME: C##PROYECTO
       QUARKUS_DATASOURCE_PASSWORD: Unis
       QUARKUS_HTTP_PORT: 8080
       QUARKUS_PROFILE: prod
     ports:
-      - "8084:8080"  # Puerto diferente para producción
+      - "8086:8080"  # Puerto diferente para producción
+    depends_on:
+      - oracle-prod
     volumes:
       - ./backend/src/main/resources/application.properties:/app/config/application.properties
     restart: unless-stopped
@@ -28,22 +41,23 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.frontend
-    container_name: hospital-frontend-prod-v2
+    container_name: hospital-frontend-prod
     environment:
-      VITE_API_URL: http://localhost:8084
+      VITE_API_URL: http://localhost:8086
       NODE_ENV: production
     ports:
-      - "5176:80"  # Puerto diferente para producción
+      - "5177:80"  # Puerto diferente para producción
     depends_on:
       - backend-prod
+    # Sin health check para simplificar
     restart: unless-stopped
 
   # Nginx reverse proxy para Producción
   nginx-prod:
     image: nginx:alpine
-    container_name: hospital-nginx-prod-v2
+    container_name: hospital-nginx-prod
     ports:
-      - "8085:80"
+      - "8087:80"
     volumes:
       - ./nginx.prod.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -54,9 +68,9 @@ services:
   # Monitoreo para Producción
   prometheus:
     image: prom/prometheus:latest
-    container_name: hospital-prometheus-v2
+    container_name: hospital-prometheus
     ports:
-      - "9090:9090"
+      - "9091:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     restart: unless-stopped
@@ -64,9 +78,9 @@ services:
   # Grafana para dashboards
   grafana:
     image: grafana/grafana:latest
-    container_name: hospital-grafana-v2
+    container_name: hospital-grafana
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin123
     volumes:
@@ -74,9 +88,5 @@ services:
     restart: unless-stopped
 
 volumes:
-  grafana_data:
-
-networks:
-  default:
-    external: true
-    name: hospital-2_hospital-network 
+  oracle_prod_data:
+  grafana_data: 

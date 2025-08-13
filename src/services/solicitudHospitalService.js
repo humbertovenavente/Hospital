@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "../config"; //  Importar config dinámico (IP automática)
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 // nviar solicitud hospitalaria a Quarkus
 export const enviarSolicitudHospital = async (hospital) => {

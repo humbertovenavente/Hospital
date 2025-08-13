@@ -1,216 +1,198 @@
 package com.unis.service;
 
+import com.unis.model.Doctor;
+import com.unis.model.Usuario;
+import com.unis.repository.DoctorRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.ws.rs.WebApplicationException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
-
-import com.unis.model.Doctor;
-import com.unis.model.Usuario;
-import com.unis.repository.DoctorRepository;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import jakarta.ws.rs.WebApplicationException;
-import jakarta.ws.rs.core.Response;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 public class DoctorServiceTest {
 
     @Mock
-    DoctorRepository doctorRepository;
+    private DoctorRepository doctorRepository;
 
     @Mock
-    EntityManager entityManager;
+    private EntityManager entityManager;
 
     @Mock
-    Query query;
+    private Query query;
 
     @InjectMocks
-    DoctorService doctorService;
+    private DoctorService doctorService;
+
+    private Doctor testDoctor;
+    private Usuario testUsuario;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
+        
+        testUsuario = new Usuario();
+        testUsuario.setNombreUsuario("Dr. Juan");
+        testUsuario.setCorreo("juan@hospital.com");
+        testUsuario.setContrasena("password123");
+        
+        testDoctor = new Doctor();
+        testDoctor.setUsuario(testUsuario);
+        testDoctor.setApellido("Pérez");
+        testDoctor.setDocumento("12345678");
+        testDoctor.setEspecialidad("Cardiología");
+        testDoctor.setNumeroColegiado("COL001");
+        testDoctor.setHorarioAtencion("8:00-16:00");
+        testDoctor.setFechaGraduacion(java.sql.Date.valueOf("2010-01-01"));
+        testDoctor.setUniversidadGraduacion("Universidad Nacional");
     }
 
-    // Test para getAllDoctores
     @Test
-    public void testGetAllDoctores() {
-        List<Doctor> doctors = Arrays.asList(new Doctor(), new Doctor());
-        when(doctorRepository.listAll()).thenReturn(doctors);
+    void testGetAllDoctores() {
+        // Arrange
+        List<Doctor> doctoresEsperados = Arrays.asList(testDoctor);
+        when(doctorRepository.listAll()).thenReturn(doctoresEsperados);
 
-        List<Doctor> result = doctorService.getAllDoctores();
-        assertEquals(doctors, result);
+        // Act
+        List<Doctor> resultado = doctorService.getAllDoctores();
+
+        // Assert
+        assertNotNull(resultado);
+        assertEquals(1, resultado.size());
+        verify(doctorRepository).listAll();
     }
 
-    // Test para getDoctorById cuando se encuentra el doctor
     @Test
-    public void testGetDoctorByIdFound() {
-        Doctor doctor = new Doctor();
-        when(doctorRepository.findByIdOptional(1L)).thenReturn(Optional.of(doctor));
+    void testGetDoctorById() {
+        // Arrange
+        Long id = 1L;
+        when(doctorRepository.findByIdOptional(id)).thenReturn(Optional.of(testDoctor));
 
-        Optional<Doctor> result = doctorService.getDoctorById(1L);
-        assertTrue(result.isPresent());
-        assertEquals(doctor, result.get());
+        // Act
+        Optional<Doctor> resultado = doctorService.getDoctorById(id);
+
+        // Assert
+        assertTrue(resultado.isPresent());
+        assertEquals(testDoctor, resultado.get());
+        verify(doctorRepository).findByIdOptional(id);
     }
 
-    // Test para getDoctorById cuando no se encuentra
     @Test
-    public void testGetDoctorByIdNotFound() {
-        when(doctorRepository.findByIdOptional(1L)).thenReturn(Optional.empty());
+    void testGetDoctorByIdNoEncontrado() {
+        // Arrange
+        Long id = 999L;
+        when(doctorRepository.findByIdOptional(id)).thenReturn(Optional.empty());
 
-        Optional<Doctor> result = doctorService.getDoctorById(1L);
-        assertFalse(result.isPresent());
+        // Act
+        Optional<Doctor> resultado = doctorService.getDoctorById(id);
+
+        // Assert
+        assertFalse(resultado.isPresent());
+        verify(doctorRepository).findByIdOptional(id);
     }
 
-    // Test para registrarDoctor exitosamente
     @Test
-    public void testRegistrarDoctorSuccess() {
-        Doctor doctor = new Doctor();
-        // Configuramos los datos necesarios del doctor y su usuario.
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nombreUsuario");
-        usuario.setCorreo("correo@example.com");
-        usuario.setContrasena("contrasena");
-        doctor.setUsuario(usuario);
-        doctor.setApellido("apellido");
-        doctor.setDocumento("documento");
-        doctor.setFechaNacimiento(new java.util.Date(100000L));
-        doctor.setGenero("M");
-        doctor.setTelefono("123456789");
-        doctor.setEspecialidad("Cardiología");
-        doctor.setNumeroColegiado("12345");
-        doctor.setHorarioAtencion("Lunes a Viernes");
-        doctor.setFechaGraduacion(new java.util.Date(200000L));
-        doctor.setUniversidadGraduacion("Universidad X");
-
-        // Simulamos la creación de la consulta nativa
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
-        // Encadenamos setParameter
+    void testRegistrarDoctorExitoso() {
+        // Arrange
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        // Simulamos que la ejecución se realiza correctamente
         when(query.executeUpdate()).thenReturn(1);
 
-        // Act: No debe lanzar excepción
-        assertDoesNotThrow(() -> doctorService.registrarDoctor(doctor));
-        // Verificamos que se haya llamado a executeUpdate una vez
-        verify(query, times(1)).executeUpdate();
+        // Act & Assert
+        assertDoesNotThrow(() -> doctorService.registrarDoctor(testDoctor));
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query, times(13)).setParameter(anyInt(), any());
+        verify(query).executeUpdate();
     }
 
-    // Test para registrarDoctor con error (simulando excepción en executeUpdate)
     @Test
-    public void testRegistrarDoctorError() {
-        Doctor doctor = new Doctor();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nombreUsuario");
-        usuario.setCorreo("correo@example.com");
-        usuario.setContrasena("contrasena");
-        doctor.setUsuario(usuario);
-        doctor.setApellido("apellido");
-        doctor.setDocumento("documento");
-        doctor.setFechaNacimiento(new java.util.Date(100000L));
-        doctor.setGenero("M");
-        doctor.setTelefono("123456789");
-        doctor.setEspecialidad("Cardiología");
-        doctor.setNumeroColegiado("12345");
-        doctor.setHorarioAtencion("Lunes a Viernes");
-        doctor.setFechaGraduacion(new java.util.Date(200000L));
-        doctor.setUniversidadGraduacion("Universidad X");
-
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testRegistrarDoctorConError() {
+        // Arrange
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Error"));
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
 
-        WebApplicationException exception = assertThrows(WebApplicationException.class, () -> {
-            doctorService.registrarDoctor(doctor);
-        });
+        // Act & Assert
+        WebApplicationException exception = assertThrows(
+            WebApplicationException.class,
+            () -> doctorService.registrarDoctor(testDoctor)
+        );
+        
+        assertEquals(500, exception.getResponse().getStatus());
         assertEquals("Error en la transacción.", exception.getMessage());
-        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), exception.getResponse().getStatus());
     }
 
-    // Test para actualizarDoctor exitosamente
     @Test
-    public void testActualizarDoctorSuccess() {
-        Doctor updateData = new Doctor();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nuevoNombre");
-        usuario.setCorreo("nuevoCorreo");
-        usuario.setContrasena("nuevaContrasena");
-        updateData.setUsuario(usuario);
-        updateData.setApellido("nuevoApellido");
-        updateData.setDocumento("nuevoDocumento");
-        updateData.setFechaNacimiento(new java.util.Date(300000L));
-        updateData.setGenero("F");
-        updateData.setTelefono("987654321");
-        updateData.setEspecialidad("Neurología");
-        updateData.setNumeroColegiado("67890");
-        updateData.setHorarioAtencion("Martes a Sábados");
-        updateData.setFechaGraduacion(new java.util.Date(400000L));
-        updateData.setUniversidadGraduacion("Universidad Y");
-
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testActualizarDoctorExitoso() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
 
-        boolean result = doctorService.actualizarDoctor(1L, updateData);
-        assertTrue(result);
-        verify(query, times(1)).executeUpdate();
+        // Act
+        boolean resultado = doctorService.actualizarDoctor(id, testDoctor);
+
+        // Assert
+        assertTrue(resultado);
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query, times(14)).setParameter(anyInt(), any());
+        verify(query).executeUpdate();
     }
 
-    // Test para actualizarDoctor con error
     @Test
-    public void testActualizarDoctorError() {
-        Doctor updateData = new Doctor();
-        Usuario usuario = new Usuario();
-        usuario.setNombreUsuario("nuevoNombre");
-        usuario.setCorreo("nuevoCorreo");
-        usuario.setContrasena("nuevaContrasena");
-        updateData.setUsuario(usuario);
-        // Otros campos se pueden configurar si se requiere
-
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testActualizarDoctorConError() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Error"));
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
 
-        boolean result = doctorService.actualizarDoctor(1L, updateData);
-        assertFalse(result);
+        // Act
+        boolean resultado = doctorService.actualizarDoctor(id, testDoctor);
+
+        // Assert
+        assertFalse(resultado);
     }
 
-    // Test para eliminarDoctor exitosamente
     @Test
-    public void testEliminarDoctorSuccess() {
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testEliminarDoctorExitoso() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
         when(query.executeUpdate()).thenReturn(1);
 
-        boolean result = doctorService.eliminarDoctor(1L);
-        assertTrue(result);
-        verify(query, times(1)).executeUpdate();
+        // Act
+        boolean resultado = doctorService.eliminarDoctor(id);
+
+        // Assert
+        assertTrue(resultado);
+        verify(entityManager).createNativeQuery(anyString());
+        verify(query).setParameter(1, id);
+        verify(query).executeUpdate();
     }
 
-    // Test para eliminarDoctor con error
     @Test
-    public void testEliminarDoctorError() {
-        when(entityManager.createNativeQuery(any(String.class))).thenReturn(query);
+    void testEliminarDoctorConError() {
+        // Arrange
+        Long id = 1L;
+        when(entityManager.createNativeQuery(anyString())).thenReturn(query);
         when(query.setParameter(anyInt(), any())).thenReturn(query);
-        when(query.executeUpdate()).thenThrow(new RuntimeException("Error"));
+        when(query.executeUpdate()).thenThrow(new RuntimeException("Error de base de datos"));
 
-        boolean result = doctorService.eliminarDoctor(1L);
-        assertFalse(result);
+        // Act
+        boolean resultado = doctorService.eliminarDoctor(id);
+
+        // Assert
+        assertFalse(resultado);
     }
 }

@@ -1,5 +1,6 @@
 import axios from "axios";
-import API_URL from "@/config";
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 // ✅ Obtener contenido publicado por nombre de página
 export const getPublishedContent = async (pageName) => {

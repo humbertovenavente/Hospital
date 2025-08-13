@@ -1,5 +1,6 @@
 import axios from 'axios';
-import API_URL from "../config"; //  Importa la configuración correcta
+// URL de la API para QA
+const API_URL = 'http://localhost:8060';
 
 export async function obtenerReporteModeracion(fechaInicio, fechaFin, limite = 10) {
   try {

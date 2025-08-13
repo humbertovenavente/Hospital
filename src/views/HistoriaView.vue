@@ -50,13 +50,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import axios from "axios";
-import API_URL from "@/config";
+// URL de la API para QA
+const config = {
+  API_URL: 'http://localhost:8060'
+};
 
 const historia = ref(null);
 const timelineData = ref([]);
 const meritosData = ref([]);
 
-const config = {
+const axiosConfig = {
   headers: {
     "Content-Type": "application/json"
   }
@@ -64,7 +67,7 @@ const config = {
 
 onMounted(async () => {
   try {
-    const response = await axios.get(`${API_URL}/historias/publicadas`, config);
+    const response = await axios.get(`${config.API_URL}/historias/publicadas`, axiosConfig);
     const data = response.data;
 
     if (Array.isArray(data) && data.length > 0) {
