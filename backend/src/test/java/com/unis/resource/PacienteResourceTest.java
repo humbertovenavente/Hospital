@@ -2,33 +2,38 @@ package com.unis.resource;
 
 import com.unis.model.Paciente;
 import com.unis.service.PacienteService;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.InjectMock;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
-@QuarkusTest
 public class PacienteResourceTest {
 
-    @InjectMock
+    @Mock
     PacienteService pacienteService;
 
-    @Inject
+    @InjectMocks
     PacienteResource pacienteResource;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
 
     @Test
     public void testObtenerTodosLosPacientes() {
         // Arrange
         List<Paciente> pacientes = Arrays.asList(new Paciente(), new Paciente());
-        Mockito.when(pacienteService.getAllPacientes()).thenReturn(pacientes);
+        when(pacienteService.getAllPacientes()).thenReturn(pacientes);
 
         // Act
         List<Paciente> resultado = pacienteResource.obtenerTodosLosPacientes();
@@ -43,7 +48,7 @@ public class PacienteResourceTest {
         // Arrange
         Paciente paciente = new Paciente();
         paciente.setIdPaciente(1L);
-        Mockito.when(pacienteService.getPacienteById(1L)).thenReturn(Optional.of(paciente));
+        when(pacienteService.getPacienteById(1L)).thenReturn(Optional.of(paciente));
 
         // Act
         Response response = pacienteResource.obtenerPaciente(1L);
@@ -55,7 +60,7 @@ public class PacienteResourceTest {
     @Test
     public void testObtenerPacientePorIdNoEncontrado() {
         // Arrange
-        Mockito.when(pacienteService.getPacienteById(1L)).thenReturn(Optional.empty());
+        when(pacienteService.getPacienteById(1L)).thenReturn(Optional.empty());
 
         // Act
         Response response = pacienteResource.obtenerPaciente(1L);
@@ -68,7 +73,7 @@ public class PacienteResourceTest {
     public void testRegistrarPacienteExitoso() {
         // Arrange
         Paciente paciente = new Paciente();
-        Mockito.doNothing().when(pacienteService).registrarPaciente(paciente);
+        doNothing().when(pacienteService).registrarPaciente(paciente);
 
         // Act
         Response response = pacienteResource.registrarPaciente(paciente);
@@ -81,7 +86,7 @@ public class PacienteResourceTest {
     public void testActualizarPacienteExitoso() {
         // Arrange
         Paciente paciente = new Paciente();
-        Mockito.when(pacienteService.actualizarPaciente(1L, paciente)).thenReturn(true);
+        when(pacienteService.actualizarPaciente(1L, paciente)).thenReturn(true);
 
         // Act
         Response response = pacienteResource.actualizarPaciente(1L, paciente);
@@ -94,7 +99,7 @@ public class PacienteResourceTest {
     public void testActualizarPacienteNoEncontrado() {
         // Arrange
         Paciente paciente = new Paciente();
-        Mockito.when(pacienteService.actualizarPaciente(1L, paciente)).thenReturn(false);
+        when(pacienteService.actualizarPaciente(1L, paciente)).thenReturn(false);
 
         // Act
         Response response = pacienteResource.actualizarPaciente(1L, paciente);
@@ -106,7 +111,7 @@ public class PacienteResourceTest {
     @Test
     public void testEliminarPacienteExitoso() {
         // Arrange
-        Mockito.when(pacienteService.eliminarPaciente(1L)).thenReturn(true);
+        when(pacienteService.eliminarPaciente(1L)).thenReturn(true);
 
         // Act
         Response response = pacienteResource.eliminarPaciente(1L);
@@ -118,7 +123,7 @@ public class PacienteResourceTest {
     @Test
     public void testEliminarPacienteNoEncontrado() {
         // Arrange
-        Mockito.when(pacienteService.eliminarPaciente(1L)).thenReturn(false);
+        when(pacienteService.eliminarPaciente(1L)).thenReturn(false);
 
         // Act
         Response response = pacienteResource.eliminarPaciente(1L);
