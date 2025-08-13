@@ -32,23 +32,50 @@ node {
                 if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
                     def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     if (detected == 'HEAD') {
-                        // En estado detached, forzar uso de 'QA' para evitar confusiones
-                        detected = 'QA'
-                        echo "🔍 Estado detached detectado, forzando rama: QA"
+                        // En estado detached, forzar uso de 'dev' para desarrollo por defecto
+                        detected = 'dev'
+                        echo "🔍 Estado detached detectado, forzando rama: dev"
                     }
                     env.BRANCH_NAME = detected
                     echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
                 
-                // Verificación adicional: si estamos en la rama QA, forzar el nombre
+                // Verificación adicional para ramas específicas
                 if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
-                    env.BRANCH_NAME = 'QA'
+                    env.BRANCH_NAME = 'qa'
                     echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
+                    env.BRANCH_NAME = 'prod'
+                    echo "✅ Rama PROD confirmada: ${env.BRANCH_NAME}"
+                } else {
+                    // Cualquier otra rama se trata como desarrollo
+                    echo "✅ Rama DEV confirmada: ${env.BRANCH_NAME}"
                 }
             } catch (err) {
-                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
-                env.BRANCH_NAME = 'QA'
+                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'dev' por defecto"
+                env.BRANCH_NAME = 'dev'
             }
+        }
+        
+        stage('Debug - Branch Detection') {
+            echo "🔍 === DEBUG INFORMACIÓN DE RAMA ==="
+            echo "📋 BRANCH_NAME: ${env.BRANCH_NAME}"
+            echo "📋 CHANGE_ID: ${env.CHANGE_ID}"
+            echo "📋 CHANGE_BRANCH: ${env.CHANGE_BRANCH}"
+            echo "📋 CHANGE_TARGET: ${env.CHANGE_TARGET}"
+            
+            // Mostrar qué entorno se usará
+            if (env.BRANCH_NAME == 'qa' || env.BRANCH_NAME == 'QA') {
+                echo "🎯 ENTORNO: QA"
+                echo "📊 PROYECTOS SONARQUBE: hospital-backend-qa, hospital-frontend-qa"
+            } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
+                echo "🎯 ENTORNO: PRODUCCIÓN"
+                echo "📊 PROYECTOS SONARQUBE: hospital-backend-prod, hospital-frontend-prod"
+            } else {
+                echo "🎯 ENTORNO: DESARROLLO"
+                echo "📊 PROYECTOS SONARQUBE: hospital-backend-dev, hospital-frontend-dev"
+            }
+            echo "🔍 === FIN DEBUG ==="
         }
         
         stage('Fail Injection (opcional)') {
