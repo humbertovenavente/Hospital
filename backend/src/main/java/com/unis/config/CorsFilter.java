@@ -13,8 +13,9 @@ import jakarta.ws.rs.ext.Provider;
 
 /**
  * Filtro CORS simple y efectivo
+ * DESACTIVADO: Usando configuración CORS nativa de Quarkus en application.properties
  */
-@Provider
+// @Provider
 @ApplicationScoped
 public class CorsFilter implements ContainerResponseFilter {
 
