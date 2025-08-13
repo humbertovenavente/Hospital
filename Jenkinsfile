@@ -151,12 +151,20 @@ node {
                         fi
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
+                        echo "   📈 Configurando análisis de cobertura con JaCoCo..."
 
                         TEST_ARGS=""
                         if [ -d backend/target/test-classes ] && [ -d backend/src/test/java ]; then
                           TEST_ARGS="-Dsonar.tests=backend/src/test/java -Dsonar.java.test.binaries=backend/target/test-classes"
                         else
                           echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
+                        fi
+
+                        # Verificar que el reporte de JaCoCo existe
+                        if [ -f backend/target/site/jacoco/jacoco.xml ]; then
+                          echo "   ✅ Reporte de cobertura JaCoCo encontrado: backend/target/site/jacoco/jacoco.xml"
+                        else
+                          echo "   ⚠️  Reporte de cobertura JaCoCo no encontrado. Se ejecutará sin análisis de cobertura."
                         fi
 
                         sonar-scanner \
@@ -167,11 +175,14 @@ node {
                           -Dsonar.java.source=17 \
                           -Dsonar.java.binaries=backend/target/classes \
                           ${TEST_ARGS} \
+                          -Dsonar.coverage.jacoco.xmlReportPaths=backend/target/site/jacoco/jacoco.xml \
+                          -Dsonar.coverage.jacoco.reportPaths=backend/target/site/jacoco/jacoco.xml \
                           -Dsonar.host.url=${SONAR_HOST} \
                           -Dsonar.token=${TOKEN_TO_USE} \
                           -Dsonar.exclusions=**/target/**,**/*.min.js,**/*.min.css \
                           -Dsonar.qualitygate.wait=true
                         echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
+                        echo "   📊 Análisis incluye: Código fuente, Tests unitarios y Cobertura de código (JaCoCo)"
                     '''
                     
                     // ANÁLISIS DEL FRONTEND (con rama específica)
