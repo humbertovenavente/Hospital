@@ -1,6 +1,6 @@
-projectKey=hospital-backend
+projectKey=hospital-backend-qa
 serverUrl=http://localhost:9000
 serverVersion=10.4.1.88267
-dashboardUrl=http://localhost:9000/dashboard?id=hospital-backend
-ceTaskId=615cde5b-b00c-4d3b-8f17-fe4ef54d604a
-ceTaskUrl=http://localhost:9000/api/ce/task?id=615cde5b-b00c-4d3b-8f17-fe4ef54d604a
+dashboardUrl=http://localhost:9000/dashboard?id=hospital-backend-qa
+ceTaskId=d78c22f8-b566-41ad-ad0c-6f0e17f5d944
+ceTaskUrl=http://localhost:9000/api/ce/task?id=d78c22f8-b566-41ad-ad0c-6f0e17f5d944
