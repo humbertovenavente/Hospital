@@ -1,2 +1,0 @@
-/Hospital Backend - PRODUCCI√É¬ìN (Java/Quarkus) :æ7(GVvtÇ!äKêù-?"$N /bMòps+9ö)â8&J#üE{:YTy.óAHë@ÖXà^çZúL<U~éBu'rCe`fmÅcáõj[|DïkgñiRh4PadOî3*å;WôxÄ0Szè\Ü=ì	F_û5É,}ãQoIí
-lw1qÑ%>]62nRhospital-backend-prod
