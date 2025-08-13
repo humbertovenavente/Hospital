@@ -379,6 +379,12 @@ node {
         }
         
         stage('Deploy to QA') {
+            // Forzar BUILD_DOCKER = true para rama QA
+            if (env.BRANCH_NAME == 'QA') {
+                env.BUILD_DOCKER = true
+                echo "✅ Forzando BUILD_DOCKER = true para rama QA"
+            }
+            
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
                 echo "   🧹 Limpiando contenedores de QA existentes..."
