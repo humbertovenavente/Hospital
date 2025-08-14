@@ -1,0 +1,99 @@
+node {
+    // Configuración simplificada para testing
+    properties([
+        parameters([
+            booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones')
+        ])
+    ])
+    
+    try {
+        stage('Checkout') {
+            echo "🔄 Iniciando checkout del código..."
+            deleteDir()
+            checkout scm
+            echo "📋 Build en rama: ${env.BRANCH_NAME ?: 'main'}"
+            echo "✅ Checkout completado"
+        }
+        
+        stage('Setup Environment') {
+            echo "⚙️  Configurando entorno..."
+            sh '''
+                echo "=== Verificando Java ==="
+                java -version
+                mvn -version
+                echo "=== Verificando Git ==="
+                git --version
+            '''
+            echo "✅ Entorno configurado"
+        }
+        
+        stage('Build Backend') {
+            echo "🔨 Compilando backend..."
+            dir('backend') {
+                sh '''
+                    echo "=== Empaquetando backend ==="
+                    mvn clean package -DskipTests
+                    echo "=== Backend empaquetado ==="
+                '''
+            }
+            echo "✅ Build completado"
+        }
+        
+        stage('Unit Tests') {
+            echo "🧪 Ejecutando tests unitarios..."
+            dir('backend') {
+                sh '''
+                    echo "=== Ejecutando tests ==="
+                    mvn test
+                    echo "=== Tests completados ==="
+                '''
+            }
+            echo "✅ Tests ejecutados"
+        }
+        
+        stage('SonarQube Analysis') {
+            echo "📊 Análisis de SonarQube..."
+            dir('backend') {
+                sh '''
+                    echo "   📈 Configurando análisis de cobertura con JaCoCo..."
+                    
+                    # Verificar que el reporte de JaCoCo existe
+                    if [ -f target/site/jacoco/jacoco.xml ]; then
+                      echo "   ✅ Reporte de cobertura JaCoCo encontrado: target/site/jacoco/jacoco.xml"
+                    else
+                      echo "   ⚠️  Reporte de cobertura JaCoCo no encontrado. Se ejecutará sin análisis de cobertura."
+                    fi
+                    
+                    # Configuración básica de SonarQube
+                    sonar-scanner \
+                      -Dsonar.projectKey=hospital-backend-test \
+                      -Dsonar.projectName="Hospital Backend Test" \
+                      -Dsonar.projectVersion=${BUILD_NUMBER} \
+                      -Dsonar.sources=src/main/java \
+                      -Dsonar.java.source=17 \
+                      -Dsonar.java.binaries=target/classes \
+                      -Dsonar.tests=src/test/java \
+                      -Dsonar.java.test.binaries=target/test-classes \
+                      -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+                      -Dsonar.coverage.jacoco.reportPaths=target/site/jacoco/jacoco.xml \
+                      -Dsonar.host.url=${SONAR_HOST ?: 'http://localhost:9000'} \
+                      -Dsonar.token=${SONAR_TOKEN ?: 'test-token'} \
+                      -Dsonar.qualitygate.wait=true
+                    
+                    echo "=== Análisis de SonarQube completado ==="
+                    echo "   📊 Análisis incluye: Código fuente, Tests unitarios y Cobertura de código (JaCoCo)"
+                '''
+            }
+            echo "✅ Análisis completado"
+        }
+        
+        stage('Success') {
+            echo "🎉 Pipeline completado exitosamente!"
+        }
+        
+    } catch (Exception e) {
+        echo "❌ Error en el pipeline: ${e.getMessage()}"
+        currentBuild.result = 'FAILURE'
+        throw e
+    }
+}

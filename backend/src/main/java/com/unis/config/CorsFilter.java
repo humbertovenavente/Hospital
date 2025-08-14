@@ -10,52 +10,29 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;
 import jakarta.ws.rs.container.ContainerResponseFilter;
 import jakarta.ws.rs.ext.Provider;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 /**
  * Filtro CORS simple y efectivo
- * Solo se ejecuta en ambiente de QA
+ * DESACTIVADO: Usando configuración CORS nativa de Quarkus en application.properties
  */
-@Provider
+// @Provider
 @ApplicationScoped
 public class CorsFilter implements ContainerResponseFilter {
-    
-    @ConfigProperty(name = "quarkus.profile", defaultValue = "dev")
-    String profile;
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         
-        // Solo ejecutar en ambiente de QA
-        if (!"qa".equals(profile)) {
-            return;
-        }
+        // Permitir origen específico del frontend
+        responseContext.getHeaders().add("Access-Control-Allow-Origin", "http://localhost:5173");
         
-        // Obtener el origen de la petición
-        String origin = requestContext.getHeaderString("Origin");
+        // Permitir credenciales
+        responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
         
-        // Lista de orígenes permitidos para QA
-        String[] allowedOrigins = {
-            "http://localhost:8083",  // Nginx reverse proxy
-            "http://localhost:5174"   // Frontend directo
-        };
+        // Permitir todos los métodos
+        responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         
-        // Verificar si el origen está permitido
-        boolean isAllowed = false;
-        for (String allowedOrigin : allowedOrigins) {
-            if (allowedOrigin.equals(origin)) {
-                isAllowed = true;
-                break;
-            }
-        }
-        
-        // Solo agregar headers CORS si el origen está permitido
-        if (isAllowed) {
-            responseContext.getHeaders().add("Access-Control-Allow-Origin", origin);
-            responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
-            responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            responseContext.getHeaders().add("Access-Control-Allow-Headers", "*");
-        }
+        // Permitir todas las cabeceras
+        responseContext.getHeaders().add("Access-Control-Allow-Headers", "*");
         
         // Manejar OPTIONS (preflight)
         if ("OPTIONS".equalsIgnoreCase(requestContext.getMethod())) {
