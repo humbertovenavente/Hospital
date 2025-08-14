@@ -3,7 +3,7 @@
 ## ✅ **ESTADO: CONFIGURADO EXITOSAMENTE**
 
 **🔥 PRUEBA DE PIPELINE AUTOMÁTICO #2** - Webhook actualizado  
-Verificando integración GitHub → Jenkins → QA Pipeline  
+Verificando integración GitHub → Jenkins → PROD Pipeline  
 URL ngrok: https://3525fd2ed96a.ngrok-free.app/github-webhook/
 
 ### 🔒 **Branches Protegidos**

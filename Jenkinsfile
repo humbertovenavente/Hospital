@@ -4,7 +4,7 @@ node {
         parameters([
             booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
             ,
-            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para QA)')
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para PROD)')
         ])
     ])
     def DOCKER_REGISTRY = 'hospital-registry'
@@ -32,22 +32,22 @@ node {
                 if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
                     def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     if (detected == 'HEAD') {
-                        // En estado detached, forzar uso de 'QA' para evitar confusiones
-                        detected = 'QA'
-                        echo "🔍 Estado detached detectado, forzando rama: QA"
+                        // En estado detached, forzar uso de 'prod' para evitar confusiones
+                        detected = 'prod'
+                        echo "🔍 Estado detached detectado, forzando rama: prod"
                     }
                     env.BRANCH_NAME = detected
                     echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
                 
-                // Verificación adicional: si estamos en la rama QA, forzar el nombre
-                if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
-                    env.BRANCH_NAME = 'QA'
-                    echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                // Verificación adicional: si estamos en la rama prod, forzar el nombre
+                if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
+                    env.BRANCH_NAME = 'prod'
+                    echo "✅ Rama PROD confirmada: ${env.BRANCH_NAME}"
                 }
             } catch (err) {
-                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
-                env.BRANCH_NAME = 'QA'
+                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
+                env.BRANCH_NAME = 'prod'
             }
         }
         
@@ -61,7 +61,7 @@ node {
         }
         
         stage('Setup Environment') {
-            echo "⚙️  Configurando entorno de QA..."
+            echo "⚙️  Configurando entorno de PRODUCCIÓN..."
             sh '''
                 echo "=== Verificando Java ==="
                 java -version
@@ -137,13 +137,13 @@ node {
                         export BRANCH_NAME=''' + env.BRANCH_NAME + '''
                         export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
                         
-                        # Usar SonarQube QA en puerto 9001
-                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9001}
+                        # Usar SonarQube PROD en puerto 9000
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName para QA
-                        PROJECT_KEY="hospital-backend-qa"
-                        PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
+                        # Configurar projectKey y projectName para PROD
+                        PROJECT_KEY="hospital-backend-prod"
+                        PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
 
@@ -154,9 +154,9 @@ node {
                           echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
                         fi
 
-                        # Usar archivo de configuración específico para QA
-                        echo "   🔧 Usando configuración específica de QA para backend..."
-                        sonar-scanner -Dproject.settings=sonar-project-backend-qa.properties \
+                        # Usar archivo de configuración específico para PROD
+                        echo "   🔧 Usando configuración específica de PROD para backend..."
+                        sonar-scanner -Dproject.settings=sonar-project-backend-prod.properties \
                           -Dsonar.host.url=${SONAR_HOST} \
                           -Dsonar.token=${TOKEN_TO_USE}
                         echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
@@ -172,9 +172,9 @@ node {
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9001}
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName para QA
-                        PROJECT_KEY="hospital-frontend-qa"
-                        PROJECT_NAME="Hospital Frontend - QA (Vue.js/TypeScript)"
+                        # Configurar projectKey y projectName para PROD
+                        PROJECT_KEY="hospital-frontend-prod"
+                        PROJECT_NAME="Hospital Frontend - PRODUCCIÓN (Vue.js/TypeScript)"
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
 
@@ -203,9 +203,9 @@ node {
                         npm run build || echo "   ⚠️  Build falló, continuando sin build"
 
                         echo "   🔍 Ejecutando análisis de SonarQube para frontend..."
-                        # Usar archivo de configuración específico para QA
-                        echo "   🔧 Usando configuración específica de QA para frontend..."
-                        sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties \
+                        # Usar archivo de configuración específico para PROD
+                        echo "   🔧 Usando configuración específica de PROD para frontend..."
+                        sonar-scanner -Dproject.settings=sonar-project-frontend-prod.properties \
                           -Dsonar.host.url=${SONAR_HOST} \
                           -Dsonar.token=${SONAR_TOKEN}
                         
@@ -264,8 +264,8 @@ node {
         }
         
         stage('Build Docker Images') {
-            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA') {
-                echo "🐳 Iniciando construcción de imágenes Docker para QA..."
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod') {
+                echo "🐳 Iniciando construcción de imágenes Docker para PROD..."
                 echo "   Construyendo imagen del backend..."
                 docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}-qa:${VERSION}")
                 echo "   Construyendo imagen del frontend..."
@@ -276,16 +276,16 @@ node {
             }
         }
         
-        stage('Deploy to QA') {
-            // Forzar BUILD_DOCKER = true para rama QA
-            if (env.BRANCH_NAME == 'QA') {
+        stage('Deploy to PROD') {
+            // Forzar BUILD_DOCKER = true para rama prod
+            if (env.BRANCH_NAME == 'prod') {
                 env.BUILD_DOCKER = 'true'
-                echo "✅ Forzando BUILD_DOCKER = true para rama QA"
+                echo "✅ Forzando BUILD_DOCKER = true para rama PROD"
             }
             
-            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
-                echo "🚀 Iniciando despliegue en ambiente de QA..."
-                echo "   🧹 Limpiando contenedores de QA existentes..."
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
+                echo "   🧹 Limpiando contenedores de PROD existentes..."
                 sh '''
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
@@ -295,42 +295,42 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Detener y limpiar contenedores de QA existentes
-                  echo "🛑 Deteniendo contenedores de QA..."
-                  $DC -f docker-compose.qa.yml down 2>/dev/null || true
+                  # Detener y limpiar contenedores de PROD existentes
+                  echo "🛑 Deteniendo contenedores de PROD..."
+                  $DC -f docker-compose.prod.yml down 2>/dev/null || true
                   
-                  # Forzar detención y eliminación de contenedores de QA
-                  echo "🗑️ Forzando limpieza de contenedores de QA..."
-                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
-                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
+                  # Forzar detención y eliminación de contenedores de PROD
+                  echo "🗑️ Forzando limpieza de contenedores de PROD..."
+                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-sonarqube-prod --filter name=hospital-prometheus-prod --filter name=hospital-grafana-prod) 2>/dev/null || true
+                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-sonarqube-prod --filter name=hospital-prometheus-prod --filter name=hospital-grafana-prod) 2>/dev/null || true
                   
-                  # Limpiar contenedores huérfanos de QA
-                  echo "🗑️ Limpiando contenedores huérfanos de QA..."
+                  # Limpiar contenedores huérfanos de PROD
+                  echo "🗑️ Limpiando contenedores huérfanos de PROD..."
                   docker container prune -f 2>/dev/null || true
                 '''
                 
-                echo "   🐳 Construyendo y desplegando contenedores de QA..."
+                echo "   🐳 Construyendo y desplegando contenedores de PROD..."
                 sh '''
-                  # Construir backend para QA
-                  echo "🔨 Construyendo backend para QA..."
-                  docker build -t hospital-backend-qa .
+                  # Construir backend para PROD
+                  echo "🔨 Construyendo backend para PROD..."
+                  docker build -t hospital-backend-prod .
                   
-                  # Construir frontend para QA
-                  echo "🎨 Construyendo frontend para QA..."
-                  docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
+                  # Construir frontend para PROD
+                  echo "🎨 Construyendo frontend para PROD..."
+                  docker build -f Dockerfile.frontend.prod -t hospital-frontend-prod .
                   
-                  # Configurar red para oracle_xe2 (usado en QA)
+                  # Configurar red para oracle_xe2 (usado en PROD)
                   echo "🌐 Configurando red para oracle_xe2..."
                   docker network create hospital-network 2>/dev/null || true
                   docker network connect hospital-network oracle_xe2 2>/dev/null || true
                   
-                  # Desplegar servicios de QA
-                  echo "📦 Desplegando servicios de QA..."
-                  docker-compose -f docker-compose.qa.yml up -d --build
+                  # Desplegar servicios de PROD
+                  echo "📦 Desplegando servicios de PROD..."
+                  docker-compose -f docker-compose.prod.yml up -d --build
                   
                   # Asegurar que el backend esté en la red correcta
                   echo "🔗 Conectando backend a la red hospital-network..."
-                  docker network connect hospital-network hospital-backend-qa 2>/dev/null || true
+                  docker network connect hospital-network hospital-backend-prod 2>/dev/null || true
                   
                   # Verificar conectividad de red
                   echo "🔍 Verificando conectividad de red..."
@@ -338,25 +338,25 @@ node {
                 '''
                 echo "   Verificando salud de los servicios..."
                 sleep 15
-                echo "✅ Despliegue en QA completado exitosamente"
-                echo "🌐 URLs de acceso QA:"
+                echo "✅ Despliegue en PROD completado exitosamente"
+                echo "🌐 URLs de acceso PROD:"
                 echo "   - Backend: http://localhost:8090"
                 echo "   - Frontend: http://localhost:5174"
                 echo "   - Nginx Reverse Proxy: http://localhost:8083"
                 echo "   - Jenkins: http://localhost:8081"
-                echo "   - SonarQube: http://localhost:9001"
+                echo "   - SonarQube: http://localhost:9000"
                 echo "   - Prometheus: http://localhost:9091"
                 echo "   - Grafana: http://localhost:3001"
                 echo "   - Base de datos: localhost:1522 (oracle_xe2)"
             } else {
-                echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de PROD (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         // Success summary
         if (env.CHANGE_ID) {
             echo "✅ Pull Request #${env.CHANGE_ID} procesado exitosamente"
-            echo "📋 Resumen del pipeline QA:"
+            echo "📋 Resumen del pipeline PROD:"
             echo "   - Checkout: ✅"
             echo "   - Code Quality: ✅"
             echo "   - Build Backend: ✅"
@@ -366,43 +366,43 @@ node {
             echo "   - Integration Tests: ✅"
             echo "   - Docker Images: ✅"
         } else {
-            echo "✅ Pipeline QA ejecutado exitosamente en rama ${env.BRANCH_NAME}"
+            echo "✅ Pipeline PROD ejecutado exitosamente en rama ${env.BRANCH_NAME}"
         }
         
         // Notificación por correo de éxito
         try {
             def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
-            def subject = (env.CHANGE_ID ? "QA PR #${env.CHANGE_ID} exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "QA Pipeline exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
+            def subject = (env.CHANGE_ID ? "PROD PR #${env.CHANGE_ID} exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "PROD Pipeline exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
             
             def body = """
 Hola equipo,
 
-El pipeline de QA se ha ejecutado exitosamente.
+El pipeline de PRODUCCIÓN se ha ejecutado exitosamente.
 
-INFORMACIÓN DEL BUILD QA:
+INFORMACIÓN DEL BUILD PROD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME}
 - URL: ${env.BUILD_URL}
 - Estado: ✅ EXITOSO
 
-📊 RESULTADOS DE CALIDAD QA:
+📊 RESULTADOS DE CALIDAD PROD:
 - Tests Backend: Completados
 - Tests Frontend: Completados
 - Análisis SonarQube: Completado (puerto 9001)
 - Quality Gate: ✅ PASÓ
 
-🌐 URLs DE ACCESO QA:
+🌐 URLs DE ACCESO PROD:
 - Backend: http://localhost:8090
 - Frontend: http://localhost:5174
-- SonarQube QA: http://localhost:9001
+- SonarQube PROD: http://localhost:9000
 - Jenkins: ${env.BUILD_URL}
 
-📈 REPORTE DE DEUDA TÉCNICA QA:
-El sistema QA está funcionando correctamente.
+📈 REPORTE DE DEUDA TÉCNICA PROD:
+El sistema PROD está funcionando correctamente.
 
 Saludos,
-Sistema de CI/CD del Hospital - QA
+Sistema de CI/CD del Hospital - PROD
 """
             // Usar Email Extension Plugin
             emailext(
@@ -422,19 +422,19 @@ Sistema de CI/CD del Hospital - QA
         if (env.CHANGE_ID) {
             echo "❌ Pull Request #${env.CHANGE_ID} falló: ${e.getMessage()}"
         } else {
-            echo "❌ Pipeline QA falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
+            echo "❌ Pipeline PROD falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
         }
         // Notificación por correo a Lead Developer y Product Owner
         try {
             def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
-            def subject = (env.CHANGE_ID ? "QA PR #${env.CHANGE_ID} falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "QA Pipeline falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
+            def subject = (env.CHANGE_ID ? "PROD PR #${env.CHANGE_ID} falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "PROD Pipeline falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
             
             def body = """
 Hola equipo,
 
-El pipeline de QA ha fallado.
+El pipeline de PRODUCCIÓN ha fallado.
 
-INFORMACIÓN DEL BUILD QA:
+INFORMACIÓN DEL BUILD PROD:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME}
@@ -442,25 +442,25 @@ INFORMACIÓN DEL BUILD QA:
 - Estado: ❌ FALLÓ
 - Motivo: ${e.getMessage()}
 
-⚠️ RESULTADOS DE CALIDAD QA:
+⚠️ RESULTADOS DE CALIDAD PROD:
 - Tests Backend: Verificar estado
 - Tests Frontend: Verificar estado
 - Análisis SonarQube: Verificar estado
 
 🔧 ACCIONES REQUERIDAS:
 1. Revisar la consola de Jenkins para más detalles
-2. Verificar logs de los servicios QA
-3. Revisar métricas de SonarQube QA (puerto 9001)
+2. Verificar logs de los servicios PROD
+3. Revisar métricas de SonarQube PROD (puerto 9000)
 4. Corregir el problema identificado
 
 🌐 URLs DE ACCESO:
 - Jenkins: ${env.BUILD_URL}
-- SonarQube QA: http://localhost:9001
+- SonarQube PROD: http://localhost:9000
 
 Por favor revisar la consola para más detalles.
 
 Saludos,
-Sistema de CI/CD del Hospital - QA
+Sistema de CI/CD del Hospital - PROD
 """
             // Usar Email Extension Plugin
             emailext(
