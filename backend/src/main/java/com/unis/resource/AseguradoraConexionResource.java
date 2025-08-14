@@ -16,6 +16,11 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 public class AseguradoraConexionResource {
 
+    private static final String MESSAGE_KEY = "message";
+    private static final String SUCCESS_UPDATE_MESSAGE = "Actualizado correctamente";
+    private static final String SUCCESS_DELETE_MESSAGE = "Eliminado correctamente";
+    private static final String SUCCESS_REGISTER_MESSAGE = "Registrada con éxito";
+
     @Inject
     AseguradoraConexionRepository repository;
 
@@ -48,7 +53,7 @@ public Response actualizar(@PathParam("id") Long id, Map<String, String> body) {
 
     existente.setNombre(body.getOrDefault("nombre", existente.getNombre()));
     existente.setUrlBase(body.getOrDefault("url", existente.getUrlBase()));
-    return Response.ok(Map.of("message", "Actualizado correctamente")).build();
+    return Response.ok(Map.of(MESSAGE_KEY, SUCCESS_UPDATE_MESSAGE)).build();
 }
 
 @DELETE
@@ -59,7 +64,7 @@ public Response eliminar(@PathParam("id") Long id) {
     if (!eliminado) {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
-    return Response.ok(Map.of("message", "Eliminado correctamente")).build();
+    return Response.ok(Map.of(MESSAGE_KEY, SUCCESS_DELETE_MESSAGE)).build();
 }
 
 
@@ -90,7 +95,7 @@ public Response eliminar(@PathParam("id") Long id) {
 
             repository.persist(nueva);
             return Response.status(Response.Status.CREATED)
-                    .entity(Map.of("message", "Registrada con éxito"))
+                    .entity(Map.of(MESSAGE_KEY, SUCCESS_REGISTER_MESSAGE))
                     .build();
 
         } catch (Exception e) {

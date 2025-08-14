@@ -122,7 +122,7 @@ public class RecetaDTO {
         this.notasEspeciales = notasEspeciales;
     }
 
-    public List<?> getMedicamentos() {
+    public List<Object> getMedicamentos() {
         return medicamentos;
     }
 

@@ -17,6 +17,8 @@ import jakarta.ws.rs.NotFoundException;
 @ApplicationScoped
 public class PageContentService {
 
+    private static final String CONTENIDO_NO_ENCONTRADO = "Contenido no encontrado";
+
     @Inject
     PageContentRepository repository;
 
@@ -91,7 +93,7 @@ public class PageContentService {
     public PageContent update(Long id, PageContent updatedContent) {
         PageContent existing = repository.findById(id);
         if (existing == null) {
-            throw new NotFoundException("Contenido no encontrado");
+            throw new NotFoundException(CONTENIDO_NO_ENCONTRADO);
         }
 
         // 🔁 Si el contenido actual está PUBLICADO, crear una nueva versión en estado PROCESO
@@ -137,7 +139,7 @@ public class PageContentService {
     public PageContent publish(Long id) {
         PageContent existing = repository.findById(id);
         if (existing == null) {
-            throw new NotFoundException("Contenido no encontrado");
+            throw new NotFoundException(CONTENIDO_NO_ENCONTRADO);
         }
 
         existing.setStatus("PUBLICADO");
@@ -158,7 +160,7 @@ public class PageContentService {
     public PageContent reject(Long id, String motivo) {
         PageContent existing = repository.findById(id);
         if (existing == null) {
-            throw new NotFoundException("Contenido no encontrado");
+            throw new NotFoundException(CONTENIDO_NO_ENCONTRADO);
         }
 
         existing.setStatus("RECHAZADO");

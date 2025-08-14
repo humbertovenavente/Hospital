@@ -119,26 +119,6 @@ public class TechnicalDebtEmailController {
     public Response testSmtpConnection() {
         try {
             // Crear un email de prueba simple
-            // String testSubject = "Prueba SMTP - Deuda Técnica";
-            // String testContent = """
-            //     <html>
-            //     <body>
-            //         <h2>Prueba de Conectividad SMTP</h2>
-            //         <p>Este es un email de prueba para verificar que la configuración SMTP funciona correctamente.</p>
-            //         <p><strong>Timestamp:</strong> %s</p>
-            //         <p><strong>Servidor:</strong> %s</p>
-            //         <p><strong>Puerto:</strong> %d</p>
-            //         <p><strong>Usuario:</strong> %s</p>
-            //         <hr>
-            //         <p><em>Hospital Management System - Test SMTP</em></p>
-            //     </body>
-            //     </html>
-            //     """.formatted(
-            //         java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
-            //         technicalDebtEmailService.getMailHost(),
-            //         technicalDebtEmailService.getMailPort(),
-            //         technicalDebtEmailService.getMailUsername()
-            //     );
             
             // Enviar email de prueba a jflores@unis.edu.gt
             TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(

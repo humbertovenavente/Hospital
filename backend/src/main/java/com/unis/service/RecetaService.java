@@ -1,6 +1,7 @@
 package com.unis.service;
 
 import java.util.Date;
+import java.util.logging.Logger;
 
 import com.unis.model.Medicamento;
 import com.unis.model.Receta;
@@ -18,6 +19,15 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class RecetaService {
 
+    private static final Logger logger = Logger.getLogger(RecetaService.class.getName());
+    
+    private static final String ERROR_ID_DOCTOR_PACIENTE_OBLIGATORIOS = "❌ Error: idDoctor e idPaciente son obligatorios.";
+    private static final String ERROR_CODIGO_RECETA_OBLIGATORIO = "❌ Error: Código de receta es obligatorio.";
+    private static final String ERROR_ID_PACIENTE_FALTANTE = "❌ Error: La receta no contiene un idPaciente.";
+    private static final String ERROR_GUARDAR_RECETA = "❌ Error al guardar la receta: ";
+    private static final String ERROR_RECETA_NO_ENCONTRADA = "❌ Error: No se encontró la receta con ID ";
+    private static final String ERROR_MEDICAMENTO_NO_ENCONTRADO = "❌ Error: No se encontró el medicamento con ID ";
+
     @Inject
     EntityManager em;
 
@@ -34,23 +44,23 @@ public class RecetaService {
     @Transactional
     public Receta crearReceta(Receta receta) {
         try {
-            System.out.println("📌 Iniciando creación de receta...");
+            logger.info("📌 Iniciando creación de receta...");
 
             // Validaciones de datos obligatorios
             if (receta.getIdDoctor() == null || receta.getIdPaciente() == null) {
-                throw new RuntimeException("❌ Error: idDoctor e idPaciente son obligatorios.");
+                throw new IllegalArgumentException(ERROR_ID_DOCTOR_PACIENTE_OBLIGATORIOS);
             }
             if (receta.getCodigoReceta() == null || receta.getCodigoReceta().isEmpty()) {
-                throw new RuntimeException("❌ Error: Código de receta es obligatorio.");
+                throw new IllegalArgumentException(ERROR_CODIGO_RECETA_OBLIGATORIO);
             }
 
             // Validar que el idPaciente esté presente en la receta recibida
             if (receta.getIdPaciente() == null) {
-                throw new RuntimeException("❌ Error: La receta no contiene un idPaciente.");
+                throw new IllegalArgumentException(ERROR_ID_PACIENTE_FALTANTE);
             }
 
             // Log para depuración
-            System.out.println("📥 Receta recibida desde el hospital: " + receta);
+            logger.info("📥 Receta recibida desde el hospital: " + receta);
 
             // Asignar fecha de creación si es null
             if (receta.getFechaCreacion() == null) {
@@ -61,11 +71,11 @@ public class RecetaService {
             em.persist(receta);
             em.flush(); // 💡 Importante para obtener el ID generado
 
-            System.out.println("✅ Receta guardada con ID: " + receta.getIdReceta());
+            logger.info("✅ Receta guardada con ID: " + receta.getIdReceta());
             return receta;
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException("❌ Error al guardar la receta: " + e.getMessage());
+            logger.severe("Error al guardar la receta: " + e.getMessage());
+            throw new RuntimeException(ERROR_GUARDAR_RECETA + e.getMessage());
         }
     }
 
@@ -96,11 +106,11 @@ public class RecetaService {
     @Transactional
     public Receta actualizarReceta(Long idReceta, Receta recetaActualizada) {
         try {
-            System.out.println("📌 Iniciando actualización de receta con ID: " + idReceta);
+            logger.info("📌 Iniciando actualización de receta con ID: " + idReceta);
 
             Receta recetaExistente = em.find(Receta.class, idReceta);
             if (recetaExistente == null) {
-                throw new RuntimeException("❌ Error: No se encontró la receta con ID " + idReceta);
+                throw new IllegalArgumentException(ERROR_RECETA_NO_ENCONTRADA + idReceta);
             }
 
             // ⚡ Actualizar solo los campos editables
@@ -115,7 +125,7 @@ public class RecetaService {
             for (RecetaMedicamento med : recetaActualizada.getMedicamentos()) {
                 Medicamento medicamento = em.find(Medicamento.class, med.getMedicamento().getIdMedicamento());
                 if (medicamento == null) {
-                    throw new RuntimeException("❌ Error: No se encontró el medicamento con ID " + med.getMedicamento().getIdMedicamento());
+                    throw new IllegalArgumentException(ERROR_MEDICAMENTO_NO_ENCONTRADO + med.getMedicamento().getIdMedicamento());
                 }
 
                 med.setReceta(recetaExistente);
@@ -129,10 +139,10 @@ public class RecetaService {
             // 💾 Guardar cambios en la receta
             em.merge(recetaExistente);
 
-            System.out.println("✅ Receta actualizada correctamente con ID: " + idReceta);
+            logger.info("✅ Receta actualizada correctamente con ID: " + idReceta);
             return recetaExistente;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.severe("Error al actualizar la receta: " + e.getMessage());
             throw new RuntimeException("❌ Error al actualizar la receta: " + e.getMessage());
         }
     }
@@ -147,21 +157,21 @@ public class RecetaService {
     @Transactional
     public RecetaMedicamento agregarMedicamento(RecetaMedicamento recetaMedicamento) {
         try {
-            System.out.println("📌 Iniciando adición de medicamento...");
+            logger.info("📌 Iniciando adición de medicamento...");
 
             // Validaciones
             if (recetaMedicamento.getIdReceta() == null || recetaMedicamento.getIdMedicamento() == null) {
-                throw new RuntimeException("❌ Error: ID de receta y ID de medicamento son obligatorios.");
+                throw new IllegalArgumentException("❌ Error: ID de receta y ID de medicamento son obligatorios.");
             }
 
             Receta receta = em.find(Receta.class, recetaMedicamento.getIdReceta());
             if (receta == null) {
-                throw new RuntimeException("❌ Error: No se encontró la receta con ID " + recetaMedicamento.getIdReceta());
+                throw new IllegalArgumentException(ERROR_RECETA_NO_ENCONTRADA + recetaMedicamento.getIdReceta());
             }
 
             Medicamento medicamento = em.find(Medicamento.class, recetaMedicamento.getIdMedicamento());
             if (medicamento == null) {
-                throw new RuntimeException("❌ Error: No se encontró el medicamento con ID " + recetaMedicamento.getIdMedicamento());
+                throw new IllegalArgumentException(ERROR_MEDICAMENTO_NO_ENCONTRADO + recetaMedicamento.getIdMedicamento());
             }
 
             recetaMedicamento.setReceta(receta);
@@ -171,10 +181,10 @@ public class RecetaService {
             em.persist(recetaMedicamento);
             em.flush();
 
-            System.out.println("✅ Medicamento agregado correctamente a la receta con ID " + receta.getIdReceta());
+            logger.info("✅ Medicamento agregado correctamente a la receta con ID " + receta.getIdReceta());
             return recetaMedicamento;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.severe("Error al agregar medicamento: " + e.getMessage());
             throw new RuntimeException("❌ Error al agregar medicamento: " + e.getMessage());
         }
     }
@@ -190,7 +200,7 @@ public class RecetaService {
         if (receta != null) {
             // Forzar la carga de datos relacionados, como el idPaciente
             receta.getIdPaciente(); // Asegura que el idPaciente esté cargado
-            System.out.println("📋 Receta encontrada: " + receta); // Log para depuración
+            logger.info("📋 Receta encontrada: " + receta); // Log para depuración
         }
         return receta;
     }
