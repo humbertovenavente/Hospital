@@ -26,10 +26,10 @@ public class ResultadoDTOTest {
         String documento = "DOC123456";
 
         // Act
-        resultadoDTO.documento = documento;
+        resultadoDTO.setDocumento(documento);
 
         // Assert
-        assertEquals(documento, resultadoDTO.documento);
+        assertEquals(documento, resultadoDTO.getDocumento());
     }
 
     @Test
@@ -38,10 +38,10 @@ public class ResultadoDTOTest {
         String diagnostico = "Gripe común";
 
         // Act
-        resultadoDTO.diagnostico = diagnostico;
+        resultadoDTO.setDiagnostico(diagnostico);
 
         // Assert
-        assertEquals(diagnostico, resultadoDTO.diagnostico);
+        assertEquals(diagnostico, resultadoDTO.getDiagnostico());
     }
 
     @Test
@@ -50,10 +50,10 @@ public class ResultadoDTOTest {
         String resultados = "Paciente presenta síntomas de gripe";
 
         // Act
-        resultadoDTO.resultados = resultados;
+        resultadoDTO.setResultados(resultados);
 
         // Assert
-        assertEquals(resultados, resultadoDTO.resultados);
+        assertEquals(resultados, resultadoDTO.getResultados());
     }
 
     @Test
@@ -62,10 +62,10 @@ public class ResultadoDTOTest {
         LocalDate fecha = LocalDate.of(2024, 12, 25);
 
         // Act
-        resultadoDTO.fecha = fecha;
+        resultadoDTO.setFecha(fecha);
 
         // Assert
-        assertEquals(fecha, resultadoDTO.fecha);
+        assertEquals(fecha, resultadoDTO.getFecha());
     }
 
     @Test
@@ -74,55 +74,55 @@ public class ResultadoDTOTest {
         Long idCita = 123L;
 
         // Act
-        resultadoDTO.idCita = idCita;
+        resultadoDTO.setIdCita(idCita);
 
         // Assert
-        assertEquals(idCita, resultadoDTO.idCita);
+        assertEquals(idCita, resultadoDTO.getIdCita());
     }
 
     @Test
     void testSetDocumentoNull() {
         // Act
-        resultadoDTO.documento = null;
+        resultadoDTO.setDocumento(null);
 
         // Assert
-        assertNull(resultadoDTO.documento);
+        assertNull(resultadoDTO.getDocumento());
     }
 
     @Test
     void testSetDiagnosticoNull() {
         // Act
-        resultadoDTO.diagnostico = null;
+        resultadoDTO.setDiagnostico(null);
 
         // Assert
-        assertNull(resultadoDTO.diagnostico);
+        assertNull(resultadoDTO.getDiagnostico());
     }
 
     @Test
     void testSetResultadosNull() {
         // Act
-        resultadoDTO.resultados = null;
+        resultadoDTO.setResultados(null);
 
         // Assert
-        assertNull(resultadoDTO.resultados);
+        assertNull(resultadoDTO.getResultados());
     }
 
     @Test
     void testSetFechaNull() {
         // Act
-        resultadoDTO.fecha = null;
+        resultadoDTO.setFecha(null);
 
         // Assert
-        assertNull(resultadoDTO.fecha);
+        assertNull(resultadoDTO.getFecha());
     }
 
     @Test
     void testSetIdCitaNull() {
         // Act
-        resultadoDTO.idCita = null;
+        resultadoDTO.setIdCita(null);
 
         // Assert
-        assertNull(resultadoDTO.idCita);
+        assertNull(resultadoDTO.getIdCita());
     }
 
     @Test
@@ -131,11 +131,11 @@ public class ResultadoDTOTest {
         String documentoVacio = "";
 
         // Act
-        resultadoDTO.documento = documentoVacio;
+        resultadoDTO.setDocumento(documentoVacio);
 
         // Assert
-        assertEquals(documentoVacio, resultadoDTO.documento);
-        assertTrue(resultadoDTO.documento.isEmpty());
+        assertEquals(documentoVacio, resultadoDTO.getDocumento());
+        assertTrue(resultadoDTO.getDocumento().isEmpty());
     }
 
     @Test
@@ -144,11 +144,11 @@ public class ResultadoDTOTest {
         String diagnosticoVacio = "";
 
         // Act
-        resultadoDTO.diagnostico = diagnosticoVacio;
+        resultadoDTO.setDiagnostico(diagnosticoVacio);
 
         // Assert
-        assertEquals(diagnosticoVacio, resultadoDTO.diagnostico);
-        assertTrue(resultadoDTO.diagnostico.isEmpty());
+        assertEquals(diagnosticoVacio, resultadoDTO.getDiagnostico());
+        assertTrue(resultadoDTO.getDiagnostico().isEmpty());
     }
 
     @Test
@@ -157,10 +157,10 @@ public class ResultadoDTOTest {
         String resultadosVacios = "";
 
         // Act
-        resultadoDTO.resultados = resultadosVacios;
+        resultadoDTO.setResultados(resultadosVacios);
 
         // Assert
-        assertEquals(resultadosVacios, resultadoDTO.resultados);
-        assertTrue(resultadoDTO.resultados.isEmpty());
+        assertEquals(resultadosVacios, resultadoDTO.getResultados());
+        assertTrue(resultadoDTO.getResultados().isEmpty());
     }
 }

@@ -31,8 +31,17 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class FaqController {
 
+    private final FaqService faqService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param faqService the service for managing FAQs
+     */
     @Inject
-    FaqService faqService;
+    public FaqController(FaqService faqService) {
+        this.faqService = faqService;
+    }
 
     /**
      * Retrieves a list of all FAQ entries.

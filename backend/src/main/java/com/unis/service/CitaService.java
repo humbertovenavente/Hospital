@@ -31,6 +31,10 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class CitaService {
 
+    private static final String CITA_NO_ENCONTRADA = "Cita no encontrada";
+    private static final String CITA_O_DOCTOR_NO_VALIDOS = "Cita o doctor no válidos";
+    private static final String NOMBRE_KEY = "nombre";
+
     @Inject
     CitaRepository citaRepository;
 
@@ -106,7 +110,7 @@ public class CitaService {
         if (cita != null) {
             cita.setEstado(EstadoCita.CANCELADA);
         } else {
-            throw new IllegalArgumentException("Cita no encontrada");
+            throw new IllegalArgumentException(CITA_NO_ENCONTRADA);
         }
     }
 
@@ -121,7 +125,7 @@ public class CitaService {
     public void actualizarCita(Long id, Cita citaActualizada) {
         Cita cita = citaRepository.findById(id);
         if (cita == null) {
-            throw new IllegalArgumentException("Cita no encontrada");
+            throw new IllegalArgumentException(CITA_NO_ENCONTRADA);
         }
         if (citaActualizada.getEstado() != null) cita.setEstado(citaActualizada.getEstado());
         if (citaActualizada.getDiagnostico() != null) cita.setDiagnostico(citaActualizada.getDiagnostico());
@@ -138,7 +142,7 @@ public class CitaService {
     public void procesarCita(Long id) {
         Cita cita = citaRepository.findById(id);
         if (cita == null) {
-            throw new IllegalArgumentException("Cita no encontrada");
+            throw new IllegalArgumentException(CITA_NO_ENCONTRADA);
         }
         cita.setEstado(EstadoCita.FINALIZADA);
     }
@@ -154,7 +158,7 @@ public class CitaService {
     @Transactional
     public void procesarCitaYEnviarResultados(Long id, String diagnostico, String resultados) {
         Cita cita = citaRepository.findById(id);
-        if (cita == null) throw new IllegalArgumentException("Cita no encontrada");
+        if (cita == null) throw new IllegalArgumentException(CITA_NO_ENCONTRADA);
 
         cita.setDiagnostico(diagnostico);
         cita.setResultados(resultados);
@@ -168,15 +172,13 @@ public class CitaService {
             JsonObject json = jakarta.json.Json.createObjectBuilder()
                 .add("idCita", cita.getIdCita())
                 .add("documento", cita.getPaciente().getDocumento())
-                .add("nombre", cita.getPaciente().getUsuario().getNombreUsuario())
+                .add(NOMBRE_KEY, cita.getPaciente().getUsuario().getNombreUsuario())
                 .add("apellido", cita.getPaciente().getApellido())
                 .add("diagnostico", cita.getDiagnostico())
                 .add("resultados", cita.getResultados())
                 .add("fecha", cita.getFecha().toString())
                 .add("doctor", cita.getDoctor().getUsuario().getNombreUsuario())
                 .build();
-
-            System.out.println("Enviando resultado: " + json);
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -186,9 +188,11 @@ public class CitaService {
                 .build();
 
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> System.out.println("✅ Resultado enviado: " + response.statusCode()));
+                .thenAccept(response -> {
+                    // TODO: Implementar logging de resultado enviado exitosamente
+                });
         } catch (Exception e) {
-            System.err.println("Error enviando resultados: " + e.getMessage());
+            // TODO: Implementar logging de error al enviar resultados
         }
     }
 
@@ -196,7 +200,7 @@ public class CitaService {
     public void reasignarDoctor(Long idCita, Doctor nuevoDoctor) {
         Cita cita = citaRepository.findById(idCita);
         if (cita == null || nuevoDoctor == null) {
-            throw new IllegalArgumentException("Cita o doctor no válidos");
+            throw new IllegalArgumentException(CITA_O_DOCTOR_NO_VALIDOS);
         }
         cita.setDoctor(nuevoDoctor);
     }
@@ -211,7 +215,7 @@ public class CitaService {
     @Transactional
     public void crearCitaDesdeJson(JsonObject dto) {
         String documento = dto.getString("documento", null);
-        String nombre = dto.getString("nombre", "Desconocido");
+        String nombre = dto.getString(NOMBRE_KEY, "Desconocido");
         String apellido = dto.getString("apellido", "");
         String nombreAseguradora = dto.getString("nombreAseguradora", null);
         String numeroAfiliacion = dto.getString("numeroAfiliacion", null);
@@ -244,17 +248,16 @@ public class CitaService {
             entityManager.persist(usuario);
     
             //  Crear nuevo paciente
-           //  Crear nuevo paciente
-paciente = new Paciente();
+            paciente = new Paciente();
 paciente.setDocumento(documento);
 paciente.setApellido(apellido);
 paciente.setUsuario(usuario);
 paciente.setIdUsuario(usuario.getId());
 
 entityManager.persist(paciente);
-System.out.println(" Usuario y paciente creados automáticamente");
+            // TODO: Implementar logging de usuario y paciente creados
 
-//  Necesitamos obtener el paciente como PacienteFT para la ficha técnica
+            //  Necesitamos obtener el paciente como PacienteFT para la ficha técnica
 PacienteFT pacienteFT = entityManager
     .createQuery("SELECT p FROM PacienteFT p WHERE p.documento = :doc", PacienteFT.class)
     .setParameter("doc", documento)
@@ -269,8 +272,8 @@ ficha.setNumeroAfiliacion(numeroAfiliacion);
 ficha.setCodigoSeguro(codigoSeguro);
 ficha.setCarnetSeguro(carnetSeguro);
 
-entityManager.persist(ficha);
-System.out.println("Ficha técnica creada automáticamente");
+            entityManager.persist(ficha);
+            // TODO: Implementar logging de ficha técnica creada
 
         }
     
@@ -297,16 +300,16 @@ System.out.println("Ficha técnica creada automáticamente");
             if (aseguradora == null) {
                 aseguradora = new Aseguradora();
                 aseguradora.setNombre(nombreAseguradora);
-                entityManager.persist(aseguradora);
-                System.out.println("Aseguradora creada automáticamente");
+                                    entityManager.persist(aseguradora);
+                    // TODO: Implementar logging de aseguradora creada
             }
     
             cita.setAseguradora(aseguradora);
             cita.setIdAseguradora(aseguradora.getId());
         }
     
-        citaRepository.persist(cita);
-        System.out.println(" Cita guardada correctamente");
+                    citaRepository.persist(cita);
+                    // TODO: Implementar logging de cita guardada
     }
 
     /**

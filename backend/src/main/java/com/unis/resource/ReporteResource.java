@@ -131,12 +131,28 @@ public class ReporteResource {
         LocalDate fechaInicio = LocalDate.parse(fechaInicioStr);
         LocalDate fechaFin    = LocalDate.parse(fechaFinStr);
 
-        // Tomar usuario del query param
-        String usuario = usuarioParam != null
-                ? usuarioParam
-                : "[Anónimo]";
+        String usuario = obtenerUsuario(usuarioParam);
+        String doctorTxt = obtenerNombreDoctor(idDoctor);
+        List<?> reporte = obtenerDatosReporte(idDoctor, fechaInicio, fechaFin, tipoReporte);
 
-        // Nombre de doctor (igual que en POST)
+        Workbook workbook = crearWorkbookExcel(reporte, usuario, doctorTxt, fechaInicio, fechaFin, tipoReporte);
+
+        StreamingOutput stream = out -> {
+            try (workbook) {
+                workbook.write(out);
+            }
+        };
+
+        return Response.ok(stream)
+                       .header("Content-Disposition", "attachment; filename=\"Reporte.xlsx\"")
+                       .build();
+    }
+
+    private String obtenerUsuario(String usuarioParam) {
+        return usuarioParam != null ? usuarioParam : "[Anónimo]";
+    }
+
+    private String obtenerNombreDoctor(Long idDoctor) {
         String doctorTxt = "Doctor ID = " + idDoctor;
         Optional<Doctor> optDoc = doctorService.getDoctorById(idDoctor);
         if (optDoc.isPresent()) {
@@ -151,21 +167,37 @@ public class ReporteResource {
             }
             doctorTxt = "Doctor: " + nombreDoc;
         }
+        return doctorTxt;
+    }
 
-        // Obtener datos según el tipo de reporte
-        List<?> reporte;
+    private List<?> obtenerDatosReporte(Long idDoctor, LocalDate fechaInicio, LocalDate fechaFin, String tipoReporte) {
         if ("AGRUPADO".equalsIgnoreCase(tipoReporte)) {
-            reporte = reporteService.obtenerReporteAgregado(idDoctor, fechaInicio, fechaFin);
+            return reporteService.obtenerReporteAgregado(idDoctor, fechaInicio, fechaFin);
         } else {
-            reporte = reporteService.obtenerReporteDetallado(idDoctor, fechaInicio, fechaFin);
+            return reporteService.obtenerReporteDetallado(idDoctor, fechaInicio, fechaFin);
         }
+    }
 
-        // Crear Workbook de Excel
+    private Workbook crearWorkbookExcel(List<?> reporte, String usuario, String doctorTxt, 
+                                      LocalDate fechaInicio, LocalDate fechaFin, String tipoReporte) {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Reporte");
         int rownum = 0;
 
-        // Encabezados en Excel
+        rownum = crearEncabezadosExcel(sheet, rownum, usuario, doctorTxt, fechaInicio, fechaFin, tipoReporte);
+
+        if (!reporte.isEmpty()) {
+            rownum = crearDatosExcel(sheet, rownum, reporte);
+            autoajustarColumnas(sheet, reporte);
+        } else {
+            crearFilaSinDatos(sheet, rownum);
+        }
+
+        return workbook;
+    }
+
+    private int crearEncabezadosExcel(Sheet sheet, int rownum, String usuario, String doctorTxt, 
+                                    LocalDate fechaInicio, LocalDate fechaFin, String tipoReporte) {
         Row r1 = sheet.createRow(rownum++);
         r1.createCell(0).setCellValue("Reporte generado el: " + LocalDateTime.now());
         Row r2 = sheet.createRow(rownum++);
@@ -176,47 +208,46 @@ public class ReporteResource {
                 ", Fecha Fin = " + fechaFin +
                 ", Tipo Reporte = " + tipoReporte);
         rownum++; // fila en blanco
+        return rownum;
+    }
 
+    private int crearDatosExcel(Sheet sheet, int rownum, List<?> reporte) {
+        Object primer = reporte.get(0);
+        java.lang.reflect.Field[] fields = primer.getClass().getDeclaredFields();
+
+        Row hdr = sheet.createRow(rownum++);
+        for (int i = 0; i < fields.length; i++) {
+            fields[i].setAccessible(true);
+            hdr.createCell(i).setCellValue(fields[i].getName());
+        }
+
+        for (Object obj : reporte) {
+            Row row = sheet.createRow(rownum++);
+            for (int i = 0; i < fields.length; i++) {
+                Object val;
+                try {
+                    val = fields[i].get(obj);
+                } catch (IllegalAccessException e) {
+                    val = "Error";
+                }
+                row.createCell(i).setCellValue(val != null ? val.toString() : "");
+            }
+        }
+        return rownum;
+    }
+
+    private void autoajustarColumnas(Sheet sheet, List<?> reporte) {
         if (!reporte.isEmpty()) {
             Object primer = reporte.get(0);
             java.lang.reflect.Field[] fields = primer.getClass().getDeclaredFields();
-
-            Row hdr = sheet.createRow(rownum++);
-            for (int i = 0; i < fields.length; i++) {
-                fields[i].setAccessible(true);
-                hdr.createCell(i).setCellValue(fields[i].getName());
-            }
-
-            for (Object obj : reporte) {
-                Row row = sheet.createRow(rownum++);
-                for (int i = 0; i < fields.length; i++) {
-                    Object val;
-                    try {
-                        val = fields[i].get(obj);
-                    } catch (IllegalAccessException e) {
-                        val = "Error";
-                    }
-                    row.createCell(i).setCellValue(val != null ? val.toString() : "");
-                }
-            }
             for (int i = 0; i < fields.length; i++) {
                 sheet.autoSizeColumn(i);
             }
-        } else {
-            Row nr = sheet.createRow(rownum++);
-            nr.createCell(0).setCellValue("No se encontraron datos para los parámetros seleccionados.");
         }
+    }
 
-        StreamingOutput stream = out -> {
-            try {
-                workbook.write(out);
-            } finally {
-                workbook.close();
-            }
-        };
-
-        return Response.ok(stream)
-                       .header("Content-Disposition", "attachment; filename=\"Reporte.xlsx\"")
-                       .build();
+    private void crearFilaSinDatos(Sheet sheet, int rownum) {
+        Row nr = sheet.createRow(rownum);
+        nr.createCell(0).setCellValue("No se encontraron datos para los parámetros seleccionados.");
     }
 }

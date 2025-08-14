@@ -20,6 +20,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 /**
  * Entity representing a medical prescription.
  * <p>
@@ -59,6 +60,7 @@ public class Receta implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "ID_PACIENTE", insertable = false, updatable = false)
+    @Transient
     private Paciente paciente;
 
     /** The ID of the doctor who issued the prescription. */
@@ -101,6 +103,7 @@ public class Receta implements Serializable {
      */
     @OneToMany(mappedBy = "receta", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference
+    @Transient
     private List<RecetaMedicamento> medicamentos;
 
     // Getters and Setters

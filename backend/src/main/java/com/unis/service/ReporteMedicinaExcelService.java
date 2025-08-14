@@ -69,9 +69,9 @@ public class ReporteMedicinaExcelService {
         // Datos
         for (MedicinasReporteDTO dto : datos) {
             Row dataRow = sheet.createRow(rowNum++);
-            dataRow.createCell(0).setCellValue(dto.popularidad);
-            dataRow.createCell(1).setCellValue(dto.principioActivo);
-            dataRow.createCell(2).setCellValue(dto.totalRecetas);
+            dataRow.createCell(0).setCellValue(dto.getPopularidad());
+            dataRow.createCell(1).setCellValue(dto.getPrincipioActivo());
+            dataRow.createCell(2).setCellValue(dto.getTotalRecetas());
         }
 
         // Exportar como byte[]

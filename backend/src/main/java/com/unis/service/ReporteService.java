@@ -2,6 +2,7 @@ package com.unis.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.logging.Logger;
 
 import com.unis.dto.ReporteAgregadoDTO;
 import com.unis.dto.ReporteDetalladoDTO;
@@ -16,6 +17,8 @@ import jakarta.transaction.Transactional;
  */
 @ApplicationScoped
 public class ReporteService {
+
+    private static final Logger logger = Logger.getLogger(ReporteService.class.getName());
 
     @Inject
     EntityManager entityManager;
@@ -44,8 +47,8 @@ public class ReporteService {
                 .setParameter("fechaInicio", fechaInicio)
                 .setParameter("fechaFin", fechaFin)
                 .getResultList();
-        System.out.println("Obtenidos " + resultados.size() + " registros para Reporte Agrupado.");
-        resultados.forEach(dto -> System.out.println("Fecha: " + dto.getFecha() + " - Consultas: " 
+        logger.info("Obtenidos " + resultados.size() + " registros para Reporte Agrupado.");
+        resultados.forEach(dto -> logger.info("Fecha: " + dto.getFecha() + " - Consultas: " 
                     + dto.getTotalConsultas() + ", Seguro: " + dto.getTotalSeguro() 
                     + ", Directo: " + dto.getTotalDirecto()));
         return resultados;

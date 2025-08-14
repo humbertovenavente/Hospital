@@ -28,7 +28,9 @@ public class ReporteRequest {
     private String usuario;
 
     /** Default constructor. */
-    public ReporteRequest() {}
+    public ReporteRequest() {
+        // Constructor vacío requerido para la serialización JSON
+    }
 
     /**
      * Gets the ID of the doctor associated with the report.

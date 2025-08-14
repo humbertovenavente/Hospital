@@ -88,7 +88,7 @@ public class HistoriaServiceTest {
         Historia existente = new Historia();
         Historia actualizada = new Historia();
         actualizada.setNombreEntidad("Nueva");
-        actualizada.setHistoria("Hist");
+        actualizada.setContenidoHistoria("Hist");
         actualizada.setMeritos("Merito");
         actualizada.setLineaDelTiempo("Linea");
         actualizada.setStatus("PROCESO");
@@ -100,7 +100,7 @@ public class HistoriaServiceTest {
         Historia result = historiaService.actualizar(1L, actualizada);
 
         assertEquals("Nueva", result.getNombreEntidad());
-        assertEquals("Hist", result.getHistoria());
+        assertEquals("Hist", result.getContenidoHistoria());
         assertEquals("Merito", result.getMeritos());
         assertEquals("Linea", result.getLineaDelTiempo());
         assertEquals("PROCESO", result.getStatus());

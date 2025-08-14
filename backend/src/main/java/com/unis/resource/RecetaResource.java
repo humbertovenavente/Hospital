@@ -121,11 +121,6 @@ public class RecetaResource {
         if (receta != null) {
             // Incluir el nombre del paciente en la respuesta
             String nombrePaciente = receta.getPaciente().getNombre();
-            try {
-                System.out.println("📋 Respuesta enviada al frontend: " + new ObjectMapper().writeValueAsString(new RecetaDTO(receta, nombrePaciente)));
-            } catch (Exception e) {
-                System.err.println("Error al serializar la respuesta: " + e.getMessage());
-            }
             return Response.ok(new RecetaDTO(receta, nombrePaciente)).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND)
@@ -140,6 +135,6 @@ public class RecetaResource {
      * @param validacionSeguro the insurance validation response
      */
     public void validarSeguro(String validacionSeguro) {
-        System.out.println("📋 Validación con aseguradora: " + validacionSeguro);
+        // TODO: Implementar validación con aseguradora
     }
 }

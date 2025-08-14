@@ -30,8 +30,17 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class UsuarioController {
 
+    private final UsuarioService usuarioService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param usuarioService the service for managing users
+     */
     @Inject
-    UsuarioService usuarioService;
+    public UsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
     @GET
     public List<Usuario> listarUsuarios() {

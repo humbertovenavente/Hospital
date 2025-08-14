@@ -30,6 +30,7 @@ public class FaqRepository implements PanacheRepository<Faq> {
      * @param id the ID of the {@link Faq} to find
      * @return the {@link Faq} entity with the given ID, or null if not found
      */
+    @Override
     public Faq findById(Long id) {
         return find("id = ?1", id).firstResult();
     }

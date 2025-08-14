@@ -31,7 +31,7 @@ public class HistoriaControllerTest {
         testHistoria = new Historia();
         testHistoria.setId(1L);
         testHistoria.setNombreEntidad("Hospital Test");
-        testHistoria.setHistoria("Historia del hospital");
+        testHistoria.setContenidoHistoria("Historia del hospital");
         testHistoria.setMeritos("Méritos del hospital");
         testHistoria.setLineaDelTiempo("Línea del tiempo");
         testHistoria.setStatus("PROCESO");
