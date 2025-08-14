@@ -4,7 +4,7 @@ node {
         parameters([
             booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
             ,
-            booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para QA)')
         ])
     ])
     def DOCKER_REGISTRY = 'hospital-registry'
@@ -56,7 +56,7 @@ node {
 
 
         stage('Setup Environment') {
-            echo "⚙️  Configurando entorno de PRODUCCIÓN..."
+            echo "⚙️  Configurando entorno de QA..."
             sh '''
                 echo "=== Verificando Java ==="
                 java -version
@@ -371,9 +371,15 @@ node {
         }
         
         stage('Deploy to QA') {
-            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
+            // Forzar BUILD_DOCKER = true para rama QA
+            if (env.BRANCH_NAME == 'QA') {
+                env.BUILD_DOCKER = 'true'
+                echo "✅ Forzando BUILD_DOCKER = true para rama QA"
+            }
+            
+            if (env.BUILD_DOCKER == 'true' && (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa')) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
-                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
+                echo "   🐳 Construyendo y desplegando contenedores QA..."
                 sh '''
                   # Construir backend local
                   echo "🔨 Construyendo backend local..."
@@ -381,10 +387,10 @@ node {
                   
                   # Construir frontend local
                   echo "🎨 Construyendo frontend local..."
-                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
+                  docker build -f Dockerfile.frontend.qa -t hospital-frontend-local .
                   
-                  # Desplegar usando docker-compose-oracle-xe3.yml
-                  echo "📦 Desplegando con configuración local..."
+                  # Desplegar usando docker-compose.qa.yml
+                  echo "📦 Desplegando con configuración QA..."
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
@@ -393,23 +399,22 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Asegurar que oracle_xe3 esté en la red correcta
-                  echo "🌐 Configurando red para oracle_xe3..."
-                  docker network create hospital-network 2>/dev/null || true
-                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  # Configurar red para QA
+                  echo "🌐 Configurando red para QA..."
+                  docker network create hospital-qa-network 2>/dev/null || true
                   
-                  # Desplegar backend y frontend
-                  $DC -f docker-compose-oracle-xe3.yml up -d
+                  # Desplegar backend y frontend para QA
+                  $DC -f docker-compose.qa.yml up -d
                 '''
-                echo "   Verificando salud de los servicios..."
-                sleep 15
+                echo "   Verificando salud de los servicios QA..."
+                sleep 10
                 echo "✅ Despliegue en QA completado exitosamente"
-                echo "🌐 URLs de acceso:"
-                echo "   - Backend: http://localhost:8080"
-                echo "   - Frontend: http://localhost:5173"
-                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
+                echo "🌐 URLs de acceso QA:"
+                echo "   - Backend: http://localhost:8090"
+                echo "   - Frontend: http://localhost:5174" 
+                echo "   - Base de datos: Base de datos QA configurada"
             } else {
-                echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${env.BUILD_DOCKER}, rama: ${env.BRANCH_NAME})"
             }
         }
         
