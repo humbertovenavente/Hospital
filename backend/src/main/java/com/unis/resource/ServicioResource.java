@@ -104,7 +104,8 @@ public class ServicioResource {
     @Transactional
     public Response agregarSubServicio(@PathParam("id") Long parentId, Map<String, Object> requestBody) {
         try {
-            System.out.println("📥 Recibiendo solicitud: " + requestBody); // 🔍 Verifica qué recibe
+            // Log de solicitud recibida
+            // System.out.println("📥 Recibiendo solicitud: " + requestBody); // 🔍 Verifica qué recibe
 
             if (!requestBody.containsKey("subServicioId")) {
                 return Response.status(Response.Status.BAD_REQUEST)

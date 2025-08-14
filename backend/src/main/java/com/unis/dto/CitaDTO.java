@@ -10,35 +10,61 @@ import java.time.LocalDate;
  */
 public class CitaDTO {
     /** The unique identifier of the patient (DPI). */
-    public String dpi;
+    private String dpi;
 
     /** The first name of the patient. */
-    public String nombre;
+    private String nombre;
 
     /** The last name of the patient. */
-    public String apellido;
+    private String apellido;
 
     /** The date of the appointment. */
-    public LocalDate fecha;
+    private LocalDate fecha;
 
     /** The start time of the appointment. */
-    public String horaInicio;
+    private String horaInicio;
 
     /** The end time of the appointment. */
-    public String horaFin;
+    private String horaFin;
 
     /** The reason for the appointment. */
-    public String motivo;
+    private String motivo;
 
     /** The ID of the hospital where the appointment is scheduled. */
-    public Long idHospital;
+    private Long idHospital;
 
     /** The ID of the service associated with the appointment. */
-    public Long idServicio;
+    private Long idServicio;
 
     /** The ID of the insurance company associated with the appointment. */
-    public Long idAseguradora;
+    private Long idAseguradora;
 
     /** The authorization number for the appointment, if applicable. */
-    public String numeroAutorizacion;
+    private String numeroAutorizacion;
+
+    // Getters
+    public String getDpi() { return dpi; }
+    public String getNombre() { return nombre; }
+    public String getApellido() { return apellido; }
+    public LocalDate getFecha() { return fecha; }
+    public String getHoraInicio() { return horaInicio; }
+    public String getHoraFin() { return horaFin; }
+    public String getMotivo() { return motivo; }
+    public Long getIdHospital() { return idHospital; }
+    public Long getIdServicio() { return idServicio; }
+    public Long getIdAseguradora() { return idAseguradora; }
+    public String getNumeroAutorizacion() { return numeroAutorizacion; }
+
+    // Setters
+    public void setDpi(String dpi) { this.dpi = dpi; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+    public void setApellido(String apellido) { this.apellido = apellido; }
+    public void setFecha(LocalDate fecha) { this.fecha = fecha; }
+    public void setHoraInicio(String horaInicio) { this.horaInicio = horaInicio; }
+    public void setHoraFin(String horaFin) { this.horaFin = horaFin; }
+    public void setMotivo(String motivo) { this.motivo = motivo; }
+    public void setIdHospital(Long idHospital) { this.idHospital = idHospital; }
+    public void setIdServicio(Long idServicio) { this.idServicio = idServicio; }
+    public void setIdAseguradora(Long idAseguradora) { this.idAseguradora = idAseguradora; }
+    public void setNumeroAutorizacion(String numeroAutorizacion) { this.numeroAutorizacion = numeroAutorizacion; }
 }

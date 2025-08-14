@@ -31,9 +31,9 @@ public class MedicinasReporteDTOTest {
         MedicinasReporteDTO dto = new MedicinasReporteDTO(popularidad, principioActivo, totalRecetas);
 
         // Assert
-        assertEquals(popularidad, dto.popularidad);
-        assertEquals(principioActivo, dto.principioActivo);
-        assertEquals(totalRecetas, dto.totalRecetas);
+        assertEquals(popularidad, dto.getPopularidad());
+        assertEquals(principioActivo, dto.getPrincipioActivo());
+        assertEquals(totalRecetas, dto.getTotalRecetas());
     }
 
 

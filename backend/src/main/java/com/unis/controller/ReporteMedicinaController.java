@@ -29,8 +29,17 @@ import jakarta.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReporteMedicinaController {
 
+    private final ReporteMedicinaService service;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param service the service for generating medicine reports
+     */
     @Inject
-    ReporteMedicinaService service;
+    public ReporteMedicinaController(ReporteMedicinaService service) {
+        this.service = service;
+    }
 
     /**
      * Retrieves a list of top prescribed medicines between two dates.

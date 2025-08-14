@@ -19,8 +19,17 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class CitaController {
 
+    private final CitaService citaService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param citaService the service for managing appointments
+     */
     @Inject
-    CitaService citaService;
+    public CitaController(CitaService citaService) {
+        this.citaService = citaService;
+    }
 
     /**
      * Retrieves all appointments from the system.

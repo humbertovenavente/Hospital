@@ -46,9 +46,10 @@ public class PageContentRepository implements PanacheRepository<PageContent> {
     /**
      * Finds a {@link PageContent} entity by its ID.
      *
-     * @param id the ID of the {@link PageContent} to find
+     * @param id the ID of the {@link Content} to find
      * @return the {@link PageContent} entity with the given ID, or null if not found
      */
+    @Override
     public PageContent findById(Long id) {
         return find("idContent", id).firstResult();
     }

@@ -30,22 +30,24 @@ public class ReporteModeracionService {
      * @return Una lista de objetos {@link ModeracionReporteDTO} con los datos del reporte.
      */
     public List<ModeracionReporteDTO> obtenerUsuariosConRechazos(Date inicio, Date fin, int limite) {
-        String sql = "SELECT * FROM (\n" +
-                "  SELECT editor AS usuario, COUNT(*) AS total_rechazos\n" +
-                "  FROM (\n" +
-                "    SELECT editor_email AS editor, last_modified_date AS fecha FROM page_content\n" +
-                "    WHERE status = 'RECHAZADO' AND TRIM(editor_email) IS NOT NULL AND LENGTH(TRIM(editor_email)) > 0\n" +
-                "    UNION ALL\n" +
-                "    SELECT editadopor AS editor, fecha_creacion AS fecha FROM faq\n" +
-                "    WHERE status = 'RECHAZADO' AND TRIM(editadopor) IS NOT NULL AND LENGTH(TRIM(editadopor)) > 0\n" +
-                "    UNION ALL\n" +
-                "    SELECT editor_email AS editor, last_modified_date AS fecha FROM historia\n" +
-                "    WHERE status = 'RECHAZADO' AND TRIM(editor_email) IS NOT NULL AND LENGTH(TRIM(editor_email)) > 0\n" +
-                "  )\n" +
-                "  WHERE fecha BETWEEN :fechaInicio AND :fechaFin\n" +
-                "  GROUP BY editor\n" +
-                "  ORDER BY total_rechazos DESC\n" +
-                ") WHERE ROWNUM <= :limite";
+        String sql = """
+                SELECT * FROM (
+                  SELECT editor AS usuario, COUNT(*) AS total_rechazos
+                  FROM (
+                    SELECT editor_email AS editor, last_modified_date AS fecha FROM page_content
+                    WHERE status = 'RECHAZADO' AND TRIM(editor_email) IS NOT NULL AND LENGTH(TRIM(editor_email)) > 0
+                    UNION ALL
+                    SELECT editadopor AS editor, fecha_creacion AS fecha FROM faq
+                    WHERE status = 'RECHAZADO' AND TRIM(editadopor) IS NOT NULL AND LENGTH(TRIM(editadopor)) > 0
+                    UNION ALL
+                    SELECT editor_email AS editor, last_modified_date AS fecha FROM historia
+                    WHERE status = 'RECHAZADO' AND TRIM(editor_email) IS NOT NULL AND LENGTH(TRIM(editor_email)) > 0
+                  )
+                  WHERE fecha BETWEEN :fechaInicio AND :fechaFin
+                  GROUP BY editor
+                  ORDER BY total_rechazos DESC
+                ) WHERE ROWNUM <= :limite
+                """;
 
         Query nativeQuery = em.createNativeQuery(sql);
         nativeQuery.setParameter("fechaInicio", inicio);

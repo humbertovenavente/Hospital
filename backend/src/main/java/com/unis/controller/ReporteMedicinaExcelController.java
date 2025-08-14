@@ -23,8 +23,17 @@ import jakarta.ws.rs.core.Response;
 @Path("/reporte-medicinas/excel")
 public class ReporteMedicinaExcelController {
 
+    private final ReporteMedicinaExcelService excelService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param excelService the service for generating Excel reports
+     */
     @Inject
-    ReporteMedicinaExcelService excelService;
+    public ReporteMedicinaExcelController(ReporteMedicinaExcelService excelService) {
+        this.excelService = excelService;
+    }
 
     /**
      * Downloads the medicine report as an Excel file.

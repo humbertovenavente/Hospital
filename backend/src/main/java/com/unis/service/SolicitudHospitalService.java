@@ -3,6 +3,7 @@ package com.unis.service;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.logging.Logger;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
@@ -17,6 +18,13 @@ import jakarta.transaction.Transactional;
  */
 @ApplicationScoped
 public class SolicitudHospitalService {
+
+    private static final Logger logger = Logger.getLogger(SolicitudHospitalService.class.getName());
+    
+    private static final String BASE_URL_ASEGURADORA_UNO = "http://localhost:5001/api/solicitudes/hospital";
+    private static final String BASE_URL_ASEGURADORA_DOS = "http://localhost:5022/api/solicitudes/hospital";
+    private static final String BASE_URL_ASEGURADORA_TRES = "http://localhost:5033/api/solicitudes/hospital";
+    private static final String ESTADO_ENDPOINT = "/estado";
 
     @Inject
     @RestClient
@@ -34,12 +42,12 @@ public class SolicitudHospitalService {
                 solicitud.direccion == null || solicitud.direccion.isEmpty() ||
                 solicitud.telefono == null || solicitud.telefono.isEmpty() ||
                 solicitud.aseguradora == null || solicitud.aseguradora.isEmpty()) {
-                System.err.println(" Datos incompletos. No se puede enviar la solicitud: " + solicitud);
+                logger.severe("Datos incompletos. No se puede enviar la solicitud: " + solicitud);
                 return;
             }
 
-            System.out.println("Enviando solicitud a la aseguradora: " + solicitud);
-            System.out.println("Datos enviados: " +
+            logger.info("Enviando solicitud a la aseguradora: " + solicitud);
+            logger.info("Datos enviados: " +
                 "Nombre: " + solicitud.nombre + ", " +
                 "Dirección: " + solicitud.direccion + ", " +
                 "Teléfono: " + solicitud.telefono + ", " +
@@ -48,13 +56,12 @@ public class SolicitudHospitalService {
 
             // Enviar solicitud a la aseguradora
             aseguradoraClient.enviarSolicitud(solicitud);
-            System.out.println("Solicitud enviada correctamente a la aseguradora.");
+            logger.info("Solicitud enviada correctamente a la aseguradora.");
 
             // Enviar la solicitud a MongoDB
             enviarSolicitudAMongo(solicitud);
         } catch (Exception e) {
-            System.err.println(" Error al enviar solicitud a la aseguradora o MongoDB: " + e.getMessage());
-            e.printStackTrace();
+            logger.severe("Error al enviar solicitud a la aseguradora o MongoDB: " + e.getMessage());
         }
     }
 
@@ -68,11 +75,11 @@ public class SolicitudHospitalService {
             String urlDestino = "";
     
             if ("Aseguradora Uno".equalsIgnoreCase(solicitud.aseguradora)) {
-                urlDestino = "http://localhost:5001/api/solicitudes/hospital";
+                urlDestino = BASE_URL_ASEGURADORA_UNO;
             } else if ("Aseguradora DOS".equalsIgnoreCase(solicitud.aseguradora)) {
-                urlDestino = "http://localhost:5022/api/solicitudes/hospital";
+                urlDestino = BASE_URL_ASEGURADORA_DOS;
             } else {
-                System.err.println("No se encontró aseguradora válida para enviar");
+                logger.severe("No se encontró aseguradora válida para enviar");
                 return;
             }
     
@@ -87,7 +94,7 @@ public class SolicitudHospitalService {
                 solicitud.nombre, solicitud.direccion, solicitud.telefono, solicitud.aseguradora, solicitud.estado, solicitud.origen
             );
     
-            System.out.println("Enviando solicitud a " + urlDestino + " con datos: " + input);
+            logger.info("Enviando solicitud a " + urlDestino + " con datos: " + input);
     
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(input.getBytes());

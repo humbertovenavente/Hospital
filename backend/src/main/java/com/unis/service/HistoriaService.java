@@ -16,6 +16,8 @@ import jakarta.ws.rs.NotFoundException;
 @ApplicationScoped
 public class HistoriaService {
 
+    private static final String HISTORIA_NO_ENCONTRADA = "Historia no encontrada";
+
     @Inject
     HistoriaRepository historiaRepository;
 
@@ -77,11 +79,11 @@ public class HistoriaService {
     public Historia actualizar(Long id, Historia historiaActualizada) {
         Historia historia = historiaRepository.findById(id);
         if (historia == null) {
-            throw new NotFoundException("Historia no encontrada");
+            throw new NotFoundException(HISTORIA_NO_ENCONTRADA);
         }
 
         historia.setNombreEntidad(historiaActualizada.getNombreEntidad());
-        historia.setHistoria(historiaActualizada.getHistoria());
+        historia.setContenidoHistoria(historiaActualizada.getContenidoHistoria());
         historia.setMeritos(historiaActualizada.getMeritos());
         historia.setLineaDelTiempo(historiaActualizada.getLineaDelTiempo());
         historia.setStatus(historiaActualizada.getStatus());
@@ -102,7 +104,7 @@ public class HistoriaService {
     public Historia aprobar(Long id) {
         Historia historia = historiaRepository.findById(id);
         if (historia == null) {
-            throw new NotFoundException("Historia no encontrada");
+            throw new NotFoundException(HISTORIA_NO_ENCONTRADA);
         }
         historia.setStatus("PUBLICADO");
         historia.setRejectionReason(null);
@@ -121,7 +123,7 @@ public class HistoriaService {
     public Historia rechazar(Long id, String motivo) {
         Historia historia = historiaRepository.findById(id);
         if (historia == null) {
-            throw new NotFoundException("Historia no encontrada");
+            throw new NotFoundException(HISTORIA_NO_ENCONTRADA);
         }
         historia.setStatus("RECHAZADO");
         historia.setRejectionReason(motivo);

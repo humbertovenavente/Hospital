@@ -1,0 +1,77 @@
+# Configuración de protección de branches para el Hospital
+# Solo humbertovenavente puede aprobar PRs hacia dev, uat y master
+
+# Protección del branch prod (producción)
+prod:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "Jenkins CI/CD Pipeline"
+      - "SonarQube Quality Gate"
+  
+  enforce_admins: true
+  
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    required_reviewers:
+      - "humbertovenavente"
+  
+  restrictions:
+    users:
+      - "humbertovenavente"
+    teams: []
+  
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Protección del branch QA (testing)
+QA:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "Jenkins CI/CD Pipeline"
+      - "SonarQube Quality Gate"
+  
+  enforce_admins: true
+  
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    required_reviewers:
+      - "humbertovenavente"
+  
+  restrictions:
+    users:
+      - "humbertovenavente"
+    teams: []
+  
+  allow_force_pushes: false
+  allow_deletions: false
+
+# Protección del branch dev (desarrollo)
+dev:
+  required_status_checks:
+    strict: true
+    contexts:
+      - "Jenkins CI/CD Pipeline"
+      - "SonarQube Quality Gate"
+  
+  enforce_admins: true
+  
+  required_pull_request_reviews:
+    required_approving_review_count: 1
+    dismiss_stale_reviews: true
+    require_code_owner_reviews: true
+    required_reviewers:
+      - "humbertovenavente"
+  
+  restrictions:
+    users:
+      - "humbertovenavente"
+    teams: []
+  
+  allow_force_pushes: false
+  allow_deletions: false

@@ -30,6 +30,7 @@ public class HistoriaRepository implements PanacheRepository<Historia> {
      * @param id the ID of the {@link Historia} to find
      * @return the {@link Historia} entity with the given ID, or null if not found
      */
+    @Override
     public Historia findById(Long id) {
         return find("id", id).firstResult();
     }
