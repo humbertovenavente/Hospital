@@ -1,0 +1,18 @@
+# Archivo de documentación para el equipo
+# Este archivo NO debe estar en .gitignore
+# Los Jenkinsfiles deben mantenerse específicos por rama
+
+# INSTRUCCIONES PARA PULL REQUESTS:
+# 1. Al hacer PR entre ramas, NO incluir cambios en Jenkinsfile.*
+# 2. Mantener cada Jenkinsfile específico en su rama
+# 3. Solo sincronizar código de aplicación, no configuración CI/CD
+
+# Estructura actual:
+# - rama DEV: usa Jenkinsfile.dev
+# - rama QA: usa Jenkinsfile.qa  
+# - rama PROD: usa Jenkinsfile.prod
+
+# Configuración Jenkins:
+# - Proyecto DEV: Script Path = Jenkinsfile.dev
+# - Proyecto QA: Script Path = Jenkinsfile.qa
+# - Proyecto PROD: Script Path = Jenkinsfile.prod
