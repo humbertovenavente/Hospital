@@ -2,8 +2,9 @@
 
 ## ✅ **ESTADO: CONFIGURADO EXITOSAMENTE**
 
-**🔥 PRUEBA DE PIPELINE AUTOMÁTICO** - $(date +"%Y-%m-%d %H:%M")  
-Verificando integración GitHub → Jenkins → QA Pipeline
+**🔥 PRUEBA DE PIPELINE AUTOMÁTICO #2** - Webhook actualizado  
+Verificando integración GitHub → Jenkins → QA Pipeline  
+URL ngrok: https://3525fd2ed96a.ngrok-free.app/github-webhook/
 
 ### 🔒 **Branches Protegidos**
 - **`dev`** (desarrollo) ✅
