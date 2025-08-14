@@ -2,10 +2,7 @@ import './assets/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import axios from 'axios'
-// URL de la API para QA
-const config = {
-  API_URL: 'http://localhost:8090'
-};
+import config from './config'
 import App from './App.vue'
 import router from './router'
 
