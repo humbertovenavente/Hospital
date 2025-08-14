@@ -1,0 +1,22 @@
+# Archivo CODEOWNERS para el Hospital
+# humbertovenavente es el Lead Developer y único aprobador de PRs
+
+# Propietario de todo el código
+* @humbertovenavente
+
+# Propietario específico del backend
+/backend/ @humbertovenavente
+
+# Propietario específico del frontend
+/src/ @humbertovenavente
+
+# Propietario de la configuración
+*.yml @humbertovenavente
+*.yaml @humbertovenavente
+*.properties @humbertovenavente
+*.xml @humbertovenavente
+*.sh @humbertovenavente
+*.md @humbertovenavente
+
+# Propietario de Jenkins
+Jenkinsfile* @humbertovenavente
