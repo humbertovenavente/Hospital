@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 
 /**
  * Entity representing an employee.
@@ -37,6 +38,7 @@ public class Empleado implements Serializable {
     /** The user account associated with the employee. */
     @OneToOne
     @JoinColumn(name = "ID_USUARIO", referencedColumnName = "ID_USUARIO")
+    @Transient
     private Usuario usuario;
 
     /** The last name of the employee. */

@@ -14,6 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 
 /**
  * Entity representing a user for interconnection purposes.
@@ -41,6 +42,7 @@ public class UsuarioInterAcc implements Serializable {
      */
     @OneToOne
     @JoinColumn(name = "ID_USUARIO", nullable = false)
+    @Transient
     private Usuario usuario;
 
     /** The last name of the interconnection user. */

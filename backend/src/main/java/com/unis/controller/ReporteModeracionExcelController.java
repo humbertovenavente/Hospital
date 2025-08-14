@@ -23,8 +23,17 @@ import jakarta.ws.rs.core.Response;
 @Path("/reporte-moderacion/excel")
 public class ReporteModeracionExcelController {
 
+    private final ReporteModeracionExcelService excelService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param excelService the service for generating Excel moderation reports
+     */
     @Inject
-    ReporteModeracionExcelService excelService;
+    public ReporteModeracionExcelController(ReporteModeracionExcelService excelService) {
+        this.excelService = excelService;
+    }
 
     /**
      * Downloads the moderation report as an Excel file.

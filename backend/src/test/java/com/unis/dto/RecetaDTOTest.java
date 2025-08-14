@@ -64,7 +64,7 @@ public class RecetaDTOTest {
         Long nuevoIdReceta = 999L;
         String nuevoCodigoReceta = "REC999";
         String nuevasAnotaciones = "Paciente con antecedentes de gastritis";
-        List<RecetaMedicamento> nuevosMedicamentos = Arrays.asList(new RecetaMedicamento(), new RecetaMedicamento());
+        List<Object> nuevosMedicamentos = Arrays.asList(new RecetaMedicamento(), new RecetaMedicamento());
         
         recetaDTO.setIdReceta(nuevoIdReceta);
         recetaDTO.setCodigoReceta(nuevoCodigoReceta);
@@ -205,7 +205,7 @@ public class RecetaDTOTest {
         Receta receta = new Receta();
         RecetaDTO recetaDTO = new RecetaDTO(receta, "Test");
         
-        List<RecetaMedicamento> medicamentos = Arrays.asList(new RecetaMedicamento(), new RecetaMedicamento(), new RecetaMedicamento());
+        List<Object> medicamentos = Arrays.asList(new RecetaMedicamento(), new RecetaMedicamento(), new RecetaMedicamento());
         
         // Act
         recetaDTO.setMedicamentos(medicamentos);
@@ -338,7 +338,7 @@ public class RecetaDTOTest {
         Receta receta = new Receta();
         RecetaDTO recetaDTO = new RecetaDTO(receta, "Test");
         
-        List<RecetaMedicamento> medicamentos = Arrays.asList();
+        List<Object> medicamentos = Arrays.asList();
         
         // Act
         recetaDTO.setMedicamentos(medicamentos);

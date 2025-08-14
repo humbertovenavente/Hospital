@@ -29,8 +29,17 @@ import jakarta.ws.rs.core.MediaType;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ReporteModeracionController {
 
+    private final ReporteModeracionService service;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param service the service for generating moderation reports
+     */
     @Inject
-    ReporteModeracionService service;
+    public ReporteModeracionController(ReporteModeracionService service) {
+        this.service = service;
+    }
 
     /**
      * Retrieves a list of users with the most rejections within the given date range.

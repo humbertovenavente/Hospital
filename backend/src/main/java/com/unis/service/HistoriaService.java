@@ -81,7 +81,7 @@ public class HistoriaService {
         }
 
         historia.setNombreEntidad(historiaActualizada.getNombreEntidad());
-        historia.setHistoria(historiaActualizada.getHistoria());
+        historia.setContenidoHistoria(historiaActualizada.getContenidoHistoria());
         historia.setMeritos(historiaActualizada.getMeritos());
         historia.setLineaDelTiempo(historiaActualizada.getLineaDelTiempo());
         historia.setStatus(historiaActualizada.getStatus());

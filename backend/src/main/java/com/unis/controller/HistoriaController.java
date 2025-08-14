@@ -31,8 +31,17 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class HistoriaController {
 
+    private final HistoriaService historiaService;
+
+    /**
+     * Constructor for dependency injection.
+     *
+     * @param historiaService the service for managing medical histories
+     */
     @Inject
-    HistoriaService historiaService;
+    public HistoriaController(HistoriaService historiaService) {
+        this.historiaService = historiaService;
+    }
 
     /**
      * Retrieves all history entries.
@@ -113,8 +122,8 @@ public class HistoriaController {
 
         if (historiaActualizada.getNombreEntidad() != null)
             historia.setNombreEntidad(historiaActualizada.getNombreEntidad());
-        if (historiaActualizada.getHistoria() != null)
-            historia.setHistoria(historiaActualizada.getHistoria());
+        if (historiaActualizada.getContenidoHistoria() != null)
+            historia.setContenidoHistoria(historiaActualizada.getContenidoHistoria());
         if (historiaActualizada.getMeritos() != null)
             historia.setMeritos(historiaActualizada.getMeritos());
         if (historiaActualizada.getLineaDelTiempo() != null)

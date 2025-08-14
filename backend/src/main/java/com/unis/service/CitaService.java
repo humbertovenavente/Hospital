@@ -176,7 +176,8 @@ public class CitaService {
                 .add("doctor", cita.getDoctor().getUsuario().getNombreUsuario())
                 .build();
 
-            System.out.println("Enviando resultado: " + json);
+            // Log de resultado enviado
+            // System.out.println("Enviando resultado: " + json);
 
             HttpClient client = HttpClient.newHttpClient();
             HttpRequest request = HttpRequest.newBuilder()
@@ -186,9 +187,13 @@ public class CitaService {
                 .build();
 
             client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> System.out.println("✅ Resultado enviado: " + response.statusCode()));
+                .thenAccept(response -> {
+                    // Log de resultado enviado exitosamente
+                    // System.out.println("✅ Resultado enviado: " + response.statusCode());
+                });
         } catch (Exception e) {
-            System.err.println("Error enviando resultados: " + e.getMessage());
+            // Log de error al enviar resultados
+            // System.err.println("Error enviando resultados: " + e.getMessage());
         }
     }
 
@@ -252,7 +257,8 @@ paciente.setUsuario(usuario);
 paciente.setIdUsuario(usuario.getId());
 
 entityManager.persist(paciente);
-System.out.println(" Usuario y paciente creados automáticamente");
+// Log de usuario y paciente creados
+// System.out.println(" Usuario y paciente creados automáticamente");
 
 //  Necesitamos obtener el paciente como PacienteFT para la ficha técnica
 PacienteFT pacienteFT = entityManager
@@ -270,7 +276,8 @@ ficha.setCodigoSeguro(codigoSeguro);
 ficha.setCarnetSeguro(carnetSeguro);
 
 entityManager.persist(ficha);
-System.out.println("Ficha técnica creada automáticamente");
+// Log de ficha técnica creada
+// System.out.println("Ficha técnica creada automáticamente");
 
         }
     
@@ -298,7 +305,8 @@ System.out.println("Ficha técnica creada automáticamente");
                 aseguradora = new Aseguradora();
                 aseguradora.setNombre(nombreAseguradora);
                 entityManager.persist(aseguradora);
-                System.out.println("Aseguradora creada automáticamente");
+                // Log de aseguradora creada
+                // System.out.println("Aseguradora creada automáticamente");
             }
     
             cita.setAseguradora(aseguradora);
@@ -306,7 +314,8 @@ System.out.println("Ficha técnica creada automáticamente");
         }
     
         citaRepository.persist(cita);
-        System.out.println(" Cita guardada correctamente");
+        // Log de cita guardada
+        // System.out.println(" Cita guardada correctamente");
     }
 
     /**

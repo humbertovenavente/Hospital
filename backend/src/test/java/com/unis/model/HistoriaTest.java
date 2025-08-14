@@ -33,7 +33,7 @@ public class HistoriaTest {
         // Act
         historia.setId(id);
         historia.setNombreEntidad(nombreEntidad);
-        historia.setHistoria(historiaTexto);
+        historia.setContenidoHistoria(historiaTexto);
         historia.setMeritos(meritos);
         historia.setLineaDelTiempo(lineaDelTiempo);
         historia.setStatus(status);
@@ -43,7 +43,7 @@ public class HistoriaTest {
         // Assert
         assertEquals(id, historia.getId());
         assertEquals(nombreEntidad, historia.getNombreEntidad());
-        assertEquals(historiaTexto, historia.getHistoria());
+        assertEquals(historiaTexto, historia.getContenidoHistoria());
         assertEquals(meritos, historia.getMeritos());
         assertEquals(lineaDelTiempo, historia.getLineaDelTiempo());
         assertEquals(status, historia.getStatus());
@@ -81,10 +81,10 @@ public class HistoriaTest {
         String historiaTexto = "Esta es la historia de una clínica especializada en cardiología.";
 
         // Act
-        historia.setHistoria(historiaTexto);
+        historia.setContenidoHistoria(historiaTexto);
 
         // Assert
-        assertEquals(historiaTexto, historia.getHistoria());
+        assertEquals(historiaTexto, historia.getContenidoHistoria());
     }
 
     @Test
@@ -168,10 +168,10 @@ public class HistoriaTest {
     @Test
     void testSetHistoriaNull() {
         // Act
-        historia.setHistoria(null);
+        historia.setContenidoHistoria(null);
 
         // Assert
-        assertNull(historia.getHistoria());
+        assertNull(historia.getContenidoHistoria());
     }
 
     @Test
@@ -238,11 +238,11 @@ public class HistoriaTest {
         String historiaVacio = "";
 
         // Act
-        historia.setHistoria(historiaVacio);
+        historia.setContenidoHistoria(historiaVacio);
 
         // Assert
-        assertEquals(historiaVacio, historia.getHistoria());
-        assertTrue(historia.getHistoria().isEmpty());
+        assertEquals(historiaVacio, historia.getContenidoHistoria());
+        assertTrue(historia.getContenidoHistoria().isEmpty());
     }
 
     @Test

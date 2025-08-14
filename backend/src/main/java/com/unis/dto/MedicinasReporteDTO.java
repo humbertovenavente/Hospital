@@ -8,13 +8,13 @@ package com.unis.dto;
  */
 public class MedicinasReporteDTO {
     /** The popularity rank of the medicine. */
-    public int popularidad;
+    private int popularidad;
 
     /** The active ingredient of the medicine. */
-    public String principioActivo;
+    private String principioActivo;
 
     /** The total number of prescriptions for the medicine. */
-    public int totalRecetas;
+    private int totalRecetas;
 
     /**
      * Constructs a new MedicinasReporteDTO with the specified details.
@@ -28,4 +28,14 @@ public class MedicinasReporteDTO {
         this.principioActivo = principioActivo;
         this.totalRecetas = totalRecetas;
     }
+
+    // Getters
+    public int getPopularidad() { return popularidad; }
+    public String getPrincipioActivo() { return principioActivo; }
+    public int getTotalRecetas() { return totalRecetas; }
+
+    // Setters
+    public void setPopularidad(int popularidad) { this.popularidad = popularidad; }
+    public void setPrincipioActivo(String principioActivo) { this.principioActivo = principioActivo; }
+    public void setTotalRecetas(int totalRecetas) { this.totalRecetas = totalRecetas; }
 }

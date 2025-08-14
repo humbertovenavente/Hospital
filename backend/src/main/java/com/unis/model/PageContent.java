@@ -80,7 +80,9 @@ public class PageContent {
     private String editorEmail;
 
     /** Default constructor required by Hibernate. */
-    public PageContent() {}
+    public PageContent() {
+        // Constructor vacío requerido por Hibernate para la persistencia
+    }
 
     // Getters and Setters
 

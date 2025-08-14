@@ -56,8 +56,8 @@ public class ReporteMedicinaServiceTest {
         List<MedicinasReporteDTO> result = reporteMedicinaService.obtenerReporte(inicio, fin, limite);
 
         assertEquals(3, result.size());
-        assertEquals("Paracetamol", result.get(0).principioActivo);
-        assertEquals(275, result.get(1).totalRecetas);
-        assertEquals(3, result.get(2).popularidad);
+        assertEquals("Paracetamol", result.get(0).getPrincipioActivo());
+        assertEquals(275, result.get(1).getTotalRecetas());
+        assertEquals(3, result.get(2).getPopularidad());
     }
 }

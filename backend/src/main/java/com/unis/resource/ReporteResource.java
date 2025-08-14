@@ -208,10 +208,8 @@ public class ReporteResource {
         }
 
         StreamingOutput stream = out -> {
-            try {
+            try (workbook) {
                 workbook.write(out);
-            } finally {
-                workbook.close();
             }
         };
 

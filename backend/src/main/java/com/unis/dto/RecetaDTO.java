@@ -39,7 +39,7 @@ public class RecetaDTO {
     private String notasEspeciales;
 
     @JsonProperty("medicamentos")
-    private List<?> medicamentos;
+    private List<Object> medicamentos;
 
     private String nombrePaciente;
 
@@ -52,7 +52,7 @@ public class RecetaDTO {
         this.codigoReceta = receta.getCodigoReceta();
         this.anotaciones = receta.getAnotaciones();
         this.notasEspeciales = receta.getNotasEspeciales();
-        this.medicamentos = receta.getMedicamentos();
+        this.medicamentos = (List<Object>) (List<?>) receta.getMedicamentos();
         this.nombrePaciente = nombrePaciente;
     }
 
@@ -126,7 +126,7 @@ public class RecetaDTO {
         return medicamentos;
     }
 
-    public void setMedicamentos(List<?> medicamentos) {
+    public void setMedicamentos(List<Object> medicamentos) {
         this.medicamentos = medicamentos;
     }
 

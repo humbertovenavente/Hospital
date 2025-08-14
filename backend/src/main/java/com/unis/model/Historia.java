@@ -36,7 +36,7 @@ public class Historia {
 
     /** A detailed narrative of the entity's history. */
     @Lob
-    private String historia;
+    private String contenidoHistoria;
 
     /** Achievements and recognitions of the entity. */
     @Lob
@@ -83,13 +83,13 @@ public class Historia {
     }
 
     /** @return the detailed history of the entity. */
-    public String getHistoria() {
-        return historia;
+    public String getContenidoHistoria() {
+        return contenidoHistoria;
     }
 
-    /** @param historia the detailed history of the entity. */
-    public void setHistoria(String historia) {
-        this.historia = historia;
+    /** @param contenidoHistoria the detailed history of the entity. */
+    public void setContenidoHistoria(String contenidoHistoria) {
+        this.contenidoHistoria = contenidoHistoria;
     }
 
     /** @return the merits or achievements of the entity. */

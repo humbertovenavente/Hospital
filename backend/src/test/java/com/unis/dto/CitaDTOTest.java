@@ -36,92 +36,92 @@ public class CitaDTOTest {
         String numeroAutorizacion = "AUTH001";
 
         // Act
-        citaDTO.dpi = dpi;
-        citaDTO.nombre = nombre;
-        citaDTO.apellido = apellido;
-        citaDTO.fecha = fecha;
-        citaDTO.horaInicio = horaInicio;
-        citaDTO.horaFin = horaFin;
-        citaDTO.motivo = motivo;
-        citaDTO.idHospital = idHospital;
-        citaDTO.idServicio = idServicio;
-        citaDTO.idAseguradora = idAseguradora;
-        citaDTO.numeroAutorizacion = numeroAutorizacion;
+        citaDTO.setDpi(dpi);
+        citaDTO.setNombre(nombre);
+        citaDTO.setApellido(apellido);
+        citaDTO.setFecha(fecha);
+        citaDTO.setHoraInicio(horaInicio);
+        citaDTO.setHoraFin(horaFin);
+        citaDTO.setMotivo(motivo);
+        citaDTO.setIdHospital(idHospital);
+        citaDTO.setIdServicio(idServicio);
+        citaDTO.setIdAseguradora(idAseguradora);
+        citaDTO.setNumeroAutorizacion(numeroAutorizacion);
 
         // Assert
-        assertEquals(dpi, citaDTO.dpi);
-        assertEquals(nombre, citaDTO.nombre);
-        assertEquals(apellido, citaDTO.apellido);
-        assertEquals(fecha, citaDTO.fecha);
-        assertEquals(horaInicio, citaDTO.horaInicio);
-        assertEquals(horaFin, citaDTO.horaFin);
-        assertEquals(motivo, citaDTO.motivo);
-        assertEquals(idHospital, citaDTO.idHospital);
-        assertEquals(idServicio, citaDTO.idServicio);
-        assertEquals(idAseguradora, citaDTO.idAseguradora);
-        assertEquals(numeroAutorizacion, citaDTO.numeroAutorizacion);
+        assertEquals(dpi, citaDTO.getDpi());
+        assertEquals(nombre, citaDTO.getNombre());
+        assertEquals(apellido, citaDTO.getApellido());
+        assertEquals(fecha, citaDTO.getFecha());
+        assertEquals(horaInicio, citaDTO.getHoraInicio());
+        assertEquals(horaFin, citaDTO.getHoraFin());
+        assertEquals(motivo, citaDTO.getMotivo());
+        assertEquals(idHospital, citaDTO.getIdHospital());
+        assertEquals(idServicio, citaDTO.getIdServicio());
+        assertEquals(idAseguradora, citaDTO.getIdAseguradora());
+        assertEquals(numeroAutorizacion, citaDTO.getNumeroAutorizacion());
     }
 
     @Test
     void testCamposConValoresNulos() {
         // Act
-        citaDTO.dpi = null;
-        citaDTO.nombre = null;
-        citaDTO.apellido = null;
-        citaDTO.fecha = null;
-        citaDTO.horaInicio = null;
-        citaDTO.horaFin = null;
-        citaDTO.motivo = null;
-        citaDTO.idHospital = null;
-        citaDTO.idServicio = null;
-        citaDTO.idAseguradora = null;
-        citaDTO.numeroAutorizacion = null;
+        citaDTO.setDpi(null);
+        citaDTO.setNombre(null);
+        citaDTO.setApellido(null);
+        citaDTO.setFecha(null);
+        citaDTO.setHoraInicio(null);
+        citaDTO.setHoraFin(null);
+        citaDTO.setMotivo(null);
+        citaDTO.setIdHospital(null);
+        citaDTO.setIdServicio(null);
+        citaDTO.setIdAseguradora(null);
+        citaDTO.setNumeroAutorizacion(null);
 
         // Assert
-        assertNull(citaDTO.dpi);
-        assertNull(citaDTO.nombre);
-        assertNull(citaDTO.apellido);
-        assertNull(citaDTO.fecha);
-        assertNull(citaDTO.horaInicio);
-        assertNull(citaDTO.horaFin);
-        assertNull(citaDTO.motivo);
-        assertNull(citaDTO.idHospital);
-        assertNull(citaDTO.idServicio);
-        assertNull(citaDTO.idAseguradora);
-        assertNull(citaDTO.numeroAutorizacion);
+        assertNull(citaDTO.getDpi());
+        assertNull(citaDTO.getNombre());
+        assertNull(citaDTO.getApellido());
+        assertNull(citaDTO.getFecha());
+        assertNull(citaDTO.getHoraInicio());
+        assertNull(citaDTO.getHoraFin());
+        assertNull(citaDTO.getMotivo());
+        assertNull(citaDTO.getIdHospital());
+        assertNull(citaDTO.getIdServicio());
+        assertNull(citaDTO.getIdAseguradora());
+        assertNull(citaDTO.getNumeroAutorizacion());
     }
 
     @Test
     void testCamposConValoresVacios() {
         // Act
-        citaDTO.dpi = "";
-        citaDTO.nombre = "";
-        citaDTO.apellido = "";
-        citaDTO.motivo = "";
-        citaDTO.numeroAutorizacion = "";
+        citaDTO.setDpi("");
+        citaDTO.setNombre("");
+        citaDTO.setApellido("");
+        citaDTO.setMotivo("");
+        citaDTO.setNumeroAutorizacion("");
 
         // Assert
-        assertEquals("", citaDTO.dpi);
-        assertEquals("", citaDTO.nombre);
-        assertEquals("", citaDTO.apellido);
-        assertEquals("", citaDTO.motivo);
-        assertEquals("", citaDTO.numeroAutorizacion);
+        assertEquals("", citaDTO.getDpi());
+        assertEquals("", citaDTO.getNombre());
+        assertEquals("", citaDTO.getApellido());
+        assertEquals("", citaDTO.getMotivo());
+        assertEquals("", citaDTO.getNumeroAutorizacion());
     }
 
     @Test
     void testCamposConValoresEspeciales() {
         // Act
-        citaDTO.dpi = "1234567890101";
-        citaDTO.nombre = "María José";
-        citaDTO.apellido = "García-López";
-        citaDTO.motivo = "Consulta de emergencia";
-        citaDTO.numeroAutorizacion = "AUTH-2024-001";
+        citaDTO.setDpi("1234567890101");
+        citaDTO.setNombre("María José");
+        citaDTO.setApellido("García-López");
+        citaDTO.setMotivo("Consulta de emergencia");
+        citaDTO.setNumeroAutorizacion("AUTH-2024-001");
 
         // Assert
-        assertEquals("1234567890101", citaDTO.dpi);
-        assertEquals("María José", citaDTO.nombre);
-        assertEquals("García-López", citaDTO.apellido);
-        assertEquals("Consulta de emergencia", citaDTO.motivo);
-        assertEquals("AUTH-2024-001", citaDTO.numeroAutorizacion);
+        assertEquals("1234567890101", citaDTO.getDpi());
+        assertEquals("María José", citaDTO.getNombre());
+        assertEquals("García-López", citaDTO.getApellido());
+        assertEquals("Consulta de emergencia", citaDTO.getMotivo());
+        assertEquals("AUTH-2024-001", citaDTO.getNumeroAutorizacion());
     }
 }

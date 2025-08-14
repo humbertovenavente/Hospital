@@ -41,7 +41,8 @@ public class SolicitudHospitalResource {
         try {
             // Guardar solicitud en base de datos local
             solicitud.persist();
-            System.out.println(" Solicitud guardada en la base de datos local.");
+            // Log de solicitud guardada
+            // System.out.println(" Solicitud guardada en la base de datos local.");
 
             // Enviar a la aseguradora (REST Client)
             servicio.enviarSolicitud(solicitud);
@@ -49,7 +50,8 @@ public class SolicitudHospitalResource {
             // Devolver la solicitud guardada
             return Response.ok(solicitud).build();
         } catch (Exception e) {
-            System.err.println(" Error al procesar la solicitud: " + e.getMessage());
+            // Log de error al procesar solicitud
+            // System.err.println(" Error al procesar la solicitud: " + e.getMessage());
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                            .entity("Error al procesar la solicitud").build();
         }
