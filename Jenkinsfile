@@ -14,7 +14,7 @@ node {
     
     try {
         stage('Checkout') {
-            echo "🔄 Iniciando checkout del código..."
+            echo " Iniciando checkout del código..."
             // Limpiar workspace para evitar quedarnos en la rama anterior
             deleteDir()
             checkout scm
@@ -25,7 +25,7 @@ node {
             } else {
                 echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
             }
-            echo "✅ Checkout completado"
+            echo "Checkout completado"
 
             // Normalizar nombre de rama cuando Jenkins no lo expone (evitar 'null')
             try {
@@ -37,23 +37,23 @@ node {
                         echo "🔍 Estado detached detectado, forzando rama: prod"
                     }
                     env.BRANCH_NAME = detected
-                    echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
+                    echo " Rama detectada: ${env.BRANCH_NAME}"
                 }
                 
                 // Verificación adicional para ramas específicas
                 if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
                     env.BRANCH_NAME = 'qa'
-                    echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                    echo "Rama QA confirmada: ${env.BRANCH_NAME}"
                 } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
                     env.BRANCH_NAME = 'prod'
-                    echo "✅ Rama PROD confirmada: ${env.BRANCH_NAME}"
+                    echo "Rama PROD confirmada: ${env.BRANCH_NAME}"
                 } else {
                     // Cualquier otra rama se trata como producción
                     env.BRANCH_NAME = 'prod'
-                    echo "✅ Rama PROD confirmada: ${env.BRANCH_NAME}"
+                    echo "Rama PROD confirmada: ${env.BRANCH_NAME}"
                 }
             } catch (err) {
-                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
+                echo "  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
                 env.BRANCH_NAME = 'prod'
             }
         }
@@ -67,21 +67,21 @@ node {
             
             // Mostrar qué entorno se usará
             if (env.BRANCH_NAME == 'qa' || env.BRANCH_NAME == 'QA') {
-                echo "🎯 ENTORNO: QA"
-                echo "📊 PROYECTOS SONARQUBE: hospital-backend-qa, hospital-frontend-qa"
+                echo " ENTORNO: QA"
+                echo "PROYECTOS SONARQUBE: hospital-backend-qa, hospital-frontend-qa"
             } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
-                echo "🎯 ENTORNO: PRODUCCIÓN"
-                echo "📊 PROYECTOS SONARQUBE: hospital-backend-prod, hospital-frontend-prod"
+                echo "ENTORNO: PRODUCCIÓN"
+                echo "PROYECTOS SONARQUBE: hospital-backend-prod, hospital-frontend-prod"
             } else {
-                echo "🎯 ENTORNO: DESARROLLO"
-                echo "📊 PROYECTOS SONARQUBE: hospital-backend-dev, hospital-frontend-dev"
+                echo "ENTORNO: DESARROLLO"
+                echo "PROYECTOS SONARQUBE: hospital-backend-dev, hospital-frontend-dev"
             }
-            echo "🔍 === FIN DEBUG ==="
+            echo " === FIN DEBUG ==="
         }
         
         stage('Fail Injection (opcional)') {
             if (params.FORCE_FAIL) {
-                echo "⚠️  FAIL injection activado: se forzará un fallo para probar notificaciones"
+                echo "  FAIL injection activado: se forzará un fallo para probar notificaciones"
                 error('Fallo intencional para probar notificaciones por correo')
             } else {
                 echo 'Fail injection desactivado'
@@ -91,7 +91,7 @@ node {
 
 
         stage('Setup Environment') {
-            echo "⚙️  Configurando entorno de PRODUCCIÓN..."
+            echo "  Configurando entorno de PRODUCCIÓN..."
             sh '''
                 echo "=== Verificando Java ==="
                 java -version
@@ -112,7 +112,7 @@ node {
                 echo "=== Verificando Git ==="
                 git --version
             '''
-            echo "✅ Entorno configurado correctamente"
+            echo " Entorno configurado correctamente"
         }
         
         stage('Build Backend') {
@@ -125,7 +125,7 @@ node {
                     echo "=== Backend empaquetado exitosamente ==="
                 '''
             }
-            echo "✅ Build del backend completado"
+            echo " Build del backend completado"
         }
         
         stage('Unit Tests Backend') {
@@ -224,6 +224,24 @@ node {
                                 echo "   🔧 Usando configuración específica de DEV para backend..."
                                 sonar-scanner -Dproject.settings=../sonar-project-backend-dev.properties
                             fi
+                            
+                            # SIMULAR FALLO EN BACKEND - FORZAR ERROR DE CALIDAD
+                            echo "   🚨 SIMULANDO FALLO DE CALIDAD EN BACKEND..."
+                            if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Cobertura insuficiente (65% < 80%)"
+                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Vulnerabilidades críticas detectadas (3 > 0)"
+                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Deuda técnica excesiva (24h > 8h)"
+                                exit 1
+                            elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
+                                echo "   ❌ BACKEND QA: Fallo intencional - Code smells críticos (15 > 10)"
+                                echo "   ❌ BACKEND QA: Fallo intencional - Bugs de alta severidad (2 > 0)"
+                                exit 1
+                            else
+                                echo "   ❌ BACKEND DEV: Fallo intencional - Duplicación de código (8% > 3%)"
+                                echo "   ❌ BACKEND DEV: Fallo intencional - Mantenibilidad baja (rating 4/5)"
+                                exit 1
+                            fi
+                            
                             echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
                         '''
                     }
@@ -288,6 +306,23 @@ node {
                         else
                             echo "   🔧 Usando configuración específica de DEV para frontend..."
                             sonar-scanner -Dproject.settings=sonar-project-frontend-dev.properties
+                        fi
+                        
+                        # SIMULAR FALLO EN FRONTEND - FORZAR ERROR DE CALIDAD
+                        echo "   🚨 SIMULANDO FALLO DE CALIDAD EN FRONTEND..."
+                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - Tests fallando (3/10 tests pasaron)"
+                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - Linting errors (25 > 0)"
+                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - TypeScript errors (8 > 0)"
+                            exit 1
+                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
+                            echo "   ❌ FRONTEND QA: Fallo intencional - Cobertura insuficiente (45% < 70%)"
+                            echo "   ❌ FRONTEND QA: Fallo intencional - Vulnerabilidades de dependencias (5 > 0)"
+                            exit 1
+                        else
+                            echo "   ❌ FRONTEND DEV: Fallo intencional - Code smells (18 > 12)"
+                            echo "   ❌ FRONTEND DEV: Fallo intencional - Duplicación (12% > 5%)"
+                            exit 1
                         fi
                         
                         if [ $? -eq 0 ]; then
