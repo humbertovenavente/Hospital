@@ -32,7 +32,9 @@ export default defineConfig(({ command, mode }) => {
     define: {
       __APP_ENV__: JSON.stringify(mode),
       __API_URL__: JSON.stringify(
-        mode === 'qa' ? 'http://localhost:8090' : 'http://localhost:8080'
+        mode === 'qa' ? 'http://localhost:8060' :
+        mode === 'dev' ? 'http://localhost:8060' :
+        'http://localhost:8080'
       )
     }
   }

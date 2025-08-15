@@ -1,5 +1,5 @@
-// Configuración para el entorno de QA
-const API_URL = 'http://localhost:8090'; // Puerto del backend en QA
+// Configuración dinámica basada en el entorno
+const API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:8060';
 
 const FRONTEND_URL = 'http://localhost:5174'; // Puerto del frontend en QA
 

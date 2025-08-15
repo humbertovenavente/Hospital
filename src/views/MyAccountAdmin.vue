@@ -2,7 +2,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 // URL de la API para QA
-const API_URL = 'http://localhost:8090';
+const API_URL = 'http://localhost:8060';
 
 const userId = localStorage.getItem("userId");
 const user = ref(null);
