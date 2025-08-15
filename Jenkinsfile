@@ -324,6 +324,44 @@ pipeline {
             }
         }
         
+        stage('QA Reports & Metrics') {
+            when {
+                branch 'QA'
+            }
+            steps {
+                script {
+                    echo "📊 Generando reportes y métricas de QA..."
+                    
+                    // Generar reporte de cobertura de código
+                    dir('backend') {
+                        sh '''
+                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                            export PATH=$JAVA_HOME/bin:$PATH
+                            echo "📈 Generando reporte de cobertura..."
+                            mvn jacoco:report || echo "Reporte de cobertura no disponible"
+                        '''
+                    }
+                    
+                    // Generar reporte de dependencias
+                    sh '''
+                        echo "📦 Generando reporte de dependencias..."
+                        npm list --depth=0 > dependency-report.txt || echo "Reporte de dependencias falló"
+                    '''
+                    
+                    // Generar reporte de seguridad
+                    sh '''
+                        echo "🔒 Generando reporte de seguridad..."
+                        npm audit --json > security-report.json || echo "Reporte de seguridad falló"
+                    '''
+                    
+                    // Publicar artefactos
+                    archiveArtifacts artifacts: '**/target/site/jacoco/**/*,dependency-report.txt,security-report.json', fingerprint: true
+                    
+                    echo "📋 Reportes generados y archivados exitosamente!"
+                }
+            }
+        }
+        
         stage('Deploy to Production') {
             when {
                 branch 'prod'
@@ -345,44 +383,6 @@ pipeline {
                     echo "🔧 Backend: http://localhost:8080"
                     echo "🗄️  Database: localhost:1521"
                 }
-            }
-        }
-    }
-    
-    stage('QA Reports & Metrics') {
-        when {
-            branch 'QA'
-        }
-        steps {
-            script {
-                echo "📊 Generando reportes y métricas de QA..."
-                
-                // Generar reporte de cobertura de código
-                dir('backend') {
-                    sh '''
-                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        echo "📈 Generando reporte de cobertura..."
-                        mvn jacoco:report || echo "Reporte de cobertura no disponible"
-                    '''
-                }
-                
-                // Generar reporte de dependencias
-                sh '''
-                    echo "📦 Generando reporte de dependencias..."
-                    npm list --depth=0 > dependency-report.txt || echo "Reporte de dependencias falló"
-                '''
-                
-                // Generar reporte de seguridad
-                sh '''
-                    echo "🔒 Generando reporte de seguridad..."
-                    npm audit --json > security-report.json || echo "Reporte de seguridad falló"
-                '''
-                
-                // Publicar artefactos
-                archiveArtifacts artifacts: '**/target/site/jacoco/**/*,dependency-report.txt,security-report.json', fingerprint: true
-                
-                echo "📋 Reportes generados y archivados exitosamente!"
             }
         }
     }
