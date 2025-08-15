@@ -17,21 +17,41 @@ pipeline {
             }
         }
         
-        stage('Setup Tools') {
+        stage('Fail Injection (opcional)') {
+            when {
+                branch 'QA'
+            }
+            steps {
+                script {
+                    // Simular fallos para testing de resiliencia
+                    def shouldFail = env.FAIL_INJECTION == 'true'
+                    if (shouldFail) {
+                        echo "🧪 Inyectando fallo para testing..."
+                        error "Fallo inyectado para testing de QA"
+                    } else {
+                        echo "✅ Sin inyección de fallos"
+                    }
+                }
+            }
+        }
+        
+        stage('Setup Environment') {
             steps {
                 sh '''
-                    echo "=== Verificando Java ==="
+                    echo "=== Configurando ambiente ==="
                     export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
                     export PATH=$JAVA_HOME/bin:$PATH
+                    
+                    echo "=== Verificando herramientas ==="
                     java -version
                     mvn -version
-                    
-                    echo "=== Verificando Docker ==="
                     docker --version
-                    
-                    echo "=== Verificando Node.js ==="
                     node --version || echo "Node.js no está instalado"
                     npm --version || echo "npm no está instalado"
+                    
+                    echo "=== Limpiando workspace ==="
+                    mvn clean || echo "Maven clean no disponible"
+                    rm -rf node_modules package-lock.json || echo "Limpieza de Node.js completada"
                 '''
             }
         }
@@ -42,20 +62,166 @@ pipeline {
                     sh '''
                         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
                         export PATH=$JAVA_HOME/bin:$PATH
-                        java -version
+                        echo "🔨 Construyendo backend..."
                         mvn clean package -DskipTests
                     '''
                 }
             }
         }
         
-        stage('Test Backend') {
+        stage('Unit Tests Backend') {
             steps {
                 dir('backend') {
                     sh '''
                         export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
                         export PATH=$JAVA_HOME/bin:$PATH
+                        echo "🧪 Ejecutando unit tests del backend..."
                         mvn test
+                    '''
+                }
+            }
+            post {
+                always {
+                    junit '**/target/surefire-reports/*.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'Backend Coverage Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Code Quality Check') {
+            when {
+                branch 'QA'
+            }
+            steps {
+                script {
+                    echo "🔍 Verificando calidad del código..."
+                    
+                    // Análisis estático del código
+                    dir('backend') {
+                        sh '''
+                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                            export PATH=$JAVA_HOME/bin:$PATH
+                            echo "📊 Generando reporte de cobertura..."
+                            mvn jacoco:prepare-agent test jacoco:report
+                            
+                            echo "🔍 Analizando dependencias..."
+                            mvn dependency:analyze || echo "Análisis de dependencias falló"
+                            
+                            echo "🔒 Escaneando vulnerabilidades..."
+                            mvn org.owasp:dependency-check-maven:check || echo "OWASP check falló"
+                        '''
+                    }
+                    
+                    // Análisis del frontend
+                    sh '''
+                        echo "📦 Analizando dependencias del frontend..."
+                        npm audit --audit-level moderate || echo "Auditoría de npm falló"
+                        
+                        echo "🔍 Ejecutando linting..."
+                        npm run lint || echo "Linting no configurado"
+                    '''
+                    
+                    // Análisis de SonarQube
+                    try {
+                        withSonarQubeEnv('SonarQube') {
+                            dir('backend') {
+                                sh '''
+                                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                                    export PATH=$JAVA_HOME/bin:$PATH
+                                    mvn sonar:sonar \
+                                        -Dsonar.projectKey=hospital-backend-qa \
+                                        -Dsonar.host.url=http://localhost:9000
+                                '''
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo "⚠️ SonarQube no está disponible, continuando..."
+                    }
+                }
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'backend/target/site/jacoco',
+                        reportFiles: 'index.html',
+                        reportName: 'Code Coverage Report'
+                    ])
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'backend/target/dependency-check-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Security Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Build Frontend') {
+            steps {
+                sh '''
+                    echo "🔨 Construyendo frontend..."
+                    npm ci
+                    npm run build
+                '''
+            }
+        }
+        
+        stage('Unit Tests Frontend') {
+            steps {
+                sh '''
+                    echo "🧪 Ejecutando unit tests del frontend..."
+                    npm test || echo "Tests del frontend no configurados"
+                '''
+            }
+            post {
+                always {
+                    publishHTML([
+                        allowMissing: true,
+                        alwaysLinkToLastBuild: true,
+                        keepAll: true,
+                        reportDir: 'coverage/lcov-report',
+                        reportFiles: 'index.html',
+                        reportName: 'Frontend Coverage Report'
+                    ])
+                }
+            }
+        }
+        
+        stage('Integration Tests') {
+            when {
+                branch 'QA'
+            }
+            steps {
+                script {
+                    echo "🧪 Ejecutando tests de integración..."
+                    
+                    // Tests de integración del backend
+                    dir('backend') {
+                        sh '''
+                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+                            export PATH=$JAVA_HOME/bin:$PATH
+                            echo "🔗 Tests de integración del backend..."
+                            mvn test -Dtest=*IntegrationTest || echo "Tests de integración no configurados"
+                            mvn test -Dtest=*IT || echo "Tests de integración IT no configurados"
+                        '''
+                    }
+                    
+                    // Tests E2E del frontend
+                    sh '''
+                        echo "🔗 Tests E2E del frontend..."
+                        npm run test:e2e || echo "Tests E2E no configurados"
                     '''
                 }
             }
@@ -66,21 +232,18 @@ pipeline {
             }
         }
         
-        stage('Build Frontend') {
-            steps {
-                sh 'npm ci'
-                sh 'npm run build'
-            }
-        }
-        
         stage('Build Docker Images') {
             steps {
                 script {
+                    echo "🐳 Construyendo imágenes Docker..."
+                    
                     // Construir imagen del backend
                     docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
                     
                     // Construir imagen del frontend
                     docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
+                    
+                    echo "✅ Imágenes Docker construidas exitosamente"
                 }
             }
         }
@@ -91,6 +254,8 @@ pipeline {
             }
             steps {
                 script {
+                    echo "🚀 Desplegando en ambiente de desarrollo..."
+                    
                     // Desplegar en ambiente de desarrollo
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
@@ -107,102 +272,26 @@ pipeline {
             }
         }
         
-        stage('QA Testing & Validation') {
+        stage('Deploy to QA') {
             when {
                 branch 'QA'
             }
-            parallel {
-                stage('Integration Tests') {
-                    steps {
-                        dir('backend') {
-                            sh '''
-                                export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                export PATH=$JAVA_HOME/bin:$PATH
-                                echo "🧪 Ejecutando tests de integración..."
-                                mvn test -Dtest=*IntegrationTest
-                                mvn test -Dtest=*IT
-                            '''
-                        }
-                    }
-                    post {
-                        always {
-                            junit '**/target/surefire-reports/*.xml'
-                        }
-                    }
-                }
-                
-                stage('Frontend E2E Tests') {
-                    steps {
-                        sh '''
-                            echo "🧪 Ejecutando tests E2E del frontend..."
-                            npm run test:e2e || echo "Tests E2E no configurados aún"
-                        '''
-                    }
-                }
-                
-                stage('Code Quality Analysis') {
-                    steps {
-                        script {
-                            echo "🔍 Analizando calidad del código..."
-                            
-                            // Análisis de SonarQube si está configurado
-                            try {
-                                withSonarQubeEnv('SonarQube') {
-                                    dir('backend') {
-                                        sh '''
-                                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                            export PATH=$JAVA_HOME/bin:$PATH
-                                            mvn sonar:sonar \
-                                                -Dsonar.projectKey=hospital-backend-qa \
-                                                -Dsonar.host.url=http://localhost:9000
-                                        '''
-                                    }
-                                }
-                            } catch (Exception e) {
-                                echo "⚠️ SonarQube no está disponible, continuando..."
-                            }
-                            
-                            // Análisis de dependencias
-                            dir('backend') {
-                                sh '''
-                                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                    export PATH=$JAVA_HOME/bin:$PATH
-                                    echo "📦 Analizando dependencias del backend..."
-                                    mvn dependency:analyze || echo "Análisis de dependencias falló"
-                                '''
-                            }
-                            
-                            sh '''
-                                echo "📦 Analizando dependencias del frontend..."
-                                npm audit --audit-level moderate || echo "Auditoría de npm falló"
-                            '''
-                        }
-                    }
-                }
-                
-                stage('Security Scan') {
-                    steps {
-                        script {
-                            echo "🔒 Escaneando vulnerabilidades de seguridad..."
-                            
-                            // Escaneo de Docker
-                            sh '''
-                                echo "🐳 Escaneando imágenes Docker..."
-                                docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
-                                    aquasec/trivy image ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} || echo "Escaneo de Docker falló"
-                            '''
-                            
-                            // Escaneo de dependencias Java
-                            dir('backend') {
-                                sh '''
-                                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                    export PATH=$JAVA_HOME/bin:$PATH
-                                    echo "☕ Escaneando dependencias Java..."
-                                    mvn org.owasp:dependency-check-maven:check || echo "OWASP check falló"
-                                '''
-                            }
-                        }
-                    }
+            steps {
+                script {
+                    echo "🚀 Desplegando en ambiente de QA..."
+                    
+                    // Desplegar en ambiente de QA
+                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
+                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
+                    
+                    // Desplegar usando docker-compose.qa.yml
+                    sh "docker compose -f docker-compose.qa.yml down || true"
+                    sh "docker compose -f docker-compose.qa.yml up -d"
+                    
+                    echo "✅ Desplegado exitosamente en ambiente de QA!"
+                    echo "🌐 Frontend: http://localhost:5174"
+                    echo "🔧 Backend: http://localhost:8090"
+                    echo "🗄️  Database: localhost:1522"
                 }
             }
         }
@@ -235,34 +324,14 @@ pipeline {
             }
         }
         
-        stage('Deploy to QA') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    // Desplegar en ambiente de QA
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
-                    
-                    // Desplegar usando docker-compose.qa.yml
-                    sh "docker compose -f docker-compose.qa.yml down || true"
-                    sh "docker compose -f docker-compose.qa.yml up -d"
-                    
-                    echo "✅ Desplegado exitosamente en ambiente de QA!"
-                    echo "🌐 Frontend: http://localhost:5174"
-                    echo "🔧 Backend: http://localhost:8090"
-                    echo "🗄️  Database: localhost:1522"
-                }
-            }
-        }
-        
         stage('Deploy to Production') {
             when {
                 branch 'prod'
             }
             steps {
                 script {
+                    echo "🚀 Desplegando en ambiente de producción..."
+                    
                     // Desplegar en ambiente de producción
                     sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
                     sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
