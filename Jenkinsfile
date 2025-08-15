@@ -33,14 +33,14 @@ node {
                     def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     if (detected == 'HEAD') {
                         // En estado detached (p.ej., PR). Preferir destino u origen del PR
-                        detected = env.CHANGE_TARGET ?: (env.CHANGE_BRANCH ?: 'prod')
+                        detected = env.CHANGE_TARGET ?: (env.CHANGE_BRANCH ?: 'dev')
                     }
                     env.BRANCH_NAME = detected
                     echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
                             } catch (err) {
-                    echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
-                    env.BRANCH_NAME = env.BRANCH_NAME ?: 'prod'
+                    echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'dev' por defecto"
+                    env.BRANCH_NAME = env.BRANCH_NAME ?: 'dev'
                 }
         }
         
@@ -56,7 +56,7 @@ node {
 
 
         stage('Setup Environment') {
-            echo "⚙️  Configurando entorno de PRODUCCIÓN..."
+            echo "⚙️  Configurando entorno para rama: ${env.BRANCH_NAME}..."
             sh '''
                 echo "=== Verificando Java ==="
                 java -version
