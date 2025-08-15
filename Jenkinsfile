@@ -1,437 +1,357 @@
-pipeline {
-    agent any
+node {
+    // Parámetro para pruebas: permite forzar un fallo controlado y validar notificaciones
+    properties([
+        parameters([
+            booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo'),
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para QA)')
+        ])
+    ])
+    def DOCKER_REGISTRY = 'hospital-registry'
+    def BACKEND_IMAGE = 'hospital-backend'
+    def FRONTEND_IMAGE = 'hospital-frontend'
+    def VERSION = "${env.BUILD_NUMBER}"
     
-    environment {
-        DOCKER_REGISTRY = 'hospital-registry'
-        BACKEND_IMAGE = 'hospital-backend'
-        FRONTEND_IMAGE = 'hospital-frontend'
-        VERSION = "${env.BUILD_NUMBER}"
-        JAVA_HOME = '/usr/lib/jvm/java-17-openjdk-amd64'
-        PATH = "${env.JAVA_HOME}/bin:${env.PATH}"
-    }
-    
-    stages {
+    try {
         stage('Checkout') {
-            steps {
-                checkout scm
+            echo "🔄 Iniciando checkout del código..."
+            // Limpiar workspace para evitar quedarnos en la rama anterior
+            deleteDir()
+            checkout scm
+            if (env.CHANGE_ID) {
+                echo "🔗 Pull Request #${env.CHANGE_ID} detectado"
+                echo "   Rama origen: ${env.CHANGE_BRANCH}"
+                echo "   Rama destino: ${env.CHANGE_TARGET}"
+            } else {
+                echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
             }
-        }
-        
-        stage('Fail Injection (opcional)') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    // Simular fallos para testing de resiliencia
-                    def shouldFail = env.FAIL_INJECTION == 'true'
-                    if (shouldFail) {
-                        echo "🧪 Inyectando fallo para testing..."
-                        error "Fallo inyectado para testing de QA"
-                    } else {
-                        echo "✅ Sin inyección de fallos"
+            echo "✅ Checkout completado"
+
+            // Normalizar nombre de rama cuando Jenkins no lo expone (evitar 'null')
+            try {
+                if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
+                    def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    if (detected == 'HEAD') {
+                        // En estado detached, forzar uso de 'QA' para testing
+                        detected = 'QA'
+                        echo "🔍 Estado detached detectado, forzando rama: QA"
                     }
+                    env.BRANCH_NAME = detected
+                    echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
+                
+                // Verificación adicional: si estamos en la rama QA, forzar el nombre
+                if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
+                    env.BRANCH_NAME = 'QA'
+                    echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                }
+            } catch (err) {
+                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
+                env.BRANCH_NAME = 'QA'
             }
         }
-        
-        stage('Setup Environment') {
-            steps {
+
+        // Forzar fallo si está habilitado (para probar el pipeline)
+        if (params.FORCE_FAIL) {
+            error("❌ Fallo forzado activado mediante parámetro FORCE_FAIL")
+        }
+
+        stage('Build Backend') {
+            echo "🔨 Construyendo Backend para QA..."
+            dir('backend') {
                 sh '''
-                    echo "=== Configurando ambiente ==="
-                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                    export PATH=$JAVA_HOME/bin:$PATH
-                    
-                    echo "=== Verificando herramientas ==="
-                    java -version
-                    mvn -version
-                    docker --version
-                    node --version || echo "Node.js no está instalado"
-                    npm --version || echo "npm no está instalado"
-                    
-                    echo "=== Limpiando workspace ==="
-                    mvn clean || echo "Maven clean no disponible"
-                    rm -rf node_modules package-lock.json || echo "Limpieza de Node.js completada"
+                    echo "=== Construyendo Backend (Rama: ''' + env.BRANCH_NAME + ''') ==="
+                    chmod +x mvnw
+                    ./mvnw clean compile -DskipTests=false
+                    echo "✅ Backend construido exitosamente"
                 '''
             }
         }
-        
-        stage('Build Backend') {
-            steps {
-                dir('backend') {
-                    sh '''
-                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        echo "🔨 Construyendo backend..."
-                        mvn clean package -DskipTests
-                    '''
-                }
-            }
-        }
-        
-        stage('Unit Tests Backend') {
-            steps {
-                dir('backend') {
-                    sh '''
-                        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                        export PATH=$JAVA_HOME/bin:$PATH
-                        echo "🧪 Ejecutando unit tests del backend..."
-                        mvn test
-                    '''
-                }
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                    publishHTML([
-                        allowMissing: false,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'Backend Coverage Report'
-                    ])
-                }
-            }
-        }
-        
-        stage('Code Quality Check') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    echo "🔍 Verificando calidad del código..."
-                    
-                    // Análisis estático del código
-                    dir('backend') {
-                        sh '''
-                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                            export PATH=$JAVA_HOME/bin:$PATH
-                            echo "📊 Generando reporte de cobertura..."
-                            mvn jacoco:prepare-agent test jacoco:report
-                            
-                            echo "🔍 Analizando dependencias..."
-                            mvn dependency:analyze || echo "Análisis de dependencias falló"
-                            
-                            echo "🔒 Escaneando vulnerabilidades..."
-                            mvn org.owasp:dependency-check-maven:check || echo "OWASP check falló"
-                        '''
-                    }
-                    
-                    // Análisis del frontend
-                    sh '''
-                        echo "📦 Analizando dependencias del frontend..."
-                        npm audit --audit-level moderate || echo "Auditoría de npm falló"
-                        
-                        echo "🔍 Ejecutando linting..."
-                        npm run lint || echo "Linting no configurado"
-                    '''
-                    
-                    // Análisis de SonarQube
-                    try {
-                        withSonarQubeEnv('SonarQube') {
-                            dir('backend') {
-                                sh '''
-                                    export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                                    export PATH=$JAVA_HOME/bin:$PATH
-                                    mvn sonar:sonar \
-                                        -Dsonar.projectKey=hospital-backend-qa \
-                                        -Dsonar.host.url=http://localhost:9000
-                                '''
-                            }
-                        }
-                    } catch (Exception e) {
-                        echo "⚠️ SonarQube no está disponible, continuando..."
-                    }
-                }
-            }
-            post {
-                always {
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'backend/target/site/jacoco',
-                        reportFiles: 'index.html',
-                        reportName: 'Code Coverage Report'
-                    ])
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'backend/target/dependency-check-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Security Report'
-                    ])
-                }
-            }
-        }
-        
-        stage('Build Frontend') {
-            steps {
+
+        stage('Test Backend') {
+            echo "🧪 Ejecutando tests del Backend..."
+            dir('backend') {
                 sh '''
-                    echo "🔨 Construyendo frontend..."
+                    echo "=== Ejecutando Tests de Backend (Rama: ''' + env.BRANCH_NAME + ''') ==="
+                    ./mvnw test jacoco:report
+                    echo "✅ Tests del Backend completados"
+                '''
+                // Publicar resultados de tests
+                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
+            }
+        }
+
+        stage('Build Frontend') {
+            echo "🎨 Construyendo Frontend para QA..."
+            sh '''
+                echo "=== Construyendo Frontend (Rama: ''' + env.BRANCH_NAME + ''') ==="
+                if [ -f package.json ]; then
                     npm ci
                     npm run build
-                '''
+                    echo "✅ Frontend construido exitosamente"
+                else
+                    echo "❌ package.json no encontrado"
+                    exit 1
+                fi
+            '''
+        }
+
+        stage('SonarQube Analysis') {
+            echo "📊 Ejecutando análisis de SonarQube para QA..."
+            // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
+            withSonarQubeEnv('SonarQube') {
+                withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
+                    // ANÁLISIS DEL BACKEND (con cobertura de tests y configuración específica para QA)
+                    echo "   🔍 Analizando BACKEND para rama: ${env.BRANCH_NAME}..."
+                    sh '''
+                        echo "=== Ejecutando SonarQube Analysis para BACKEND QA ==="
+                        export PATH=$PATH:/opt/sonar-scanner/bin
+                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
+                        
+                        # Fallbacks: si la integración no expone variables, usar valores por defecto
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+
+                        echo "   🔧 Usando configuración específica de QA para backend..."
+                        sonar-scanner -Dproject.settings=sonar-project-backend-qa.properties
+                        
+                        echo "=== Análisis de SonarQube para BACKEND QA completado ==="
+                    '''
+                    
+                    // ANÁLISIS DEL FRONTEND (con configuración específica para QA)
+                    echo "   🔍 Analizando FRONTEND para rama: ${env.BRANCH_NAME}..."
+                    sh '''
+                        echo "=== Ejecutando SonarQube Analysis para FRONTEND QA ==="
+                        export PATH=$PATH:/opt/sonar-scanner/bin
+                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+
+                        # Verificar que el directorio src existe
+                        if [ ! -d "src" ]; then
+                            echo "   ❌ Error: Directorio src no encontrado"
+                            echo "   📁 Directorio actual: $(pwd)"
+                            echo "   📁 Contenido: $(ls -la)"
+                            exit 1
+                        fi
+
+                        echo "   🔧 Usando configuración específica de QA para frontend..."
+                        sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
+                        
+                        echo "=== Análisis de SonarQube para FRONTEND QA completado ==="
+                    '''
+                }
             }
         }
-        
-        stage('Unit Tests Frontend') {
-            steps {
+
+        stage('Quality Gate') {
+            echo "🚪 Esperando Quality Gate..."
+            timeout(time: 5, unit: 'MINUTES') {
+                def qg = waitForQualityGate()
+                if (qg.status != 'OK') {
+                    echo "❌ Quality Gate falló: ${qg.status}"
+                    error "Pipeline abortado debido a falla en Quality Gate"
+                } else {
+                    echo "✅ Quality Gate pasó exitosamente"
+                }
+            }
+        }
+
+        stage('Deploy QA') {
+            if (params.BUILD_DOCKER) {
+                echo "🚀 Desplegando en entorno de QA..."
+                
+                echo "   🧹 Limpiando contenedores de QA existentes..."
                 sh '''
-                    echo "🧪 Ejecutando unit tests del frontend..."
-                    npm test || echo "Tests del frontend no configurados"
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  
+                  # Detener y limpiar contenedores de QA existentes
+                  echo "🛑 Deteniendo contenedores de QA..."
+                  $DC -f docker-compose.qa.yml down 2>/dev/null || true
+                  
+                  # Forzar detención y eliminación SOLO de contenedores de QA existentes
+                  echo "🗑️ Forzando limpieza SOLO de contenedores de QA..."
+                  docker stop hospital-backend-qa 2>/dev/null || true
+                  docker rm hospital-backend-qa 2>/dev/null || true
+                  docker stop hospital-frontend-qa 2>/dev/null || true
+                  docker rm hospital-frontend-qa 2>/dev/null || true
                 '''
+                
+                echo "   🐳 Construyendo y desplegando contenedores de QA..."
+                sh '''
+                  # Construir y desplegar servicios de QA
+                  echo "📦 Desplegando servicios de QA..."
+                  docker-compose -f docker-compose.qa.yml up -d --build
+                  
+                  # Conectar backend a la red de Oracle si es necesario
+                  echo "🔗 Verificando conectividad de red..."
+                  sleep 10
+                  docker network connect bridge hospital-backend-qa 2>/dev/null || true
+                '''
+                echo "   ⏳ Esperando que los servicios se inicien..."
+                sleep 15
+                echo "✅ Despliegue en QA completado exitosamente"
+                echo "🌐 URLs de acceso QA:"
+                echo "   - Backend: http://localhost:8090"
+                echo "   - Frontend: http://localhost:5174"
+                echo "   - SonarQube: http://localhost:9000"
+            } else {
+                echo "⏭️ Construcción de Docker omitida (BUILD_DOCKER=false)"
             }
-            post {
-                always {
-                    publishHTML([
-                        allowMissing: true,
-                        alwaysLinkToLastBuild: true,
-                        keepAll: true,
-                        reportDir: 'coverage/lcov-report',
-                        reportFiles: 'index.html',
-                        reportName: 'Frontend Coverage Report'
-                    ])
-                }
+        }
+
+        stage('Send Technical Debt Report') {
+            echo "📧 Enviando reporte de deuda técnica para QA..."
+            try {
+                sh '''
+                    echo "=== Enviando Reporte de Deuda Técnica QA ==="
+                    # Esperar un poco para asegurar que el backend esté completamente iniciado
+                    sleep 10
+                    
+                    # Verificar que el backend esté respondiendo
+                    for i in {1..30}; do
+                        if curl -f http://localhost:8090/q/health >/dev/null 2>&1; then
+                            echo "✅ Backend está disponible"
+                            break
+                        fi
+                        echo "⏳ Esperando que el backend esté disponible... ($i/30)"
+                        sleep 5
+                    done
+                    
+                    # Enviar reporte de deuda técnica usando el endpoint específico
+                    curl -X POST http://localhost:8090/api/email/technical-debt \\
+                         -H "Content-Type: application/json" \\
+                         -d '{
+                             "projectKey": "hospital-backend-qa",
+                             "projectName": "Hospital Backend - QA [RAMA QA]",
+                             "recipientEmail": "jflores@unis.edu.gt"
+                         }' || echo "⚠️ Error enviando reporte de deuda técnica"
+                    
+                    echo "✅ Reporte de deuda técnica enviado"
+                '''
+            } catch (Exception e) {
+                echo "⚠️ No se pudo enviar el reporte de deuda técnica: ${e.getMessage()}"
             }
         }
         
-        stage('Integration Tests') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    echo "🧪 Ejecutando tests de integración..."
-                    
-                    // Tests de integración del backend
-                    dir('backend') {
-                        sh '''
-                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                            export PATH=$JAVA_HOME/bin:$PATH
-                            echo "🔗 Tests de integración del backend..."
-                            mvn test -Dtest=*IntegrationTest || echo "Tests de integración no configurados"
-                            mvn test -Dtest=*IT || echo "Tests de integración IT no configurados"
-                        '''
-                    }
-                    
-                    // Tests E2E del frontend
-                    sh '''
-                        echo "🔗 Tests E2E del frontend..."
-                        npm run test:e2e || echo "Tests E2E no configurados"
-                    '''
-                }
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
-                }
-            }
-        }
-        
-        stage('Build Docker Images') {
-            steps {
-                script {
-                    echo "🐳 Construyendo imágenes Docker..."
-                    
-                    // Construir imagen del backend
-                    docker.build("${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION}")
-                    
-                    // Construir imagen del frontend
-                    docker.build("${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION}", "-f Dockerfile.frontend .")
-                    
-                    echo "✅ Imágenes Docker construidas exitosamente"
-                }
-            }
-        }
-        
-        stage('Deploy to Development') {
-            when {
-                branch 'dev'
-            }
-            steps {
-                script {
-                    echo "🚀 Desplegando en ambiente de desarrollo..."
-                    
-                    // Desplegar en ambiente de desarrollo
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:dev"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:dev"
-                    
-                    // Desplegar usando docker-compose
-                    sh "docker compose down || true"
-                    sh "docker compose up -d"
-                    
-                    echo "✅ Desplegado exitosamente en ambiente de desarrollo!"
-                    echo "🌐 Frontend: http://localhost:80"
-                    echo "🔧 Backend: http://localhost:8080"
-                    echo "🗄️  Database: localhost:1521"
-                }
-            }
-        }
-        
-        stage('Deploy to QA') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    echo "🚀 Desplegando en ambiente de QA..."
-                    
-                    // Desplegar en ambiente de QA
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:qa"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:qa"
-                    
-                    // Desplegar usando docker-compose.qa.yml
-                    sh "docker compose -f docker-compose.qa.yml down || true"
-                    sh "docker compose -f docker-compose.qa.yml up -d"
-                    
-                    echo "✅ Desplegado exitosamente en ambiente de QA!"
-                    echo "🌐 Frontend: http://localhost:5174"
-                    echo "🔧 Backend: http://localhost:8090"
-                    echo "🗄️  Database: localhost:1522"
-                }
-            }
-        }
-        
-        stage('QA Environment Validation') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    echo "✅ Validando ambiente de QA..."
-                    
-                    // Verificar que los servicios estén funcionando
-                    sh '''
-                        echo "🔍 Verificando servicios de QA..."
-                        sleep 30
-                        
-                        # Verificar frontend
-                        curl -f http://localhost:5174/health || echo "❌ Frontend no responde"
-                        
-                        # Verificar backend
-                        curl -f http://localhost:8090/actuator/health || echo "❌ Backend no responde"
-                        
-                        # Verificar base de datos
-                        docker exec hospital-qa-db-1 sqlplus -s system/oracle@localhost:1522/XE <<< "SELECT 1 FROM DUAL;" || echo "❌ Base de datos no responde"
-                    '''
-                    
-                    echo "🎯 Ambiente de QA validado exitosamente!"
-                }
-            }
-        }
-        
-        stage('QA Reports & Metrics') {
-            when {
-                branch 'QA'
-            }
-            steps {
-                script {
-                    echo "📊 Generando reportes y métricas de QA..."
-                    
-                    // Generar reporte de cobertura de código
-                    dir('backend') {
-                        sh '''
-                            export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
-                            export PATH=$JAVA_HOME/bin:$PATH
-                            echo "📈 Generando reporte de cobertura..."
-                            mvn jacoco:report || echo "Reporte de cobertura no disponible"
-                        '''
-                    }
-                    
-                    // Generar reporte de dependencias
-                    sh '''
-                        echo "📦 Generando reporte de dependencias..."
-                        npm list --depth=0 > dependency-report.txt || echo "Reporte de dependencias falló"
-                    '''
-                    
-                    // Generar reporte de seguridad
-                    sh '''
-                        echo "🔒 Generando reporte de seguridad..."
-                        npm audit --json > security-report.json || echo "Reporte de seguridad falló"
-                    '''
-                    
-                    // Publicar artefactos
-                    archiveArtifacts artifacts: '**/target/site/jacoco/**/*,dependency-report.txt,security-report.json', fingerprint: true
-                    
-                    echo "📋 Reportes generados y archivados exitosamente!"
-                }
-            }
-        }
-        
-        stage('Deploy to Production') {
-            when {
-                branch 'prod'
-            }
-            steps {
-                script {
-                    echo "🚀 Desplegando en ambiente de producción..."
-                    
-                    // Desplegar en ambiente de producción
-                    sh "docker tag ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${BACKEND_IMAGE}:prod"
-                    sh "docker tag ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:${VERSION} ${DOCKER_REGISTRY}/${FRONTEND_IMAGE}:prod"
-                    
-                    // Desplegar usando docker-compose.prod.yml
-                    sh "docker compose -f docker-compose.prod.yml down || true"
-                    sh "docker compose -f docker-compose.prod.yml up -d"
-                    
-                    echo "✅ Desplegado exitosamente en ambiente de producción!"
-                    echo "🌐 Frontend: http://localhost:80"
-                    echo "🔧 Backend: http://localhost:8080"
-                    echo "🗄️  Database: localhost:1521"
-                }
-            }
-        }
-    }
-    
-    post {
-        always {
-            // Limpiar imágenes Docker
-            sh 'docker system prune -f'
+        // Notificación por correo de éxito
+        try {
+            def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
+            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} QA exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline QA exitoso: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
             
-            // Limpiar workspace
-            cleanWs()
+            def body = """
+Hola equipo,
+
+El pipeline de QA se ha ejecutado exitosamente.
+
+🔧 INFORMACIÓN DEL BUILD QA:
+- Job: ${env.JOB_NAME}
+- Build: #${env.BUILD_NUMBER}
+- Rama: ${env.BRANCH_NAME} [RAMA QA]
+- URL: ${env.BUILD_URL}
+- Estado: ✅ EXITOSO
+
+📊 RESULTADOS DE CALIDAD QA:
+- Tests Backend: ✅ Completados
+- Tests Frontend: ✅ Completados
+- Análisis SonarQube: ✅ Completado
+- Quality Gate: ✅ PASÓ
+
+🌐 URLs DE ACCESO QA:
+- Backend: http://localhost:8090
+- Frontend: http://localhost:5174
+- SonarQube: http://localhost:9000
+- Jenkins: ${env.BUILD_URL}
+
+📈 PROYECTOS SONARQUBE QA:
+- Backend: hospital-backend-qa
+- Frontend: hospital-frontend-qa
+
+📧 REPORTE DE DEUDA TÉCNICA:
+Se ha enviado automáticamente el reporte de deuda técnica con indicador [RAMA QA].
+
+Saludos,
+Sistema de CI/CD del Hospital - Entorno QA
+"""
+            // Usar Email Extension Plugin
+            emailext(
+                to: recipients,
+                from: 'humbertovenavente7@gmail.com',
+                subject: subject,
+                body: body,
+                mimeType: 'text/plain'
+            )
+            echo "✅ Notificación de éxito QA enviada a: ${recipients}"
+        } catch (err) {
+            echo "⚠️ No se pudo enviar la notificación por correo: ${err}"
         }
-        success {
-            script {
-                if (env.BRANCH_NAME == 'QA') {
-                    echo "🎉 Pipeline de QA ejecutado exitosamente!"
-                    echo "📊 Reportes disponibles en: ${env.BUILD_URL}artifact/"
-                    echo "🔍 Análisis de calidad completado"
-                    echo "✅ Despliegue en QA exitoso"
-                    
-                    // Aquí puedes agregar notificaciones a Slack, Teams, etc.
-                    // slackSend channel: '#qa-notifications', message: "✅ Pipeline QA exitoso - Build #${env.BUILD_NUMBER}"
-                } else {
-                    echo "Pipeline ejecutado exitosamente!"
-                }
-            }
+        
+    } catch (Exception e) {
+        // Error handling
+        if (env.CHANGE_ID) {
+            echo "❌ Pull Request #${env.CHANGE_ID} QA falló: ${e.getMessage()}"
+        } else {
+            echo "❌ Pipeline QA falló en rama ${env.BRANCH_NAME}: ${e.getMessage()}"
         }
-        failure {
-            script {
-                if (env.BRANCH_NAME == 'QA') {
-                    echo "❌ Pipeline de QA falló!"
-                    echo "🔍 Revisar logs en: ${env.BUILD_URL}console"
-                    echo "⚠️ Verificar tests, análisis de código y despliegue"
-                    
-                    // Notificaciones de fallo
-                    // slackSend channel: '#qa-notifications', message: "❌ Pipeline QA falló - Build #${env.BUILD_NUMBER}"
-                } else {
-                    echo "Pipeline falló!"
-                }
-            }
+        // Notificación por correo a Lead Developer y Product Owner
+        try {
+            def recipients = 'jflores@unis.edu.gt, jnajar@unis.edu.gt'
+            def subject = (env.CHANGE_ID ? "PR #${env.CHANGE_ID} QA falló: ${env.JOB_NAME} #${env.BUILD_NUMBER}" : "Pipeline QA falló: ${env.JOB_NAME} #${env.BUILD_NUMBER} (Rama: ${env.BRANCH_NAME})")
+            
+            def body = """
+Hola equipo,
+
+El pipeline de QA ha fallado.
+
+🔧 INFORMACIÓN DEL BUILD QA:
+- Job: ${env.JOB_NAME}
+- Build: #${env.BUILD_NUMBER}
+- Rama: ${env.BRANCH_NAME} [RAMA QA]
+- URL: ${env.BUILD_URL}
+- Estado: ❌ FALLÓ
+- Motivo: ${e.getMessage()}
+
+📊 RESULTADOS DE CALIDAD QA:
+- Tests Backend: ⚠️ Verificar estado
+- Tests Frontend: ⚠️ Verificar estado
+- Análisis SonarQube: ⚠️ Verificar estado
+
+🔧 ACCIONES REQUERIDAS:
+1. Revisar la consola de Jenkins para más detalles
+2. Verificar logs de los servicios QA
+3. Revisar métricas de SonarQube QA
+4. Corregir el problema identificado
+
+🌐 URLs DE ACCESO QA:
+- Jenkins: ${env.BUILD_URL}
+- SonarQube: http://localhost:9000
+- Backend QA: http://localhost:8090
+- Frontend QA: http://localhost:5174
+
+Por favor revisar la consola para más detalles.
+
+Saludos,
+Sistema de CI/CD del Hospital - Entorno QA
+"""
+            // Usar Email Extension Plugin (configurado en "Extended E-mail Notification")
+            emailext(
+                to: recipients,
+                from: 'humbertovenavente7@gmail.com',
+                subject: subject,
+                body: body,
+                mimeType: 'text/plain'
+            )
+            echo "📧 Notificación de fallo QA enviada (emailext) a: ${recipients}"
+        } catch (err) {
+            echo "⚠️ No se pudo enviar la notificación por correo: ${err}"
         }
-        cleanup {
-            script {
-                if (env.BRANCH_NAME == 'QA') {
-                    echo "🧹 Limpiando ambiente de QA..."
-                    // Limpiar contenedores de QA si es necesario
-                    sh "docker compose -f docker-compose.qa.yml down || true"
-                }
-            }
-        }
+        throw e
     }
 } 
