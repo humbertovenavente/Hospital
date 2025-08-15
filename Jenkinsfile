@@ -180,51 +180,53 @@ node {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                     // ANÁLISIS DEL BACKEND (con cobertura de tests y rama específica)
                     echo "   🔍 Analizando BACKEND para rama: ${env.BRANCH_NAME}..."
-                    sh '''
-                        echo "=== Ejecutando SonarQube Analysis para BACKEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
-                        export PATH=$PATH:/opt/sonar-scanner/bin
-                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
-                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
-                        
-                        # Fallbacks: si la integración no expone variables, usar valores por defecto
-                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
-                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+                    dir('backend') {
+                        sh '''
+                            echo "=== Ejecutando SonarQube Analysis para BACKEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
+                            export PATH=$PATH:/opt/sonar-scanner/bin
+                            export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                            export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
+                            
+                            # Fallbacks: si la integración no expone variables, usar valores por defecto
+                            export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                            export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName según la rama - DEV por defecto
-                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                            PROJECT_KEY="hospital-backend-prod"
-                            PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
-                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                            PROJECT_KEY="hospital-backend-qa"
-                            PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
-                        else
-                            # Por defecto usar DEV para desarrollo
-                            PROJECT_KEY="hospital-backend-dev"
-                            PROJECT_NAME="Hospital Backend - DEV (Java/Quarkus)"
-                        fi
+                            # Configurar projectKey y projectName según la rama - DEV por defecto
+                            if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                                PROJECT_KEY="hospital-backend-prod"
+                                PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
+                            elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
+                                PROJECT_KEY="hospital-backend-qa"
+                                PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
+                            else
+                                # Por defecto usar DEV para desarrollo
+                                PROJECT_KEY="hospital-backend-dev"
+                                PROJECT_NAME="Hospital Backend - DEV (Java/Quarkus)"
+                            fi
 
-                        echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
+                            echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
 
-                        TEST_ARGS=""
-                        if [ -d backend/target/test-classes ] && [ -d backend/src/test/java ]; then
-                          TEST_ARGS="-Dsonar.tests=backend/src/test/java -Dsonar.java.test.binaries=backend/target/test-classes"
-                        else
-                          echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
-                        fi
+                            TEST_ARGS=""
+                            if [ -d "target/test-classes" ] && [ -d "src/test/java" ]; then
+                              TEST_ARGS="-Dsonar.tests=src/test/java -Dsonar.java.test.binaries=target/test-classes"
+                            else
+                              echo "⚠️  No se encontraron clases de prueba (target/test-classes). Se omitirá el análisis de tests."
+                            fi
 
-                        # Usar archivos de configuración específicos según el entorno
-                        if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                            echo "   🔧 Usando configuración específica de QA para backend..."
-                            sonar-scanner -Dproject.settings=sonar-project-backend-qa.properties
-                        elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                            echo "   🔧 Usando configuración específica de PROD para backend..."
-                            sonar-scanner -Dproject.settings=sonar-project-backend.properties
-                        else
-                            echo "   🔧 Usando configuración específica de DEV para backend..."
-                            sonar-scanner -Dproject.settings=sonar-project-backend-dev.properties
-                        fi
-                        echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
-                    '''
+                            # Usar archivos de configuración específicos según el entorno
+                            if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
+                                echo "   🔧 Usando configuración específica de QA para backend..."
+                                sonar-scanner -Dproject.settings=../sonar-project-backend-qa.properties
+                            elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                                echo "   🔧 Usando configuración específica de PROD para backend..."
+                                sonar-scanner -Dproject.settings=../sonar-project-backend.properties
+                            else
+                                echo "   🔧 Usando configuración específica de DEV para backend..."
+                                sonar-scanner -Dproject.settings=../sonar-project-backend-dev.properties
+                            fi
+                            echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
+                        '''
+                    }
                     
                     // ANÁLISIS DEL FRONTEND (con rama específica)
                     echo "   🔍 Analizando FRONTEND para rama: ${env.BRANCH_NAME}..."
