@@ -13,18 +13,18 @@ node {
     
     try {
         stage('Checkout') {
-            echo "🔄 Iniciando checkout del código..."
+            echo " Iniciando checkout del código..."
             // Limpiar workspace para evitar quedarnos en la rama anterior
             deleteDir()
             checkout scm
             if (env.CHANGE_ID) {
-                echo "🔗 Pull Request #${env.CHANGE_ID} detectado"
+                echo " Pull Request #${env.CHANGE_ID} detectado"
                 echo "   Rama origen: ${env.CHANGE_BRANCH}"
                 echo "   Rama destino: ${env.CHANGE_TARGET}"
             } else {
-                echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
+                echo " Build directo en rama: ${env.BRANCH_NAME}"
             }
-            echo "✅ Checkout completado"
+            echo "Checkout completado"
 
             // Normalizar nombre de rama cuando Jenkins no lo expone (evitar 'null')
             try {
@@ -33,47 +33,47 @@ node {
                     if (detected == 'HEAD') {
                         // En estado detached, forzar uso de 'QA' para testing
                         detected = 'QA'
-                        echo "🔍 Estado detached detectado, forzando rama: QA"
+                        echo "Estado detached detectado, forzando rama: QA"
                     }
                     env.BRANCH_NAME = detected
-                    echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
+                    echo " Rama detectada: ${env.BRANCH_NAME}"
                 }
                 
                 // Verificación adicional: si estamos en la rama QA, forzar el nombre
                 if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
                     env.BRANCH_NAME = 'QA'
-                    echo "✅ Rama QA confirmada: ${env.BRANCH_NAME}"
+                    echo "Rama QA confirmada: ${env.BRANCH_NAME}"
                 }
             } catch (err) {
-                echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
+                echo "  No se pudo detectar la rama vía git: ${err}. Usando 'QA' por defecto"
                 env.BRANCH_NAME = 'QA'
             }
         }
 
         // Forzar fallo si está habilitado (para probar el pipeline)
         if (params.FORCE_FAIL) {
-            error("❌ Fallo forzado activado mediante parámetro FORCE_FAIL")
+            error(" Fallo forzado activado mediante parámetro FORCE_FAIL")
         }
 
         stage('Build Backend') {
-            echo "🔨 Construyendo Backend para QA..."
+            echo "Construyendo Backend para QA..."
             dir('backend') {
                 sh '''
                     echo "=== Construyendo Backend (Rama: ''' + env.BRANCH_NAME + ''') ==="
                     chmod +x mvnw
                     ./mvnw clean compile -DskipTests=false
-                    echo "✅ Backend construido exitosamente"
+                    echo " Backend construido exitosamente"
                 '''
             }
         }
 
         stage('Test Backend') {
-            echo "🧪 Ejecutando tests del Backend..."
+            echo " Ejecutando tests del Backend..."
             dir('backend') {
                 sh '''
                     echo "=== Ejecutando Tests de Backend (Rama: ''' + env.BRANCH_NAME + ''') ==="
                     ./mvnw test jacoco:report
-                    echo "✅ Tests del Backend completados"
+                    echo "Tests del Backend completados"
                 '''
                 // Publicar resultados de tests
                 junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
@@ -81,15 +81,15 @@ node {
         }
 
         stage('Build Frontend') {
-            echo "🎨 Construyendo Frontend para QA..."
+            echo " Construyendo Frontend para QA..."
             sh '''
                 echo "=== Construyendo Frontend (Rama: ''' + env.BRANCH_NAME + ''') ==="
                 if [ -f package.json ]; then
                     npm ci
                     npm run build
-                    echo "✅ Frontend construido exitosamente"
+                    echo " Frontend construido exitosamente"
                 else
-                    echo "❌ package.json no encontrado"
+                    echo " package.json no encontrado"
                     exit 1
                 fi
             '''
@@ -118,7 +118,7 @@ node {
                         echo "=== Análisis de SonarQube para BACKEND QA completado ==="
                     '''
                     
-                    // ANÁLISIS DEL FRONTEND (con configuración específica para QA)
+                    // ANÁLISIS DEL FRONTEND (HACIENDO QUE FALLE INTENCIONALMENTE)
                     echo "   🔍 Analizando FRONTEND para rama: ${env.BRANCH_NAME}..."
                     sh '''
                         echo "=== Ejecutando SonarQube Analysis para FRONTEND QA ==="
@@ -128,6 +128,10 @@ node {
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
+                        # Forzar fallo del análisis del frontend para testing
+                        echo "   ❌ FORZANDO FALLO del análisis de SonarQube para frontend..."
+                        echo "   🔧 Simulando error de configuración..."
+                        
                         # Verificar que el directorio src existe
                         if [ ! -d "src" ]; then
                             echo "   ❌ Error: Directorio src no encontrado"
@@ -136,8 +140,23 @@ node {
                             exit 1
                         fi
 
+                        # Verificar que el archivo de configuración existe
+                        if [ ! -f "sonar-project-frontend-qa.properties" ]; then
+                            echo "   ❌ Error: Archivo de configuración sonar-project-frontend-qa.properties no encontrado"
+                            echo "   📁 Archivos en directorio actual: $(ls -la *.properties 2>/dev/null || echo 'No hay archivos .properties')"
+                            echo "   🚨 FALLO INTENCIONAL: Archivo de configuración de SonarQube no encontrado"
+                            exit 1
+                        fi
+
                         echo "   🔧 Usando configuración específica de QA para frontend..."
-                        sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
+                        # Intentar ejecutar sonar-scanner pero forzar fallo
+                        echo "   🚨 Simulando fallo en el análisis del frontend..."
+                        echo "   ❌ Error: No se puede conectar con SonarQube"
+                        echo "   ❌ Error: Token de autenticación inválido"
+                        echo "   ❌ Error: Configuración del proyecto incorrecta"
+                        
+                        # Forzar fallo del comando
+                        exit 1
                         
                         echo "=== Análisis de SonarQube para FRONTEND QA completado ==="
                     '''
@@ -150,19 +169,19 @@ node {
             timeout(time: 5, unit: 'MINUTES') {
                 def qg = waitForQualityGate()
                 if (qg.status != 'OK') {
-                    echo "❌ Quality Gate falló: ${qg.status}"
+                    echo " Quality Gate falló: ${qg.status}"
                     error "Pipeline abortado debido a falla en Quality Gate"
                 } else {
-                    echo "✅ Quality Gate pasó exitosamente"
+                    echo " Quality Gate pasó exitosamente"
                 }
             }
         }
 
         stage('Deploy QA') {
             if (params.BUILD_DOCKER) {
-                echo "🚀 Desplegando en entorno de QA..."
+                echo "🚀 Desplegando en entorno de QA..
                 
-                echo "   🧹 Limpiando contenedores de QA existentes..."
+                echo "    Limpiando contenedores de QA existentes..."
                 sh '''
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
@@ -173,21 +192,21 @@ node {
                   fi
                   
                   # Detener y limpiar contenedores de QA existentes
-                  echo "🛑 Deteniendo contenedores de QA..."
+                  echo "Deteniendo contenedores de QA..."
                   $DC -f docker-compose.qa.yml down 2>/dev/null || true
                   
                   # Forzar detención y eliminación SOLO de contenedores de QA existentes
-                  echo "🗑️ Forzando limpieza SOLO de contenedores de QA..."
+                  echo  Forzando limpieza SOLO de contenedores de QA..."
                   docker stop hospital-backend-qa 2>/dev/null || true
                   docker rm hospital-backend-qa 2>/dev/null || true
                   docker stop hospital-frontend-qa 2>/dev/null || true
                   docker rm hospital-frontend-qa 2>/dev/null || true
                 '''
                 
-                echo "   🐳 Construyendo y desplegando contenedores de QA..."
+                echo "    Construyendo y desplegando contenedores de QA..."
                 sh '''
                   # Construir y desplegar servicios de QA
-                  echo "📦 Desplegando servicios de QA..."
+                  echo " Desplegando servicios de QA..."
                   docker-compose -f docker-compose.qa.yml up -d --build
                   
                   # Conectar backend a la red de Oracle si es necesario
