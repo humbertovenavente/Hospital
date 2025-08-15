@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuración
-API_URL="http://localhost:8090"
+API_URL="http://localhost:8060"
 DEFAULT_EMAIL="humbertovenavente7@gmail.com"
 
 # Función para mostrar ayuda

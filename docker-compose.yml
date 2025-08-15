@@ -1,23 +1,23 @@
 services:
-  # Base de datos Oracle
-  oracle:
-    image: oracle-xe-con-datos:latest
-    container_name: oracle-xe
-    environment:
-      ORACLE_PWD: Unis
-      ORACLE_CHARACTERSET: AL32UTF8
-    ports:
-      - "1524:1521"  # Mapeo del puerto 1524 externo al 1521 interno
-    volumes:
-      - oracle_data:/opt/oracle/oradata
-      - ./setup-oracle-users.sql:/opt/oracle/scripts/startup/setup-oracle-users.sql
-    healthcheck:
-      test: ["CMD", "sqlplus", "-L", "sys/Unis@//localhost:1521/XEPDB1", "AS", "SYSDBA", "@healthcheck.sql"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - hospital-network
+  # Base de datos Oracle - Comentado porque ya existe un contenedor
+  # oracle:
+  #   image: oracle-xe-con-datos:latest
+  #   container_name: oracle-xe
+  #   environment:
+  #     ORACLE_PWD: Unis
+  #     ORACLE_CHARACTERSET: AL32UTF8
+  #   ports:
+  #     - "1524:1521"  # Mapeo del puerto 1524 externo al 1521 interno
+  #   volumes:
+  #     - oracle_data:/opt/oracle/oradata
+  #     - ./setup-oracle-users.sql:/opt/oracle/scripts/startup/setup-oracle-users.sql
+  #   healthcheck:
+  #     test: ["CMD", "sqlplus", "-L", "sys/Unis@//localhost:1521/XEPDB1", "AS", "SYSDBA", "@healthcheck.sql"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 5
+  #   networks:
+  #     - hospital-network
 
   # Backend del Hospital
   backend:
@@ -26,12 +26,10 @@ services:
       dockerfile: Dockerfile
     container_name: hospital-backend-prod
     ports:
-      - "8084:8080"
-    depends_on:
-      oracle:
-        condition: service_healthy
-    volumes:
-      - ./backend/src/main/resources/application.properties:/app/config/application.properties
+      - "8060:8080"
+    # depends_on:
+    #   oracle:
+    #     condition: service_healthy
     restart: unless-stopped
     networks:
       - hospital-network
@@ -43,7 +41,7 @@ services:
       dockerfile: Dockerfile.frontend
     container_name: hospital-frontend-prod
     environment:
-      VITE_API_URL: http://localhost:8084
+      VITE_API_URL: http://localhost:8060
       NODE_ENV: production
     ports:
       - "5176:80"
@@ -53,8 +51,8 @@ services:
     networks:
       - hospital-network
 
-volumes:
-  oracle_data:
+# volumes:
+#   oracle_data:
 
 networks:
   hospital-network:
