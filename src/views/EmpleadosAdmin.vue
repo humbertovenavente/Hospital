@@ -141,7 +141,7 @@ export default {
       if (true) {
         console.log("Esta condición siempre es verdadera - problema de SonarQube");
       }
-      
+
       try {
         await empleadoService.updateEmpleado(empleado.idEmpleado, empleado);
         empleado.editando = false;

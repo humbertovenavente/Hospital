@@ -6,145 +6,168 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 
-public class ReporteAgregadoDTOTest {
+/**
+ * Test class for ReporteAgregadoDTO.
+ * Tests all getters, setters, and constructor functionality.
+ */
+class ReporteAgregadoDTOTest {
 
-    private ReporteAgregadoDTO reporteAgregadoDTO;
+    private ReporteAgregadoDTO reporteDTO;
+    private LocalDate testDate;
+    private Long totalConsultas;
+    private Long totalSeguro;
+    private Long totalDirecto;
 
     @BeforeEach
     void setUp() {
-        reporteAgregadoDTO = new ReporteAgregadoDTO(LocalDate.now(), 0L, 0L, 0L);
+        testDate = LocalDate.of(2024, 1, 15);
+        totalConsultas = 100L;
+        totalSeguro = 60L;
+        totalDirecto = 40L;
+        reporteDTO = new ReporteAgregadoDTO(testDate, totalConsultas, totalSeguro, totalDirecto);
     }
 
     @Test
-    void testConstructorConParametros() {
-        // Arrange
-        LocalDate fecha = LocalDate.of(2024, 12, 25);
-        Long totalConsultas = 100L;
-        Long totalSeguro = 70L;
-        Long totalDirecto = 30L;
-
-        // Act
-        ReporteAgregadoDTO dto = new ReporteAgregadoDTO(fecha, totalConsultas, totalSeguro, totalDirecto);
-
-        // Assert
-        assertEquals(fecha, dto.getFecha());
-        assertEquals(totalConsultas, dto.getTotalConsultas());
-        assertEquals(totalSeguro, dto.getTotalSeguro());
-        assertEquals(totalDirecto, dto.getTotalDirecto());
+    void testConstructorWithValidParameters() {
+        assertNotNull(reporteDTO);
+        assertEquals(testDate, reporteDTO.getFecha());
+        assertEquals(totalConsultas, reporteDTO.getTotalConsultas());
+        assertEquals(totalSeguro, reporteDTO.getTotalSeguro());
+        assertEquals(totalDirecto, reporteDTO.getTotalDirecto());
     }
 
     @Test
-    void testGettersAndSetters() {
-        // Arrange
-        LocalDate fecha = LocalDate.of(2024, 12, 25);
-        Long totalConsultas = 150L;
-        Long totalSeguro = 100L;
-        Long totalDirecto = 50L;
+    void testConstructorWithNullValues() {
+        ReporteAgregadoDTO nullDTO = new ReporteAgregadoDTO(null, null, null, null);
+        assertNull(nullDTO.getFecha());
+        assertNull(nullDTO.getTotalConsultas());
+        assertNull(nullDTO.getTotalSeguro());
+        assertNull(nullDTO.getTotalDirecto());
+    }
 
-        // Act
-        reporteAgregadoDTO.setFecha(fecha);
-        reporteAgregadoDTO.setTotalConsultas(totalConsultas);
-        reporteAgregadoDTO.setTotalSeguro(totalSeguro);
-        reporteAgregadoDTO.setTotalDirecto(totalDirecto);
+    @Test
+    void testConstructorWithZeroValues() {
+        ReporteAgregadoDTO zeroDTO = new ReporteAgregadoDTO(testDate, 0L, 0L, 0L);
+        assertEquals(testDate, zeroDTO.getFecha());
+        assertEquals(0L, zeroDTO.getTotalConsultas());
+        assertEquals(0L, zeroDTO.getTotalSeguro());
+        assertEquals(0L, zeroDTO.getTotalDirecto());
+    }
 
-        // Assert
-        assertEquals(fecha, reporteAgregadoDTO.getFecha());
-        assertEquals(totalConsultas, reporteAgregadoDTO.getTotalConsultas());
-        assertEquals(totalSeguro, reporteAgregadoDTO.getTotalSeguro());
-        assertEquals(totalDirecto, reporteAgregadoDTO.getTotalDirecto());
+    @Test
+    void testGetFecha() {
+        assertEquals(testDate, reporteDTO.getFecha());
     }
 
     @Test
     void testSetFecha() {
-        LocalDate fecha = LocalDate.of(2024, 1, 1);
-        reporteAgregadoDTO.setFecha(fecha);
-        assertEquals(fecha, reporteAgregadoDTO.getFecha());
+        LocalDate newDate = LocalDate.of(2024, 2, 20);
+        reporteDTO.setFecha(newDate);
+        assertEquals(newDate, reporteDTO.getFecha());
+    }
+
+    @Test
+    void testSetFechaWithNull() {
+        reporteDTO.setFecha(null);
+        assertNull(reporteDTO.getFecha());
+    }
+
+    @Test
+    void testGetTotalConsultas() {
+        assertEquals(totalConsultas, reporteDTO.getTotalConsultas());
     }
 
     @Test
     void testSetTotalConsultas() {
-        Long totalConsultas = 200L;
-        reporteAgregadoDTO.setTotalConsultas(totalConsultas);
-        assertEquals(totalConsultas, reporteAgregadoDTO.getTotalConsultas());
+        Long newTotal = 150L;
+        reporteDTO.setTotalConsultas(newTotal);
+        assertEquals(newTotal, reporteDTO.getTotalConsultas());
+    }
+
+    @Test
+    void testSetTotalConsultasWithNull() {
+        reporteDTO.setTotalConsultas(null);
+        assertNull(reporteDTO.getTotalConsultas());
+    }
+
+    @Test
+    void testGetTotalSeguro() {
+        assertEquals(totalSeguro, reporteDTO.getTotalSeguro());
     }
 
     @Test
     void testSetTotalSeguro() {
-        Long totalSeguro = 120L;
-        reporteAgregadoDTO.setTotalSeguro(totalSeguro);
-        assertEquals(totalSeguro, reporteAgregadoDTO.getTotalSeguro());
+        Long newSeguro = 80L;
+        reporteDTO.setTotalSeguro(newSeguro);
+        assertEquals(newSeguro, reporteDTO.getTotalSeguro());
+    }
+
+    @Test
+    void testSetTotalSeguroWithNull() {
+        reporteDTO.setTotalSeguro(null);
+        assertNull(reporteDTO.getTotalSeguro());
+    }
+
+    @Test
+    void testGetTotalDirecto() {
+        assertEquals(totalDirecto, reporteDTO.getTotalDirecto());
     }
 
     @Test
     void testSetTotalDirecto() {
-        Long totalDirecto = 80L;
-        reporteAgregadoDTO.setTotalDirecto(totalDirecto);
-        assertEquals(totalDirecto, reporteAgregadoDTO.getTotalDirecto());
+        Long newDirecto = 50L;
+        reporteDTO.setTotalDirecto(newDirecto);
+        assertEquals(newDirecto, reporteDTO.getTotalDirecto());
     }
 
     @Test
-    void testSetFechaNull() {
-        reporteAgregadoDTO.setFecha(null);
-        assertNull(reporteAgregadoDTO.getFecha());
+    void testSetTotalDirectoWithNull() {
+        reporteDTO.setTotalDirecto(null);
+        assertNull(reporteDTO.getTotalDirecto());
     }
 
     @Test
-    void testSetTotalConsultasNull() {
-        reporteAgregadoDTO.setTotalConsultas(null);
-        assertNull(reporteAgregadoDTO.getTotalConsultas());
+    void testMultipleSetters() {
+        LocalDate newDate = LocalDate.of(2024, 3, 25);
+        Long newConsultas = 200L;
+        Long newSeguro = 120L;
+        Long newDirecto = 80L;
+
+        reporteDTO.setFecha(newDate);
+        reporteDTO.setTotalConsultas(newConsultas);
+        reporteDTO.setTotalSeguro(newSeguro);
+        reporteDTO.setTotalDirecto(newDirecto);
+
+        assertEquals(newDate, reporteDTO.getFecha());
+        assertEquals(newConsultas, reporteDTO.getTotalConsultas());
+        assertEquals(newSeguro, reporteDTO.getTotalSeguro());
+        assertEquals(newDirecto, reporteDTO.getTotalDirecto());
     }
 
     @Test
-    void testSetTotalSeguroNull() {
-        reporteAgregadoDTO.setTotalSeguro(null);
-        assertNull(reporteAgregadoDTO.getTotalSeguro());
+    void testEdgeCaseValues() {
+        ReporteAgregadoDTO edgeDTO = new ReporteAgregadoDTO(
+            LocalDate.MIN, 
+            Long.MAX_VALUE, 
+            Long.MIN_VALUE, 
+            0L
+        );
+
+        assertEquals(LocalDate.MIN, edgeDTO.getFecha());
+        assertEquals(Long.MAX_VALUE, edgeDTO.getTotalConsultas());
+        assertEquals(Long.MIN_VALUE, edgeDTO.getTotalSeguro());
+        assertEquals(0L, edgeDTO.getTotalDirecto());
     }
 
     @Test
-    void testSetTotalDirectoNull() {
-        reporteAgregadoDTO.setTotalDirecto(null);
-        assertNull(reporteAgregadoDTO.getTotalDirecto());
-    }
+    void testDataIntegrity() {
+        // Verificar que los datos no cambien después de múltiples lecturas
+        LocalDate fecha1 = reporteDTO.getFecha();
+        LocalDate fecha2 = reporteDTO.getFecha();
+        assertEquals(fecha1, fecha2);
 
-    @Test
-    void testSetTotalConsultasZero() {
-        Long totalConsultas = 0L;
-        reporteAgregadoDTO.setTotalConsultas(totalConsultas);
-        assertEquals(totalConsultas, reporteAgregadoDTO.getTotalConsultas());
-    }
-
-    @Test
-    void testSetTotalSeguroZero() {
-        Long totalSeguro = 0L;
-        reporteAgregadoDTO.setTotalSeguro(totalSeguro);
-        assertEquals(totalSeguro, reporteAgregadoDTO.getTotalSeguro());
-    }
-
-    @Test
-    void testSetTotalDirectoZero() {
-        Long totalDirecto = 0L;
-        reporteAgregadoDTO.setTotalDirecto(totalDirecto);
-        assertEquals(totalDirecto, reporteAgregadoDTO.getTotalDirecto());
-    }
-
-    @Test
-    void testSetTotalConsultasNegativo() {
-        Long totalConsultas = -10L;
-        reporteAgregadoDTO.setTotalConsultas(totalConsultas);
-        assertEquals(totalConsultas, reporteAgregadoDTO.getTotalConsultas());
-    }
-
-    @Test
-    void testSetTotalSeguroNegativo() {
-        Long totalSeguro = -5L;
-        reporteAgregadoDTO.setTotalSeguro(totalSeguro);
-        assertEquals(totalSeguro, reporteAgregadoDTO.getTotalSeguro());
-    }
-
-    @Test
-    void testSetTotalDirectoNegativo() {
-        Long totalDirecto = -3L;
-        reporteAgregadoDTO.setTotalDirecto(totalDirecto);
-        assertEquals(totalDirecto, reporteAgregadoDTO.getTotalDirecto());
+        Long consultas1 = reporteDTO.getTotalConsultas();
+        Long consultas2 = reporteDTO.getTotalConsultas();
+        assertEquals(consultas1, consultas2);
     }
 }
