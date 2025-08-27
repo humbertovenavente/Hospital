@@ -8,15 +8,41 @@ import java.time.LocalDate;
 
 /**
  * Test class for Cita entity.
- * Tests all getters, setters, and business logic functionality.
+ * Tests all getters, setters, and edge cases to achieve 100% coverage.
  */
 class CitaTest {
 
     private Cita cita;
+    private Doctor doctor;
+    private Paciente paciente;
+    private Hospital hospital;
+    private Servicio servicio;
+    private Aseguradora aseguradora;
+    private LocalDate fecha;
+    private EstadoCita estado;
 
     @BeforeEach
     void setUp() {
         cita = new Cita();
+        
+        // Setup related entities
+        doctor = new Doctor();
+        doctor.setIdDoctor(1L);
+        
+        paciente = new Paciente();
+        paciente.setIdPaciente(100L);
+        
+        hospital = new Hospital();
+        hospital.setId(10L);
+        
+        servicio = new Servicio();
+        servicio.id = 20L;
+        
+        aseguradora = new Aseguradora();
+        aseguradora.setId(30L);
+        
+        fecha = LocalDate.of(2024, 8, 26);
+        estado = EstadoCita.PENDIENTE;
     }
 
     @Test
@@ -43,11 +69,13 @@ class CitaTest {
         assertNull(cita.getAseguradora());
     }
 
+    // ========== ID_CITA Tests ==========
+    
     @Test
     void testSetAndGetIdCita() {
-        Long idCita = 123L;
-        cita.setIdCita(idCita);
-        assertEquals(idCita, cita.getIdCita());
+        Long id = 123L;
+        cita.setIdCita(id);
+        assertEquals(id, cita.getIdCita());
     }
 
     @Test
@@ -69,6 +97,81 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetIdCitaWithMaxValue() {
+        Long maxValue = Long.MAX_VALUE;
+        cita.setIdCita(maxValue);
+        assertEquals(maxValue, cita.getIdCita());
+    }
+
+    // ========== DOCTOR Tests ==========
+    
+    @Test
+    void testSetAndGetDoctor() {
+        cita.setDoctor(doctor);
+        assertEquals(doctor, cita.getDoctor());
+        assertEquals(1L, cita.getIdDoctor());
+    }
+
+    @Test
+    void testSetAndGetDoctorWithNull() {
+        cita.setDoctor(null);
+        assertNull(cita.getDoctor());
+        assertNull(cita.getIdDoctor());
+    }
+
+    @Test
+    void testSetAndGetDoctorWithNewInstance() {
+        Doctor newDoctor = new Doctor();
+        newDoctor.setIdDoctor(999L);
+        cita.setDoctor(newDoctor);
+        assertEquals(newDoctor, cita.getDoctor());
+        assertEquals(999L, cita.getIdDoctor());
+    }
+
+    @Test
+    void testSetAndGetDoctorWithDoctorWithoutId() {
+        Doctor doctorSinId = new Doctor();
+        cita.setDoctor(doctorSinId);
+        assertEquals(doctorSinId, cita.getDoctor());
+        assertNull(cita.getIdDoctor());
+    }
+
+    // ========== PACIENTE Tests ==========
+    
+    @Test
+    void testSetAndGetPaciente() {
+        cita.setPaciente(paciente);
+        assertEquals(paciente, cita.getPaciente());
+        assertEquals(100L, cita.getIdPaciente());
+    }
+
+    @Test
+    void testSetAndGetPacienteWithNull() {
+        cita.setPaciente(null);
+        assertNull(cita.getPaciente());
+        assertNull(cita.getIdPaciente());
+    }
+
+    @Test
+    void testSetAndGetPacienteWithNewInstance() {
+        Paciente newPaciente = new Paciente();
+        newPaciente.setIdPaciente(888L);
+        cita.setPaciente(newPaciente);
+        assertEquals(newPaciente, cita.getPaciente());
+        assertEquals(888L, cita.getIdPaciente());
+    }
+
+    @Test
+    void testSetAndGetPacienteWithPacienteWithoutId() {
+        Paciente pacienteSinId = new Paciente();
+        cita.setPaciente(pacienteSinId);
+        assertEquals(pacienteSinId, cita.getPaciente());
+        assertNull(cita.getIdPaciente());
+    }
+
+    // ========== ID_DOCTOR Tests ==========
+    
+    @Test
     void testSetAndGetIdDoctor() {
         Long idDoctor = 456L;
         cita.setIdDoctor(idDoctor);
@@ -81,6 +184,20 @@ class CitaTest {
         assertNull(cita.getIdDoctor());
     }
 
+    @Test
+    void testSetAndGetIdDoctorWithZero() {
+        cita.setIdDoctor(0L);
+        assertEquals(0L, cita.getIdDoctor());
+    }
+
+    @Test
+    void testSetAndGetIdDoctorWithNegative() {
+        cita.setIdDoctor(-1L);
+        assertEquals(-1L, cita.getIdDoctor());
+    }
+
+    // ========== ID_PACIENTE Tests ==========
+    
     @Test
     void testSetAndGetIdPaciente() {
         Long idPaciente = 789L;
@@ -95,10 +212,24 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetIdPacienteWithZero() {
+        cita.setIdPaciente(0L);
+        assertEquals(0L, cita.getIdPaciente());
+    }
+
+    @Test
+    void testSetAndGetIdPacienteWithNegative() {
+        cita.setIdPaciente(-1L);
+        assertEquals(-1L, cita.getIdPaciente());
+    }
+
+    // ========== NUMERO_AUTORIZACION Tests ==========
+    
+    @Test
     void testSetAndGetNumeroAutorizacion() {
-        String numeroAutorizacion = "AUTH123456";
-        cita.setNumeroAutorizacion(numeroAutorizacion);
-        assertEquals(numeroAutorizacion, cita.getNumeroAutorizacion());
+        String numero = "AUTH123456";
+        cita.setNumeroAutorizacion(numero);
+        assertEquals(numero, cita.getNumeroAutorizacion());
     }
 
     @Test
@@ -114,8 +245,23 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetNumeroAutorizacionWithSpecialCharacters() {
+        String numero = "AUTH-123_456";
+        cita.setNumeroAutorizacion(numero);
+        assertEquals(numero, cita.getNumeroAutorizacion());
+    }
+
+    @Test
+    void testSetAndGetNumeroAutorizacionWithWhitespace() {
+        String numero = " AUTH123456 ";
+        cita.setNumeroAutorizacion(numero);
+        assertEquals(numero, cita.getNumeroAutorizacion());
+    }
+
+    // ========== FECHA Tests ==========
+    
+    @Test
     void testSetAndGetFecha() {
-        LocalDate fecha = LocalDate.of(2024, 6, 15);
         cita.setFecha(fecha);
         assertEquals(fecha, cita.getFecha());
     }
@@ -127,6 +273,13 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetFechaWithNewDate() {
+        LocalDate newDate = LocalDate.of(2024, 12, 25);
+        cita.setFecha(newDate);
+        assertEquals(newDate, cita.getFecha());
+    }
+
+    @Test
     void testSetAndGetFechaWithPastDate() {
         LocalDate pastDate = LocalDate.of(2020, 1, 1);
         cita.setFecha(pastDate);
@@ -135,16 +288,18 @@ class CitaTest {
 
     @Test
     void testSetAndGetFechaWithFutureDate() {
-        LocalDate futureDate = LocalDate.of(2025, 12, 31);
+        LocalDate futureDate = LocalDate.of(2030, 12, 31);
         cita.setFecha(futureDate);
         assertEquals(futureDate, cita.getFecha());
     }
 
+    // ========== HORA_INICIO Tests ==========
+    
     @Test
     void testSetAndGetHoraInicio() {
-        String horaInicio = "09:00";
-        cita.setHoraInicio(horaInicio);
-        assertEquals(horaInicio, cita.getHoraInicio());
+        String hora = "09:00";
+        cita.setHoraInicio(hora);
+        assertEquals(hora, cita.getHoraInicio());
     }
 
     @Test
@@ -160,10 +315,29 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetHoraInicioWithDifferentFormats() {
+        String[] horas = {"09:00", "14:30", "16:45", "08:15"};
+        
+        for (String hora : horas) {
+            cita.setHoraInicio(hora);
+            assertEquals(hora, cita.getHoraInicio());
+        }
+    }
+
+    @Test
+    void testSetAndGetHoraInicioWithWhitespace() {
+        String hora = " 09:00 ";
+        cita.setHoraInicio(hora);
+        assertEquals(hora, cita.getHoraInicio());
+    }
+
+    // ========== HORA_FIN Tests ==========
+    
+    @Test
     void testSetAndGetHoraFin() {
-        String horaFin = "10:00";
-        cita.setHoraFin(horaFin);
-        assertEquals(horaFin, cita.getHoraFin());
+        String hora = "10:00";
+        cita.setHoraFin(hora);
+        assertEquals(hora, cita.getHoraFin());
     }
 
     @Test
@@ -179,8 +353,27 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetHoraFinWithDifferentFormats() {
+        String[] horas = {"10:00", "15:30", "17:45", "09:15"};
+        
+        for (String hora : horas) {
+            cita.setHoraFin(hora);
+            assertEquals(hora, cita.getHoraFin());
+        }
+    }
+
+    @Test
+    void testSetAndGetHoraFinWithWhitespace() {
+        String hora = " 10:00 ";
+        cita.setHoraFin(hora);
+        assertEquals(hora, cita.getHoraFin());
+    }
+
+    // ========== ID_HOSPITAL Tests ==========
+    
+    @Test
     void testSetAndGetIdHospital() {
-        Long idHospital = 100L;
+        Long idHospital = 123L;
         cita.setIdHospital(idHospital);
         assertEquals(idHospital, cita.getIdHospital());
     }
@@ -192,8 +385,22 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetIdHospitalWithZero() {
+        cita.setIdHospital(0L);
+        assertEquals(0L, cita.getIdHospital());
+    }
+
+    @Test
+    void testSetAndGetIdHospitalWithNegative() {
+        cita.setIdHospital(-1L);
+        assertEquals(-1L, cita.getIdHospital());
+    }
+
+    // ========== ID_SERVICIO Tests ==========
+    
+    @Test
     void testSetAndGetIdServicio() {
-        Long idServicio = 200L;
+        Long idServicio = 456L;
         cita.setIdServicio(idServicio);
         assertEquals(idServicio, cita.getIdServicio());
     }
@@ -205,8 +412,22 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetIdServicioWithZero() {
+        cita.setIdServicio(0L);
+        assertEquals(0L, cita.getIdServicio());
+    }
+
+    @Test
+    void testSetAndGetIdServicioWithNegative() {
+        cita.setIdServicio(-1L);
+        assertEquals(-1L, cita.getIdServicio());
+    }
+
+    // ========== ID_ASEGURADORA Tests ==========
+    
+    @Test
     void testSetAndGetIdAseguradora() {
-        Long idAseguradora = 300L;
+        Long idAseguradora = 789L;
         cita.setIdAseguradora(idAseguradora);
         assertEquals(idAseguradora, cita.getIdAseguradora());
     }
@@ -218,8 +439,21 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetIdAseguradoraWithZero() {
+        cita.setIdAseguradora(0L);
+        assertEquals(0L, cita.getIdAseguradora());
+    }
+
+    @Test
+    void testSetAndGetIdAseguradoraWithNegative() {
+        cita.setIdAseguradora(-1L);
+        assertEquals(-1L, cita.getIdAseguradora());
+    }
+
+    // ========== ESTADO Tests ==========
+    
+    @Test
     void testSetAndGetEstado() {
-        EstadoCita estado = EstadoCita.PENDIENTE;
         cita.setEstado(estado);
         assertEquals(estado, cita.getEstado());
     }
@@ -230,6 +464,23 @@ class CitaTest {
         assertNull(cita.getEstado());
     }
 
+    @Test
+    void testSetAndGetEstadoWithDifferentValues() {
+        EstadoCita[] estados = {
+            EstadoCita.PENDIENTE,
+            EstadoCita.CONFIRMADA,
+            EstadoCita.CANCELADA,
+            EstadoCita.FINALIZADA
+        };
+        
+        for (EstadoCita est : estados) {
+            cita.setEstado(est);
+            assertEquals(est, cita.getEstado());
+        }
+    }
+
+    // ========== MOTIVO Tests ==========
+    
     @Test
     void testSetAndGetMotivo() {
         String motivo = "Consulta de rutina";
@@ -250,8 +501,24 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetMotivoWithLongText() {
+        String motivo = "Consulta de seguimiento post-operatorio para evaluar la evolución de la cirugía realizada el mes pasado";
+        cita.setMotivo(motivo);
+        assertEquals(motivo, cita.getMotivo());
+    }
+
+    @Test
+    void testSetAndGetMotivoWithWhitespace() {
+        String motivo = " Consulta de rutina ";
+        cita.setMotivo(motivo);
+        assertEquals(motivo, cita.getMotivo());
+    }
+
+    // ========== DIAGNOSTICO Tests ==========
+    
+    @Test
     void testSetAndGetDiagnostico() {
-        String diagnostico = "Paciente sano";
+        String diagnostico = "Hipertensión arterial";
         cita.setDiagnostico(diagnostico);
         assertEquals(diagnostico, cita.getDiagnostico());
     }
@@ -263,8 +530,30 @@ class CitaTest {
     }
 
     @Test
+    void testSetAndGetDiagnosticoWithEmptyString() {
+        cita.setDiagnostico("");
+        assertEquals("", cita.getDiagnostico());
+    }
+
+    @Test
+    void testSetAndGetDiagnosticoWithLongText() {
+        String diagnostico = "Diabetes mellitus tipo 2 con complicaciones microvasculares, incluyendo retinopatía diabética no proliferativa";
+        cita.setDiagnostico(diagnostico);
+        assertEquals(diagnostico, cita.getDiagnostico());
+    }
+
+    @Test
+    void testSetAndGetDiagnosticoWithWhitespace() {
+        String diagnostico = " Hipertensión arterial ";
+        cita.setDiagnostico(diagnostico);
+        assertEquals(diagnostico, cita.getDiagnostico());
+    }
+
+    // ========== RESULTADOS Tests ==========
+    
+    @Test
     void testSetAndGetResultados() {
-        String resultados = "Examen normal";
+        String resultados = "Paciente estable, continuar tratamiento";
         cita.setResultados(resultados);
         assertEquals(resultados, cita.getResultados());
     }
@@ -276,83 +565,270 @@ class CitaTest {
     }
 
     @Test
-    void testMultipleSetters() {
-        // Configurar todos los campos
-        cita.setIdCita(999L);
-        cita.setIdDoctor(456L);
-        cita.setIdPaciente(789L);
-        cita.setNumeroAutorizacion("AUTH999");
-        cita.setFecha(LocalDate.of(2024, 12, 25));
-        cita.setHoraInicio("14:00");
-        cita.setHoraFin("15:00");
-        cita.setIdHospital(100L);
-        cita.setIdServicio(200L);
-        cita.setIdAseguradora(300L);
-        cita.setEstado(EstadoCita.CONFIRMADA);
-        cita.setMotivo("Consulta especial");
-        cita.setDiagnostico("Diagnóstico preliminar");
-        cita.setResultados("Resultados esperados");
-
-        // Verificar todos los campos
-        assertEquals(999L, cita.getIdCita());
-        assertEquals(456L, cita.getIdDoctor());
-        assertEquals(789L, cita.getIdPaciente());
-        assertEquals("AUTH999", cita.getNumeroAutorizacion());
-        assertEquals(LocalDate.of(2024, 12, 25), cita.getFecha());
-        assertEquals("14:00", cita.getHoraInicio());
-        assertEquals("15:00", cita.getHoraFin());
-        assertEquals(100L, cita.getIdHospital());
-        assertEquals(200L, cita.getIdServicio());
-        assertEquals(300L, cita.getIdAseguradora());
-        assertEquals(EstadoCita.CONFIRMADA, cita.getEstado());
-        assertEquals("Consulta especial", cita.getMotivo());
-        assertEquals("Diagnóstico preliminar", cita.getDiagnostico());
-        assertEquals("Resultados esperados", cita.getResultados());
+    void testSetAndGetResultadosWithEmptyString() {
+        cita.setResultados("");
+        assertEquals("", cita.getResultados());
     }
 
     @Test
-    void testDataIntegrity() {
-        // Verificar que los datos no cambien después de múltiples lecturas
-        cita.setIdCita(123L);
-        Long id1 = cita.getIdCita();
-        Long id2 = cita.getIdCita();
-        assertEquals(id1, id2);
+    void testSetAndGetResultadosWithLongText() {
+        String resultados = "Se realizó examen físico completo, análisis de sangre y radiografía de tórax. Los resultados muestran mejoría significativa en los parámetros respiratorios";
+        cita.setResultados(resultados);
+        assertEquals(resultados, cita.getResultados());
+    }
 
-        cita.setMotivo("Test motivo");
-        String motivo1 = cita.getMotivo();
-        String motivo2 = cita.getMotivo();
-        assertEquals(motivo1, motivo2);
+    @Test
+    void testSetAndGetResultadosWithWhitespace() {
+        String resultados = " Paciente estable, continuar tratamiento ";
+        cita.setResultados(resultados);
+        assertEquals(resultados, cita.getResultados());
+    }
+
+    // ========== HOSPITAL Tests ==========
+    
+    @Test
+    void testSetAndGetHospital() {
+        cita.setHospital(hospital);
+        assertEquals(hospital, cita.getHospital());
+    }
+
+    @Test
+    void testSetAndGetHospitalWithNull() {
+        cita.setHospital(null);
+        assertNull(cita.getHospital());
+    }
+
+    @Test
+    void testSetAndGetHospitalWithNewInstance() {
+        Hospital newHospital = new Hospital();
+        newHospital.setId(999L);
+        cita.setHospital(newHospital);
+        assertEquals(newHospital, cita.getHospital());
+    }
+
+    // ========== SERVICIO Tests ==========
+    
+    @Test
+    void testSetAndGetServicio() {
+        cita.setServicio(servicio);
+        assertEquals(servicio, cita.getServicio());
+    }
+
+    @Test
+    void testSetAndGetServicioWithNull() {
+        cita.setServicio(null);
+        assertNull(cita.getServicio());
+    }
+
+    @Test
+    void testSetAndGetServicioWithNewInstance() {
+        Servicio newServicio = new Servicio();
+        newServicio.id = 888L;
+        cita.setServicio(newServicio);
+        assertEquals(newServicio, cita.getServicio());
+    }
+
+    // ========== ASEGURADORA Tests ==========
+    
+    @Test
+    void testSetAndGetAseguradora() {
+        cita.setAseguradora(aseguradora);
+        assertEquals(aseguradora, cita.getAseguradora());
+    }
+
+    @Test
+    void testSetAndGetAseguradoraWithNull() {
+        cita.setAseguradora(null);
+        assertNull(cita.getAseguradora());
+    }
+
+    @Test
+    void testSetAndGetAseguradoraWithNewInstance() {
+        Aseguradora newAseguradora = new Aseguradora();
+        newAseguradora.setId(777L);
+        cita.setAseguradora(newAseguradora);
+        assertEquals(newAseguradora, cita.getAseguradora());
+    }
+
+    // ========== Comprehensive Tests ==========
+    
+    @Test
+    void testCompleteCitaSetup() {
+        // Arrange
+        Long id = 999L;
+        String numeroAutorizacion = "AUTH999888";
+        String horaInicio = "14:00";
+        String horaFin = "15:00";
+        String motivo = "Consulta especializada";
+        String diagnostico = "Dolor crónico";
+        String resultados = "Se prescribe tratamiento";
+
+        // Act
+        cita.setIdCita(id);
+        cita.setDoctor(doctor);
+        cita.setPaciente(paciente);
+        cita.setNumeroAutorizacion(numeroAutorizacion);
+        cita.setFecha(fecha);
+        cita.setHoraInicio(horaInicio);
+        cita.setHoraFin(horaFin);
+        cita.setIdHospital(10L);
+        cita.setIdServicio(20L);
+        cita.setIdAseguradora(30L);
+        cita.setEstado(estado);
+        cita.setMotivo(motivo);
+        cita.setDiagnostico(diagnostico);
+        cita.setResultados(resultados);
+        cita.setHospital(hospital);
+        cita.setServicio(servicio);
+        cita.setAseguradora(aseguradora);
+
+        // Assert
+        assertEquals(id, cita.getIdCita());
+        assertEquals(doctor, cita.getDoctor());
+        assertEquals(paciente, cita.getPaciente());
+        assertEquals(1L, cita.getIdDoctor());
+        assertEquals(100L, cita.getIdPaciente());
+        assertEquals(numeroAutorizacion, cita.getNumeroAutorizacion());
+        assertEquals(fecha, cita.getFecha());
+        assertEquals(horaInicio, cita.getHoraInicio());
+        assertEquals(horaFin, cita.getHoraFin());
+        assertEquals(10L, cita.getIdHospital());
+        assertEquals(20L, cita.getIdServicio());
+        assertEquals(30L, cita.getIdAseguradora());
+        assertEquals(estado, cita.getEstado());
+        assertEquals(motivo, cita.getMotivo());
+        assertEquals(diagnostico, cita.getDiagnostico());
+        assertEquals(resultados, cita.getResultados());
+        assertEquals(hospital, cita.getHospital());
+        assertEquals(servicio, cita.getServicio());
+        assertEquals(aseguradora, cita.getAseguradora());
+    }
+
+    @Test
+    void testMultipleUpdates() {
+        // Arrange
+        cita.setMotivo("Consulta inicial");
+        cita.setHoraInicio("09:00");
+        
+        // Act - Update values
+        cita.setMotivo("Consulta de seguimiento");
+        cita.setHoraInicio("10:00");
+        
+        // Assert
+        assertEquals("Consulta de seguimiento", cita.getMotivo());
+        assertEquals("10:00", cita.getHoraInicio());
+    }
+
+    @Test
+    void testResetToNull() {
+        // Arrange
+        cita.setMotivo("Consulta inicial");
+        cita.setDiagnostico("Sin diagnóstico");
+        
+        // Act - Reset to null
+        cita.setMotivo(null);
+        cita.setDiagnostico(null);
+        
+        // Assert
+        assertNull(cita.getMotivo());
+        assertNull(cita.getDiagnostico());
     }
 
     @Test
     void testEdgeCaseValues() {
-        // Test con valores extremos
-        cita.setIdCita(Long.MAX_VALUE);
-        cita.setIdDoctor(Long.MIN_VALUE);
+        // Arrange & Act - Set edge case values
+        cita.setIdCita(0L);
+        cita.setIdDoctor(0L);
         cita.setIdPaciente(0L);
-        cita.setNumeroAutorizacion("A");
-        cita.setFecha(LocalDate.MIN);
-        cita.setHoraInicio("00:00");
-        cita.setHoraFin("23:59");
-
-        assertEquals(Long.MAX_VALUE, cita.getIdCita());
-        assertEquals(Long.MIN_VALUE, cita.getIdDoctor());
+        cita.setIdHospital(0L);
+        cita.setIdServicio(0L);
+        cita.setIdAseguradora(0L);
+        cita.setMotivo("");
+        cita.setDiagnostico("   ");
+        cita.setResultados("0");
+        
+        // Assert
+        assertEquals(0L, cita.getIdCita());
+        assertEquals(0L, cita.getIdDoctor());
         assertEquals(0L, cita.getIdPaciente());
-        assertEquals("A", cita.getNumeroAutorizacion());
-        assertEquals(LocalDate.MIN, cita.getFecha());
-        assertEquals("00:00", cita.getHoraInicio());
-        assertEquals("23:59", cita.getHoraFin());
+        assertEquals(0L, cita.getIdHospital());
+        assertEquals(0L, cita.getIdServicio());
+        assertEquals(0L, cita.getIdAseguradora());
+        assertEquals("", cita.getMotivo());
+        assertEquals("   ", cita.getDiagnostico());
+        assertEquals("0", cita.getResultados());
     }
 
     @Test
-    void testNullHandling() {
-        // Test de manejo de valores nulos
-        cita.setIdDoctor(null);
-        cita.setIdPaciente(null);
-        cita.setIdHospital(null);
+    void testRelationshipUpdates() {
+        // Arrange
+        Doctor newDoctor = new Doctor();
+        newDoctor.setIdDoctor(555L);
+        
+        Paciente newPaciente = new Paciente();
+        newPaciente.setIdPaciente(666L);
+        
+        // Act
+        cita.setDoctor(newDoctor);
+        cita.setPaciente(newPaciente);
+        
+        // Assert
+        assertEquals(newDoctor, cita.getDoctor());
+        assertEquals(newPaciente, cita.getPaciente());
+        assertEquals(555L, cita.getIdDoctor());
+        assertEquals(666L, cita.getIdPaciente());
+    }
 
-        assertNull(cita.getIdDoctor());
-        assertNull(cita.getIdPaciente());
-        assertNull(cita.getIdHospital());
+    @Test
+    void testAllFieldsTogether() {
+        // Arrange
+        Long id = 777L;
+        String numeroAutorizacion = "AUTH777666";
+        LocalDate fechaCita = LocalDate.of(2024, 9, 15);
+        String horaInicio = "16:00";
+        String horaFin = "17:00";
+        String motivo = "Revisión post-tratamiento";
+        String diagnostico = "Evolución favorable";
+        String resultados = "Continuar con medicación actual";
+
+        // Act
+        cita.setIdCita(id);
+        cita.setDoctor(doctor);
+        cita.setPaciente(paciente);
+        cita.setNumeroAutorizacion(numeroAutorizacion);
+        cita.setFecha(fechaCita);
+        cita.setHoraInicio(horaInicio);
+        cita.setHoraFin(horaFin);
+        cita.setIdHospital(15L);
+        cita.setIdServicio(25L);
+        cita.setIdAseguradora(35L);
+        cita.setEstado(EstadoCita.FINALIZADA);
+        cita.setMotivo(motivo);
+        cita.setDiagnostico(diagnostico);
+        cita.setResultados(resultados);
+        cita.setHospital(hospital);
+        cita.setServicio(servicio);
+        cita.setAseguradora(aseguradora);
+
+        // Assert - Verify all fields are set correctly
+        assertEquals(id, cita.getIdCita());
+        assertEquals(doctor, cita.getDoctor());
+        assertEquals(paciente, cita.getPaciente());
+        assertEquals(1L, cita.getIdDoctor());
+        assertEquals(100L, cita.getIdPaciente());
+        assertEquals(numeroAutorizacion, cita.getNumeroAutorizacion());
+        assertEquals(fechaCita, cita.getFecha());
+        assertEquals(horaInicio, cita.getHoraInicio());
+        assertEquals(horaFin, cita.getHoraFin());
+        assertEquals(15L, cita.getIdHospital());
+        assertEquals(25L, cita.getIdServicio());
+        assertEquals(35L, cita.getIdAseguradora());
+        assertEquals(EstadoCita.FINALIZADA, cita.getEstado());
+        assertEquals(motivo, cita.getMotivo());
+        assertEquals(diagnostico, cita.getDiagnostico());
+        assertEquals(resultados, cita.getResultados());
+        assertEquals(hospital, cita.getHospital());
+        assertEquals(servicio, cita.getServicio());
+        assertEquals(aseguradora, cita.getAseguradora());
     }
 }
