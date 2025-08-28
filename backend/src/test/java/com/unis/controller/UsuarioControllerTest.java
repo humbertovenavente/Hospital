@@ -31,12 +31,10 @@ public class UsuarioControllerTest {
         MockitoAnnotations.openMocks(this);
         
         testUsuario = new Usuario();
-        testUsuario.setId(1L);
         testUsuario.setCorreo("test@example.com");
         testUsuario.setContrasena("password123");
         
         testRol = new Rol();
-        testRol.setId(1L);
         testRol.setRoleName("ADMIN");
     }
 

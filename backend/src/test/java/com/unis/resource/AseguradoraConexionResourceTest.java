@@ -35,7 +35,6 @@ class AseguradoraConexionResourceTest {
         MockitoAnnotations.openMocks(this);
         
         testConexion = new AseguradoraConexion();
-        testConexion.setId(1L);
         testConexion.setNombre("TestAseguradora");
         testConexion.setUrlBase("https://test.aseguradora.com");
         

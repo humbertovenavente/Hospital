@@ -59,7 +59,6 @@ class ReporteResourceTest {
         testRequest.setUsuario("testuser");
         
         testUsuario = new Usuario();
-        testUsuario.setId(1L);
         testUsuario.setNombreUsuario("Dr. Juan Pérez");
         
         testDoctor = new Doctor();
@@ -839,5 +838,114 @@ class ReporteResourceTest {
         verify(doctorService, times(1)).getDoctorById(1L);
         verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
             LocalDate.of(2024, 12, 25), LocalDate.of(2024, 12, 31));
+    }
+
+    // === TESTS ADICIONALES PARA MEJORAR COBERTURA ===
+
+
+
+    @Test
+    void testGenerarReporte_WithDoctorWithoutUsuario() {
+        // Arrange
+        Doctor doctorSinUsuario = new Doctor();
+        doctorSinUsuario.setIdDoctor(1L);
+        doctorSinUsuario.setApellido("Dr. Pérez");
+        doctorSinUsuario.setUsuario(null);
+        
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(doctorSinUsuario));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.generarReporte(testRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertTrue(response.getEntity() instanceof ReporteResponse);
+        
+        // Verify that doctor name was set to apellido
+        ReporteResponse reporteResponse = (ReporteResponse) response.getEntity();
+        assertTrue(reporteResponse.getEncabezado().contains("Doctor: Dr. Pérez"));
+    }
+
+    @Test
+    void testGenerarReporte_WithDoctorWithoutUsuarioAndEmptyApellido() {
+        // Arrange
+        Doctor doctorSinDatos = new Doctor();
+        doctorSinDatos.setIdDoctor(1L);
+        doctorSinDatos.setUsuario(null);
+        doctorSinDatos.setApellido("");
+        
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(doctorSinDatos));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.generarReporte(testRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertTrue(response.getEntity() instanceof ReporteResponse);
+        
+        // Verify that doctor name was set to empty string (not [Desconocido]) because empty string is not null
+        ReporteResponse reporteResponse = (ReporteResponse) response.getEntity();
+        assertTrue(reporteResponse.getEncabezado().contains("Doctor: "));
+        assertFalse(reporteResponse.getEncabezado().contains("[Desconocido]"));
+    }
+
+    @Test
+    void testGenerarReporte_WithDoctorUsuarioWithEmptyNombreUsuario() {
+        // Arrange
+        Usuario usuarioConNombreVacio = new Usuario();
+        usuarioConNombreVacio.setNombreUsuario("");
+        
+        Doctor doctorConUsuarioNombreVacio = new Doctor();
+        doctorConUsuarioNombreVacio.setIdDoctor(1L);
+        doctorConUsuarioNombreVacio.setApellido("Dr. Pérez");
+        doctorConUsuarioNombreVacio.setUsuario(usuarioConNombreVacio);
+        
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(doctorConUsuarioNombreVacio));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.generarReporte(testRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertTrue(response.getEntity() instanceof ReporteResponse);
+        
+        // Verify that doctor name was set to empty string because nombreUsuario is empty but not null
+        ReporteResponse reporteResponse = (ReporteResponse) response.getEntity();
+        assertTrue(reporteResponse.getEncabezado().contains("Doctor: "));
+        assertFalse(reporteResponse.getEncabezado().contains("Dr. Pérez"));
+    }
+
+    @Test
+    void testGenerarReporte_WithDoctorWithoutUsuarioAndApellido() {
+        // Arrange
+        Doctor doctorSinDatos = new Doctor();
+        doctorSinDatos.setIdDoctor(1L);
+        doctorSinDatos.setUsuario(null);
+        doctorSinDatos.setApellido(null);
+        
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(doctorSinDatos));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.generarReporte(testRequest);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertTrue(response.getEntity() instanceof ReporteResponse);
+        
+        // Verify that doctor name was set to [Desconocido] because both usuario and apellido are null
+        ReporteResponse reporteResponse = (ReporteResponse) response.getEntity();
+        assertTrue(reporteResponse.getEncabezado().contains("Doctor: [Desconocido]"));
     }
 }

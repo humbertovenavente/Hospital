@@ -34,7 +34,6 @@ class UsuarioResourceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         testUsuario = new Usuario();
-        testUsuario.setId(1L);
         testUsuario.setNombreUsuario("testuser");
         testUsuario.setCorreo("test@example.com");
         testUsuario.setContrasena("password123");
@@ -408,7 +407,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithEmptyStrings() {
         // Arrange
         Usuario emptyStringUsuario = new Usuario();
-        emptyStringUsuario.setId(1L);
         emptyStringUsuario.setNombreUsuario("");
         emptyStringUsuario.setCorreo("");
         emptyStringUsuario.setContrasena("");
@@ -434,7 +432,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithWhitespaceOnly() {
         // Arrange
         Usuario whitespaceUsuario = new Usuario();
-        whitespaceUsuario.setId(1L);
         whitespaceUsuario.setNombreUsuario("   ");
         whitespaceUsuario.setCorreo("   ");
         whitespaceUsuario.setContrasena("   ");
@@ -564,7 +561,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithIPAddressEmail() {
         // Arrange
         Usuario ipEmailUsuario = new Usuario();
-        ipEmailUsuario.setId(1L);
         ipEmailUsuario.setNombreUsuario("ipuser");
         ipEmailUsuario.setCorreo("user@192.168.1.1");
         ipEmailUsuario.setContrasena("ipuser");
@@ -590,7 +586,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithLocalhostEmail() {
         // Arrange
         Usuario localhostUsuario = new Usuario();
-        localhostUsuario.setId(1L);
         localhostUsuario.setNombreUsuario("localhostuser");
         localhostUsuario.setCorreo("user@localhost");
         localhostUsuario.setContrasena("localhostuser");
@@ -616,7 +611,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithPortEmail() {
         // Arrange
         Usuario portEmailUsuario = new Usuario();
-        portEmailUsuario.setId(1L);
         portEmailUsuario.setNombreUsuario("portuser");
         portEmailUsuario.setCorreo("user@domain.com:8080");
         portEmailUsuario.setContrasena("portuser");
@@ -642,7 +636,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithPathEmail() {
         // Arrange
         Usuario pathEmailUsuario = new Usuario();
-        pathEmailUsuario.setId(1L);
         pathEmailUsuario.setNombreUsuario("pathuser");
         pathEmailUsuario.setCorreo("user@domain.com/path");
         pathEmailUsuario.setContrasena("pathuser");
@@ -668,7 +661,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithQueryEmail() {
         // Arrange
         Usuario queryEmailUsuario = new Usuario();
-        queryEmailUsuario.setId(1L);
         queryEmailUsuario.setNombreUsuario("queryuser");
         queryEmailUsuario.setCorreo("user@domain.com?param=value");
         queryEmailUsuario.setContrasena("queryuser");
@@ -694,7 +686,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithFragmentEmail() {
         // Arrange
         Usuario fragmentEmailUsuario = new Usuario();
-        fragmentEmailUsuario.setId(1L);
         fragmentEmailUsuario.setNombreUsuario("fragmentuser");
         fragmentEmailUsuario.setCorreo("user@domain.com#fragment");
         fragmentEmailUsuario.setContrasena("fragmentuser");
@@ -720,7 +711,6 @@ class UsuarioResourceTest {
     void testRegistrarUsuario_WithAllSpecialCharactersEmail() {
         // Arrange
         Usuario allSpecialEmailUsuario = new Usuario();
-        allSpecialEmailUsuario.setId(1L);
         allSpecialEmailUsuario.setNombreUsuario("allspecialuser");
         allSpecialEmailUsuario.setCorreo("user!@#$%^&*()_+-=[]{}|;':\",./<>?@domain.com");
         allSpecialEmailUsuario.setContrasena("allspecialuser");

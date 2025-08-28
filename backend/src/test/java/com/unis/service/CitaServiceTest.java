@@ -1,5 +1,6 @@
 package com.unis.service;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,12 @@ public class CitaServiceTest {
     
     @Mock
     jakarta.persistence.TypedQuery<Aseguradora> aseguradoraQuery;
+
+    @Mock
+    jakarta.persistence.TypedQuery<FichaTecnica> fichaTecnicaQuery;
+
+    @Mock
+    jakarta.persistence.TypedQuery<Rol> rolQuery;
 
     @InjectMocks
     CitaService citaService;
@@ -353,11 +360,241 @@ public class CitaServiceTest {
 
     @Test
     public void testBuscarDoctorPorIdNotFound() {
-        Long id = 1L;
+        Long id = 999L;
         when(doctorService.getDoctorById(id)).thenReturn(Optional.empty());
 
         Doctor actualDoctor = citaService.buscarDoctorPorId(id);
 
         assertEquals(null, actualDoctor);
+    }
+
+    // === TESTS ADICIONALES PARA MEJORAR COBERTURA ===
+
+    @Test
+    public void testProcesarCitaYEnviarResultados_WithException() {
+        Long id = 1L;
+        String diagnostico = "Gripe";
+        String resultados = "Positivo";
+        
+        Cita cita = new Cita();
+        cita.setIdCita(id);
+        cita.setPaciente(new Paciente());
+        cita.getPaciente().setDocumento("12345");
+        cita.getPaciente().setUsuario(new Usuario());
+        cita.getPaciente().getUsuario().setNombreUsuario("Juan");
+        cita.getPaciente().setApellido("Pérez");
+        cita.setDiagnostico(diagnostico);
+        cita.setResultados(resultados);
+        cita.setFecha(LocalDate.now());
+        cita.setDoctor(new Doctor());
+        cita.getDoctor().setUsuario(new Usuario());
+        cita.getDoctor().getUsuario().setNombreUsuario("Dr. García");
+        
+        when(citaRepository.findById(id)).thenReturn(cita);
+        
+        // Este test cubre el método privado enviarResultadosAAseguradora
+        citaService.procesarCitaYEnviarResultados(id, diagnostico, resultados);
+        
+        verify(citaRepository).findById(id);
+        assertEquals(EstadoCita.FINALIZADA, cita.getEstado());
+        assertEquals(diagnostico, cita.getDiagnostico());
+        assertEquals(resultados, cita.getResultados());
+    }
+
+    @Test
+    public void testCrearCitaDesdeJson_WithExistingPaciente() {
+        JsonObject dto = Json.createObjectBuilder()
+            .add("documento", "12345")
+            .add("nombre", "Juan")
+            .add("apellido", "Pérez")
+            .add("fecha", "2024-01-15")
+            .add("horaInicio", "09:00")
+            .add("horaFin", "10:00")
+            .add("motivo", "Consulta general")
+            .add("nombreAseguradora", "TestSeguro")
+            .add("numeroAfiliacion", "AFF001")
+            .add("codigoSeguro", "CS001")
+            .add("carnetSeguro", "CAR001")
+            .build();
+
+        Paciente pacienteExistente = new Paciente();
+        pacienteExistente.setIdPaciente(1L);
+        pacienteExistente.setDocumento("12345");
+        
+        Aseguradora aseguradora = new Aseguradora();
+        aseguradora.setId(1L);
+        aseguradora.setNombre("TestSeguro");
+        
+        when(entityManager.createQuery(anyString(), eq(Paciente.class)))
+            .thenReturn(pacienteQuery);
+        when(pacienteQuery.setParameter(anyString(), any()))
+            .thenReturn(pacienteQuery);
+        when(pacienteQuery.getResultStream())
+            .thenReturn(java.util.stream.Stream.of(pacienteExistente));
+        
+        when(entityManager.createQuery(anyString(), eq(Aseguradora.class)))
+            .thenReturn(aseguradoraQuery);
+        when(aseguradoraQuery.setParameter(anyString(), any()))
+            .thenReturn(aseguradoraQuery);
+        when(aseguradoraQuery.getResultStream())
+            .thenReturn(java.util.stream.Stream.of(aseguradora));
+        
+        citaService.crearCitaDesdeJson(dto);
+        
+        verify(citaRepository).persist(any(Cita.class));
+    }
+
+    @Test
+    public void testCrearCitaDesdeJson_WithNewAseguradora() {
+        JsonObject dto = Json.createObjectBuilder()
+            .add("documento", "12345")
+            .add("nombre", "Juan")
+            .add("apellido", "Pérez")
+            .add("fecha", "2024-01-15")
+            .add("horaInicio", "09:00")
+            .add("horaFin", "10:00")
+            .add("motivo", "Consulta general")
+            .add("nombreAseguradora", "NuevaAseguradora")
+            .build();
+
+        Paciente pacienteExistente = new Paciente();
+        pacienteExistente.setIdPaciente(1L);
+        pacienteExistente.setDocumento("12345");
+        
+        when(entityManager.createQuery(anyString(), eq(Paciente.class)))
+            .thenReturn(pacienteQuery);
+        when(pacienteQuery.setParameter(anyString(), any()))
+            .thenReturn(pacienteQuery);
+        when(pacienteQuery.getResultStream())
+            .thenReturn(java.util.stream.Stream.of(pacienteExistente));
+        
+        when(entityManager.createQuery(anyString(), eq(Aseguradora.class)))
+            .thenReturn(aseguradoraQuery);
+        when(aseguradoraQuery.setParameter(anyString(), any()))
+            .thenReturn(aseguradoraQuery);
+        when(aseguradoraQuery.getResultStream())
+            .thenReturn(java.util.stream.Stream.empty());
+        
+        citaService.crearCitaDesdeJson(dto);
+        
+        verify(entityManager).persist(any(Aseguradora.class));
+        verify(citaRepository).persist(any(Cita.class));
+    }
+
+    @Test
+    public void testActualizarCita_WithNullValues() {
+        Long id = 1L;
+        Cita citaActualizada = new Cita();
+        citaActualizada.setEstado(null);
+        citaActualizada.setDiagnostico(null);
+        citaActualizada.setResultados(null);
+        
+        Cita citaExistente = new Cita();
+        citaExistente.setEstado(EstadoCita.CONFIRMADA);
+        citaExistente.setDiagnostico("Diagnóstico previo");
+        citaExistente.setResultados("Resultados previos");
+        
+        when(citaRepository.findById(id)).thenReturn(citaExistente);
+        
+        citaService.actualizarCita(id, citaActualizada);
+        
+        // Verificar que los valores originales se mantienen
+        assertEquals(EstadoCita.CONFIRMADA, citaExistente.getEstado());
+        assertEquals("Diagnóstico previo", citaExistente.getDiagnostico());
+        assertEquals("Resultados previos", citaExistente.getResultados());
+    }
+
+    @Test
+    public void testActualizarCita_WithPartialUpdates() {
+        Long id = 1L;
+        Cita citaActualizada = new Cita();
+        citaActualizada.setEstado(EstadoCita.FINALIZADA);
+        citaActualizada.setDiagnostico("Nuevo diagnóstico");
+        // resultados se deja null para probar actualización parcial
+        
+        Cita citaExistente = new Cita();
+        citaExistente.setEstado(EstadoCita.CONFIRMADA);
+        citaExistente.setDiagnostico("Diagnóstico previo");
+        citaExistente.setResultados("Resultados previos");
+        
+        when(citaRepository.findById(id)).thenReturn(citaExistente);
+        
+        citaService.actualizarCita(id, citaActualizada);
+        
+        // Verificar que solo se actualizaron los campos no null
+        assertEquals(EstadoCita.FINALIZADA, citaExistente.getEstado());
+        assertEquals("Nuevo diagnóstico", citaExistente.getDiagnostico());
+        assertEquals("Resultados previos", citaExistente.getResultados()); // Debe mantenerse
+    }
+
+    @Test
+    public void testReasignarDoctor_WithInvalidDoctor() {
+        Long idCita = 1L;
+        Doctor doctorInvalido = null;
+        
+        Cita cita = new Cita();
+        when(citaRepository.findById(idCita)).thenReturn(cita);
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            citaService.reasignarDoctor(idCita, doctorInvalido);
+        });
+    }
+
+    @Test
+    public void testReasignarDoctor_WithValidReassignment() {
+        Long idCita = 1L;
+        Doctor doctorOriginal = new Doctor();
+        doctorOriginal.setIdDoctor(1L);
+        doctorOriginal.setUsuario(new Usuario());
+        doctorOriginal.getUsuario().setNombreUsuario("Dr. Original");
+        
+        Doctor nuevoDoctor = new Doctor();
+        nuevoDoctor.setIdDoctor(2L);
+        nuevoDoctor.setUsuario(new Usuario());
+        nuevoDoctor.getUsuario().setNombreUsuario("Dr. Nuevo");
+        
+        Cita cita = new Cita();
+        cita.setDoctor(doctorOriginal);
+        cita.setIdDoctor(1L);
+        
+        when(citaRepository.findById(idCita)).thenReturn(cita);
+        
+        citaService.reasignarDoctor(idCita, nuevoDoctor);
+        
+        assertEquals(nuevoDoctor, cita.getDoctor());
+        assertEquals(2L, cita.getIdDoctor());
+    }
+
+    @Test
+    public void testAgendarCita_WithNullValidation() {
+        Cita cita = new Cita();
+        cita.setIdDoctor(null);
+        cita.setIdPaciente(1L);
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            citaService.agendarCita(cita);
+        });
+    }
+
+    @Test
+    public void testAgendarCita_WithPacienteNullValidation() {
+        Cita cita = new Cita();
+        cita.setIdDoctor(1L);
+        cita.setIdPaciente(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            citaService.agendarCita(cita);
+        });
+    }
+
+    @Test
+    public void testAgendarCita_WithBothNullValidation() {
+        Cita cita = new Cita();
+        cita.setIdDoctor(null);
+        cita.setIdPaciente(null);
+        
+        assertThrows(IllegalArgumentException.class, () -> {
+            citaService.agendarCita(cita);
+        });
     }
 }

@@ -21,7 +21,6 @@ class UsuarioInterAccTest {
     void setUp() {
         usuarioInter = new UsuarioInterAcc();
         usuario = new Usuario();
-        usuario.setId(1L);
         fechaNacimiento = new Date(92, 5, 20); // 20 de junio de 1992
     }
 

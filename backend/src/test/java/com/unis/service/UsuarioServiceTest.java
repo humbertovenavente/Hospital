@@ -40,10 +40,8 @@ class UsuarioServiceTest {
         
         testUsuario = new Usuario();
         testUsuario.setCorreo("test@example.com");
-        testUsuario.setId(1L);
         
         testRol = new Rol();
-        testRol.setId(1L);
     }
 
     @Test

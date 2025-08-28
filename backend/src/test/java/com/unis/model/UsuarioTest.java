@@ -239,26 +239,22 @@ class UsuarioTest {
     void testRepeatedUpdates() {
         // Actualizar el mismo valor múltiples veces
         for (int i = 0; i < 5; i++) {
-            usuario.setId((long) i);
             usuario.setNombreUsuario("Usuario" + i);
         }
 
-        assertEquals(4L, usuario.getId());
         assertEquals("Usuario4", usuario.getNombreUsuario());
     }
 
     @Test
     void testFieldIndependence() {
         // Verificar que los campos son independientes
-        usuario.setId(1L);
         usuario.setNombreUsuario("Usuario1");
         usuario.setCorreo("email1@test.com");
 
         // Cambiar solo un campo
-        usuario.setId(2L);
+        usuario.setNombreUsuario("Usuario2");
 
-        assertEquals(2L, usuario.getId());
-        assertEquals("Usuario1", usuario.getNombreUsuario());
+        assertEquals("Usuario2", usuario.getNombreUsuario());
         assertEquals("email1@test.com", usuario.getCorreo());
     }
 
