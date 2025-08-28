@@ -18,6 +18,7 @@ import io.quarkus.mailer.Mailer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 public class TechnicalDebtEmailServiceTest {
 
@@ -113,7 +114,98 @@ public class TechnicalDebtEmailServiceTest {
     }
 
     @Test
+    public void testSendMultiProjectReports_EmptyList() {
+        // Given
+        List<ProjectInfo> projects = Collections.emptyList();
+        String recipientEmail = "test@example.com";
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertTrue(responses.isEmpty());
+        verify(mailer, never()).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_SingleProject() {
+        // Given
+        ProjectInfo project = new ProjectInfo();
+        project.setKey("single-project");
+        project.setName("Single Project");
+        
+        List<ProjectInfo> projects = Collections.singletonList(project);
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertEquals(1, responses.size());
+        assertTrue(responses.get(0).isSuccess());
+        assertEquals("single-project", responses.get(0).getProjectKey());
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
     public void testIsHealthy_WhenServiceIsHealthy() {
+        // Given - Mock the configuration properties
+        technicalDebtEmailService = new TechnicalDebtEmailService();
+        
+        // Use reflection to set the configuration values for testing
+        try {
+            java.lang.reflect.Field hostField = TechnicalDebtEmailService.class.getDeclaredField("mailHost");
+            hostField.setAccessible(true);
+            hostField.set(technicalDebtEmailService, "smtp.gmail.com");
+            
+            java.lang.reflect.Field userField = TechnicalDebtEmailService.class.getDeclaredField("mailUsername");
+            userField.setAccessible(true);
+            userField.set(technicalDebtEmailService, "test@example.com");
+        } catch (Exception e) {
+            // If reflection fails, skip this test
+            return;
+        }
+
+        // When
+        boolean isHealthy = technicalDebtEmailService.isHealthy();
+
+        // Then
+        assertTrue(isHealthy);
+    }
+
+    @Test
+    public void testIsHealthy_WhenServiceIsUnhealthy() {
+        // Given - Mock the configuration properties
+        technicalDebtEmailService = new TechnicalDebtEmailService();
+        
+        // Use reflection to set the configuration values for testing
+        try {
+            java.lang.reflect.Field hostField = TechnicalDebtEmailService.class.getDeclaredField("mailHost");
+            hostField.setAccessible(true);
+            hostField.set(technicalDebtEmailService, null);
+            
+            java.lang.reflect.Field userField = TechnicalDebtEmailService.class.getDeclaredField("mailUsername");
+            userField.setAccessible(true);
+            userField.set(technicalDebtEmailService, "");
+        } catch (Exception e) {
+            // If reflection fails, skip this test
+            return;
+        }
+
+        // When
+        boolean isHealthy = technicalDebtEmailService.isHealthy();
+
+        // Then
+        assertFalse(isHealthy);
+    }
+
+    @Test
+    public void testIsHealthy_WithException() {
         // Given - Mock the configuration properties
         technicalDebtEmailService = new TechnicalDebtEmailService();
         
@@ -159,6 +251,22 @@ public class TechnicalDebtEmailServiceTest {
         assertTrue(htmlContent.contains("Duplicación de Código"));
         assertTrue(htmlContent.contains("Issues Críticos"));
         assertTrue(htmlContent.contains("Recomendaciones Prioritarias"));
+        assertTrue(htmlContent.contains("http://localhost:9000/dashboard?id=" + projectKey));
+    }
+
+    @Test
+    public void testGenerateTechnicalDebtReportHTML_WithSpecialCharacters() {
+        // Given
+        String projectKey = "special-project-123";
+        String projectName = "Project with & < > \" ' characters";
+
+        // When
+        String htmlContent = technicalDebtEmailService.generateTechnicalDebtReportHTML(projectKey, projectName);
+
+        // Then
+        assertNotNull(htmlContent);
+        assertTrue(htmlContent.contains(projectKey));
+        assertTrue(htmlContent.contains(projectName));
         assertTrue(htmlContent.contains("http://localhost:9000/dashboard?id=" + projectKey));
     }
 
@@ -226,5 +334,28 @@ public class TechnicalDebtEmailServiceTest {
         
         // Verify that emails were sent (we can't verify content with Quarkus Mailer API)
         verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithNullValues() {
+        // Given
+        String projectKey = null;
+        String projectName = null;
+        String recipientEmail = null;
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertFalse(response.isSuccess());
+        assertTrue(response.getMessage().contains("null"));
+        assertNull(response.getProjectKey());
+        assertNull(response.getProjectName());
+        assertNull(response.getRecipientEmail());
+        verify(mailer, never()).send(any(Mail.class));
     }
 }

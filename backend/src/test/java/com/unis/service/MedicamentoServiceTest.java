@@ -25,13 +25,25 @@ class MedicamentoServiceTest {
     private MedicamentoService medicamentoService;
 
     private Medicamento testMedicamento;
+    private Medicamento medicamentoNuevo;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
         
         testMedicamento = new Medicamento();
-        // No necesitamos setters, solo verificamos que el objeto existe
+        testMedicamento.setPrincipioActivo("Paracetamol");
+        testMedicamento.setConcentracion("500mg");
+        testMedicamento.setPresentacion("Tableta");
+        testMedicamento.setFormaFarmaceutica("Oral");
+        testMedicamento.setVentaLibre(1); // 1 = venta libre
+        
+        medicamentoNuevo = new Medicamento();
+        medicamentoNuevo.setPrincipioActivo("Ibuprofeno");
+        medicamentoNuevo.setConcentracion("400mg");
+        medicamentoNuevo.setPresentacion("Cápsula");
+        medicamentoNuevo.setFormaFarmaceutica("Oral");
+        medicamentoNuevo.setVentaLibre(0); // 0 = con receta
     }
 
     @Test
@@ -65,6 +77,19 @@ class MedicamentoServiceTest {
     }
 
     @Test
+    void testListarTodos_NullList() {
+        // Arrange
+        when(medicamentoRepository.listAll()).thenReturn(null);
+
+        // Act
+        List<Medicamento> result = medicamentoService.listarTodos();
+
+        // Assert
+        assertNull(result);
+        verify(medicamentoRepository).listAll();
+    }
+
+    @Test
     void testObtenerPorId_Success() {
         // Arrange
         when(medicamentoRepository.findById(1L)).thenReturn(testMedicamento);
@@ -92,6 +117,19 @@ class MedicamentoServiceTest {
     }
 
     @Test
+    void testObtenerPorId_WithNullId() {
+        // Arrange
+        when(medicamentoRepository.findById(null)).thenReturn(null);
+
+        // Act
+        Medicamento result = medicamentoService.obtenerPorId(null);
+
+        // Assert
+        assertNull(result);
+        verify(medicamentoRepository).findById(null);
+    }
+
+    @Test
     void testCrearMedicamento_Success() {
         // Arrange
         doNothing().when(medicamentoRepository).persist(any(Medicamento.class));
@@ -106,9 +144,21 @@ class MedicamentoServiceTest {
     }
 
     @Test
+    void testCrearMedicamento_WithNullMedicamento() {
+        // Arrange
+        doNothing().when(medicamentoRepository).persist(any(Medicamento.class));
+
+        // Act
+        Medicamento result = medicamentoService.crearMedicamento(null);
+
+        // Assert
+        assertNull(result);
+        verify(medicamentoRepository, never()).persist(any(Medicamento.class));
+    }
+
+    @Test
     void testActualizarMedicamento_Success() {
         // Arrange
-        Medicamento medicamentoNuevo = new Medicamento();
         when(medicamentoRepository.findById(1L)).thenReturn(testMedicamento);
 
         // Act
@@ -117,13 +167,17 @@ class MedicamentoServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(testMedicamento, result);
+        assertEquals("Ibuprofeno", testMedicamento.getPrincipioActivo());
+        assertEquals("400mg", testMedicamento.getConcentracion());
+        assertEquals("Cápsula", testMedicamento.getPresentacion());
+        assertEquals("Oral", testMedicamento.getFormaFarmaceutica());
+        assertEquals(0, testMedicamento.getVentaLibre()); // 0 = con receta
         verify(medicamentoRepository).findById(1L);
     }
 
     @Test
     void testActualizarMedicamento_NotFound() {
         // Arrange
-        Medicamento medicamentoNuevo = new Medicamento();
         when(medicamentoRepository.findById(999L)).thenReturn(null);
 
         // Act
@@ -132,6 +186,56 @@ class MedicamentoServiceTest {
         // Assert
         assertNull(result);
         verify(medicamentoRepository).findById(999L);
+    }
+
+    @Test
+    void testActualizarMedicamento_WithNullId() {
+        // Arrange
+        when(medicamentoRepository.findById(null)).thenReturn(null);
+
+        // Act
+        Medicamento result = medicamentoService.actualizarMedicamento(null, medicamentoNuevo);
+
+        // Assert
+        assertNull(result);
+        verify(medicamentoRepository).findById(null);
+    }
+
+    @Test
+    void testActualizarMedicamento_WithNullMedicamentoNuevo() {
+        // Arrange
+        when(medicamentoRepository.findById(1L)).thenReturn(testMedicamento);
+
+        // Act & Assert
+        // El servicio actual no maneja null, por lo que esto debería lanzar NullPointerException
+        assertThrows(NullPointerException.class, () -> {
+            medicamentoService.actualizarMedicamento(1L, null);
+        });
+        verify(medicamentoRepository).findById(1L);
+    }
+
+    @Test
+    void testActualizarMedicamento_WithPartialData() {
+        // Arrange
+        when(medicamentoRepository.findById(1L)).thenReturn(testMedicamento);
+        
+        Medicamento medicamentoParcial = new Medicamento();
+        medicamentoParcial.setPrincipioActivo("Aspirina");
+        medicamentoParcial.setConcentracion("100mg");
+        // Solo algunos campos están establecidos, otros serán null
+
+        // Act
+        Medicamento result = medicamentoService.actualizarMedicamento(1L, medicamentoParcial);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Aspirina", testMedicamento.getPrincipioActivo());
+        assertEquals("100mg", testMedicamento.getConcentracion());
+        // Los campos no establecidos se convierten en null
+        assertNull(testMedicamento.getPresentacion());
+        assertNull(testMedicamento.getFormaFarmaceutica());
+        assertNull(testMedicamento.getVentaLibre());
+        verify(medicamentoRepository).findById(1L);
     }
 
     @Test
@@ -158,5 +262,18 @@ class MedicamentoServiceTest {
         // Assert
         assertFalse(result);
         verify(medicamentoRepository).deleteById(999L);
+    }
+
+    @Test
+    void testEliminarMedicamento_WithNullId() {
+        // Arrange
+        when(medicamentoRepository.deleteById(null)).thenReturn(false);
+
+        // Act
+        boolean result = medicamentoService.eliminarMedicamento(null);
+
+        // Assert
+        assertFalse(result);
+        verify(medicamentoRepository).deleteById(null);
     }
 }
