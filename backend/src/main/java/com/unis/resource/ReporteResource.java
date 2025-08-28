@@ -216,6 +216,7 @@ public class ReporteResource {
         };
 
         return Response.ok(stream)
+                       .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
                        .header("Content-Disposition", "attachment; filename=\"Reporte.xlsx\"")
                        .build();
     }

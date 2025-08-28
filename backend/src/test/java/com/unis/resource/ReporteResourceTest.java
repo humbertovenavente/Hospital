@@ -669,4 +669,175 @@ class ReporteResourceTest {
         verify(doctorService, times(1)).getDoctorById(1L);
         verify(reporteService, times(1)).obtenerReporteAgregado(1L, testRequest.getFechaInicio(), testRequest.getFechaFin());
     }
+
+    @Test
+    void testDescargarReporteExcel_Agrupado_Success() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "AGRUPADO", "testuser");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+        assertNotNull(response.getHeaderString("Content-Disposition"));
+        assertTrue(response.getHeaderString("Content-Disposition").contains("attachment"));
+        assertTrue(response.getHeaderString("Content-Disposition").contains("Reporte.xlsx"));
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_Detallado_Success() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteDetallado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteDetallado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "DETALLADO", "testuser");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteDetallado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_WithNullUsuario() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "AGRUPADO", null);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_WithEmptyUsuario() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "AGRUPADO", "");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_DoctorNotFound() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.empty());
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "AGRUPADO", "testuser");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_WithEmptyReporte() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(Arrays.asList());
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-01-01", "2024-01-31", "AGRUPADO", "testuser");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31));
+    }
+
+    @Test
+    void testDescargarReporteExcel_WithDifferentDateFormats() {
+        // Arrange
+        when(doctorService.getDoctorById(1L)).thenReturn(Optional.of(testDoctor));
+        when(reporteService.obtenerReporteAgregado(anyLong(), any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(testReporteAgregado);
+
+        // Act
+        Response response = reporteResource.descargarReporteExcel(
+            1L, "2024-12-25", "2024-12-31", "AGRUPADO", "testuser");
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertNotNull(response.getMediaType());
+        assertEquals("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+                    response.getMediaType().toString());
+
+        // Verify service was called
+        verify(doctorService, times(1)).getDoctorById(1L);
+        verify(reporteService, times(1)).obtenerReporteAgregado(1L, 
+            LocalDate.of(2024, 12, 25), LocalDate.of(2024, 12, 31));
+    }
 }

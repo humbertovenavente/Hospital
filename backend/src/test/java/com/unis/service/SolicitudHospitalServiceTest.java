@@ -84,4 +84,184 @@ public class SolicitudHospitalServiceTest {
 
         verify(aseguradoraClient, times(1)).enviarSolicitud(any());
     }
+
+    /**
+     * Prueba que una solicitud con nombre null no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConNombreNull() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = null;
+        solicitud.direccion = "Zona 10";
+        solicitud.telefono = "12345678";
+        solicitud.aseguradora = "UnisSeguro";
+        solicitud.estado = "pendiente";
+        solicitud.origen = "Hospital";
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba que una solicitud con nombre vacío no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConNombreVacio() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = "";
+        solicitud.direccion = "Zona 10";
+        solicitud.telefono = "12345678";
+        solicitud.aseguradora = "UnisSeguro";
+        solicitud.estado = "pendiente";
+        solicitud.origen = "Hospital";
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba que una solicitud con dirección null no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConDireccionNull() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = "Hospital Central";
+        solicitud.direccion = null;
+        solicitud.telefono = "12345678";
+        solicitud.aseguradora = "UnisSeguro";
+        solicitud.estado = "pendiente";
+        solicitud.origen = "Hospital";
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba que una solicitud con teléfono null no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConTelefonoNull() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = "Hospital Central";
+        solicitud.direccion = "Zona 10";
+        solicitud.telefono = null;
+        solicitud.aseguradora = "UnisSeguro";
+        solicitud.estado = "pendiente";
+        solicitud.origen = "Hospital";
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba que una solicitud con aseguradora null no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConAseguradoraNull() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = "Hospital Central";
+        solicitud.direccion = "Zona 10";
+        solicitud.telefono = "12345678";
+        solicitud.aseguradora = null;
+        solicitud.estado = "pendiente";
+        solicitud.origen = "Hospital";
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba que una solicitud con solo algunos campos válidos no sea enviada.
+     */
+    @Test
+    public void testEnviarSolicitudConSoloAlgunosCamposValidos() {
+        SolicitudHospital solicitud = new SolicitudHospital();
+        solicitud.nombre = "Hospital Central";
+        solicitud.direccion = "Zona 10";
+        // telefono y aseguradora son null
+
+        solicitudService.enviarSolicitud(solicitud);
+
+        verify(aseguradoraClient, never()).enviarSolicitud(any());
+    }
+
+    /**
+     * Prueba el método actualizarEstado con estado válido.
+     */
+    @Test
+    public void testActualizarEstadoConEstadoValido() {
+        String id = "123";
+        String nuevoEstado = "Aseguradora Uno";
+
+        // Este método no tiene mocks, solo verifica que no lance excepción
+        solicitudService.actualizarEstado(id, nuevoEstado);
+        
+        // Si llegamos aquí sin excepción, el test pasa
+        assert true;
+    }
+
+    /**
+     * Prueba el método actualizarEstado con estado diferente.
+     */
+    @Test
+    public void testActualizarEstadoConEstadoDiferente() {
+        String id = "456";
+        String nuevoEstado = "PENDIENTE";
+
+        // Este método no tiene mocks, solo verifica que no lance excepción
+        solicitudService.actualizarEstado(id, nuevoEstado);
+        
+        // Si llegamos aquí sin excepción, el test pasa
+        assert true;
+    }
+
+    /**
+     * Prueba el método actualizarEstado con ID null.
+     */
+    @Test
+    public void testActualizarEstadoConIdNull() {
+        String id = null;
+        String nuevoEstado = "Aseguradora Uno";
+
+        // Este método no tiene mocks, solo verifica que no lance excepción
+        solicitudService.actualizarEstado(id, nuevoEstado);
+        
+        // Si llegamos aquí sin excepción, el test pasa
+        assert true;
+    }
+
+    /**
+     * Prueba el método actualizarEstado con estado null.
+     */
+    @Test
+    public void testActualizarEstadoConEstadoNull() {
+        String id = "789";
+        String nuevoEstado = null;
+
+        // Este método no tiene mocks, solo verifica que no lance excepción
+        solicitudService.actualizarEstado(id, nuevoEstado);
+        
+        // Si llegamos aquí sin excepción, el test pasa
+        assert true;
+    }
+
+    /**
+     * Prueba el método actualizarEstado con ID vacío.
+     */
+    @Test
+    public void testActualizarEstadoConIdVacio() {
+        String id = "";
+        String nuevoEstado = "Aseguradora TRES";
+
+        // Este método no tiene mocks, solo verifica que no lance excepción
+        solicitudService.actualizarEstado(id, nuevoEstado);
+        
+        // Si llegamos aquí sin excepción, el test pasa
+        assert true;
+    }
 }
