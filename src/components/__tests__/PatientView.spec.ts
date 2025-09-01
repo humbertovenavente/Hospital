@@ -20,7 +20,7 @@ describe('PatientView', () => {
   beforeEach(() => {
     // Limpiar mocks antes de cada test
     vi.clearAllMocks()
-    
+
     // Mock por defecto de fetch
     global.fetch = vi.fn()
   })
@@ -34,7 +34,7 @@ describe('PatientView', () => {
           }
         }
       })
-      
+
       expect(wrapper.find('h2').text()).toBe('Mis Recetas Médicas')
     })
 
@@ -46,7 +46,7 @@ describe('PatientView', () => {
           }
         }
       })
-      
+
       expect(wrapper.text()).toContain('Cargando recetas...')
     })
   })
@@ -121,7 +121,7 @@ describe('PatientView', () => {
   describe('Manejo de errores', () => {
     it('debe mostrar alerta cuando no hay ID de paciente', async () => {
       const alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {})
-      
+
       wrapper = mount(PatientView, {
         global: {
           mocks: {
@@ -141,7 +141,7 @@ describe('PatientView', () => {
       expect(alertSpy).toHaveBeenCalledWith(
         'ID del paciente no disponible. Asegúrate de iniciar sesión.'
       )
-      
+
       alertSpy.mockRestore()
     })
 
@@ -189,7 +189,7 @@ describe('PatientView', () => {
 
       const fecha = '2024-01-15'
       const fechaFormateada = wrapper.vm.formatFecha(fecha)
-      
+
       // La fecha se formatea según la zona horaria local, así que verificamos que contenga elementos básicos
       expect(fechaFormateada).toContain('enero')
       expect(fechaFormateada).toContain('2024')

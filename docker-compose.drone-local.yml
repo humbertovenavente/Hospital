@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Drone Server
+  drone-server:
+    image: drone/drone:2
+    container_name: drone-server-local
+    ports:
+      - "8001:80"
+    volumes:
+      - drone_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      # Configuración de Drone
+      - DRONE_GITHUB_CLIENT_ID=${DRONE_GITHUB_CLIENT_ID}
+      - DRONE_GITHUB_CLIENT_SECRET=${DRONE_GITHUB_CLIENT_SECRET}
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_SERVER_HOST=localhost:8001
+      - DRONE_SERVER_PROTO=http
+      - DRONE_USER_CREATE=username:humbertovenavente,admin:true
+      - DRONE_LOGS_DEBUG=true
+      - DRONE_LOGS_TRACE=true
+      # Configuración de Docker
+      - DRONE_DOCKER_ENABLED=true
+      - DRONE_DOCKER_HOST=unix:///var/run/docker.sock
+      # Configuración de ambientes
+      - DRONE_ENVIRONMENT=dev,qa,prod
+    restart: unless-stopped
+    networks:
+      - drone-network
+
+  # Drone Runner
+  drone-runner:
+    image: drone/drone-runner-docker:1
+    container_name: drone-runner-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_HOST=drone-server:80
+      - DRONE_RPC_SECRET=${DRONE_RPC_SECRET}
+      - DRONE_DEBUG=true
+      - DRONE_TRACE=true
+      # Configuración de Docker
+      - DRONE_DOCKER_ENABLED=true
+      - DRONE_DOCKER_HOST=unix:///var/run/docker.sock
+      # Límites de recursos
+      - DRONE_RUNNER_CAPACITY=3
+      - DRONE_RUNNER_LABELS=os:linux,arch:amd64
+    restart: unless-stopped
+    depends_on:
+      - drone-server
+    networks:
+      - drone-network
+
+volumes:
+  drone_data:
+    driver: local
+
+networks:
+  drone-network:
+    driver: bridge

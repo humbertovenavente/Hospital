@@ -1,0 +1,159 @@
+name: Drone CI/CD Pipeline
+
+on:
+  push:
+    branches: [ prod, QA, dev, feature/* ]
+  pull_request:
+    branches: [ prod, QA, dev ]
+
+jobs:
+  # Job para detectar ambiente
+  detect-environment:
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.detect.outputs.environment }}
+      docker-compose-file: ${{ steps.detect.outputs.docker-compose-file }}
+      port-prefix: ${{ steps.detect.outputs.port-prefix }}
+      db-port: ${{ steps.detect.outputs.db-port }}
+      node-env: ${{ steps.detect.outputs.node-env }}
+      log-level: ${{ steps.detect.outputs.log-level }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Detect environment
+        id: detect
+        run: |
+          case "${{ github.ref_name }}" in
+            prod)
+              echo "environment=prod" >> $GITHUB_OUTPUT
+              echo "docker-compose-file=docker-compose.prod.yml" >> $GITHUB_OUTPUT
+              echo "port-prefix=82" >> $GITHUB_OUTPUT
+              echo "db-port=1523" >> $GITHUB_OUTPUT
+              echo "node-env=production" >> $GITHUB_OUTPUT
+              echo "log-level=warn" >> $GITHUB_OUTPUT
+              ;;
+            QA)
+              echo "environment=qa" >> $GITHUB_OUTPUT
+              echo "docker-compose-file=docker-compose.qa.yml" >> $GITHUB_OUTPUT
+              echo "port-prefix=81" >> $GITHUB_OUTPUT
+              echo "db-port=1522" >> $GITHUB_OUTPUT
+              echo "node-env=qa" >> $GITHUB_OUTPUT
+              echo "log-level=info" >> $GITHUB_OUTPUT
+              ;;
+            dev|feature/*)
+              echo "environment=dev" >> $GITHUB_OUTPUT
+              echo "docker-compose-file=docker-compose.dev.yml" >> $GITHUB_OUTPUT
+              echo "port-prefix=80" >> $GITHUB_OUTPUT
+              echo "db-port=1521" >> $GITHUB_OUTPUT
+              echo "node-env=development" >> $GITHUB_OUTPUT
+              echo "log-level=debug" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "environment=dev" >> $GITHUB_OUTPUT
+              echo "docker-compose-file=docker-compose.dev.yml" >> $GITHUB_OUTPUT
+              echo "port-prefix=80" >> $GITHUB_OUTPUT
+              echo "db-port=1521" >> $GITHUB_OUTPUT
+              echo "node-env=development" >> $GITHUB_OUTPUT
+              echo "log-level=debug" >> $GITHUB_OUTPUT
+              ;;
+          esac
+          
+          echo "🔍 Ambiente detectado: ${{ steps.detect.outputs.environment }}"
+          echo "📋 Archivo Docker Compose: ${{ steps.detect.outputs.docker-compose-file }}"
+          echo "🌐 Puerto: ${{ steps.detect.outputs.port-prefix }}"
+          echo "🗄️ Puerto DB: ${{ steps.detect.outputs.db-port }}"
+
+  # Job principal de build y deploy
+  build-and-deploy:
+    needs: detect-environment
+    runs-on: ubuntu-latest
+    environment: ${{ needs.detect-environment.outputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          echo "📦 Instalando dependencias para ${{ needs.detect-environment.outputs.node-env }}..."
+          npm install
+      
+      - name: Run tests
+        run: |
+          echo "🧪 Ejecutando tests para ${{ needs.detect-environment.outputs.node-env }}..."
+          case "${{ needs.detect-environment.outputs.node-env }}" in
+            production)
+              npm run test:prod
+              ;;
+            qa)
+              npm run test:qa
+              ;;
+            *)
+              npm run test
+              ;;
+          esac
+      
+      - name: Build application
+        run: |
+          echo "🔨 Construyendo aplicación para ${{ needs.detect-environment.outputs.node-env }}..."
+          case "${{ needs.detect-environment.outputs.node-env }}" in
+            production)
+              npm run build:prod
+              ;;
+            qa)
+              npm run build:qa
+              ;;
+            *)
+              npm run build
+              ;;
+          esac
+      
+      - name: Build Docker image
+        run: |
+          echo "🐳 Construyendo imagen Docker..."
+          docker build -t hospital-backend:${{ needs.detect-environment.outputs.environment }} ./backend
+          docker tag hospital-backend:${{ needs.detect-environment.outputs.environment }} 34.10.223.20:5000/hospital/backend:${{ needs.detect-environment.outputs.environment }}
+      
+      - name: Deploy to environment
+        run: |
+          echo "🚀 Desplegando a ambiente ${{ needs.detect-environment.outputs.environment }}..."
+          docker-compose -f ${{ needs.detect-environment.outputs.docker-compose-file }} up -d
+      
+      - name: Health check
+        run: |
+          echo "🏥 Ejecutando health check..."
+          sleep 30
+          curl -f http://34.10.223.20:${{ needs.detect-environment.outputs.port-prefix }}/health || exit 1
+      
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Hospital app deployed to ${{ needs.detect-environment.outputs.environment }} environment (${{ github.ref_name }})"
+          # Aquí puedes agregar notificaciones a Slack, Discord, etc.
+
+  # Job para Oracle Database
+  oracle-database:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Backup database
+        run: |
+          echo "💾 Creando backup de base de datos..."
+          # Aquí irían los comandos para backup de Oracle
+      
+      - name: Deploy database changes
+        if: contains(github.ref_name, 'prod')
+        run: |
+          echo "🗄️ Desplegando cambios de base de datos..."
+          # Aquí irían los comandos para migraciones de Oracle

@@ -1,217 +1,371 @@
-# 🏥 Despliegue del Sistema Hospital en Google Cloud
+# Despliegue en Google Cloud Platform - 3 Contenedores Oracle
 
-Este documento explica cómo desplegar los contenedores del Sistema Hospital en Google Cloud Platform.
+Este proyecto despliega 3 contenedores Docker de Oracle Database en Google Cloud Platform, cada uno con su propia base de datos independiente, **usando tu imagen Docker existente** (`oracle_xe_con_datos.tar`).
 
-## 📋 Prerequisitos
+## Arquitectura
 
-- ✅ Google Cloud CLI instalado (`gcloud`)
-- ✅ Docker instalado y funcionando
-- ✅ Cuenta de servicio configurada con permisos adecuados
-- ✅ Proyecto de Google Cloud creado (`hospital-470223`)
-
-## 🔑 Configuración de Credenciales
-
-### 1. Archivo de Credenciales
-El archivo `hospital-credentials.json` ya está configurado con la cuenta de servicio:
-- **Proyecto**: `hospital-470223`
-- **Cuenta**: `hospital-deployer@hospital-470223.iam.gserviceaccount.com`
-- **Roles**: Storage Admin, Artifact Registry Admin
-
-### 2. Verificar Configuración
-```bash
-# Verificar que gcloud esté configurado
-gcloud config list
-
-# Verificar autenticación
-gcloud auth list
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Google Cloud Platform                    │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Instancia Compute Engine               │   │
+│  │                                                     │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐ │   │
+│  │  │ Oracle DB1  │  │ Oracle DB2  │  │ Oracle DB3  │ │   │
+│  │  │ Puerto 1521 │  │ Puerto 1522 │  │ Puerto 1523 │ │   │
+│  │  │ SID: DB1    │  │ SID: DB2    │  │ SID: DB3    │ │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘ │   │
+│  └─────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 🚀 Despliegue Automático
+## Requisitos Previos
 
-### Opción 1: Script Automático (Recomendado)
+1. **Google Cloud SDK** instalado y configurado
+2. **Cuenta de Google Cloud** con facturación habilitada
+3. **Permisos** para crear instancias de Compute Engine
+4. **Imagen Docker** Oracle en `/home/jose/Downloads/oracle_xe_con_datos/oracle_xe_con_datos.tar`
+
+## Instalación del Google Cloud SDK
+
 ```bash
-# Ejecutar el script de despliegue completo
-./deploy-to-gcp.sh
+# Descargar e instalar Google Cloud SDK
+curl https://sdk.cloud.google.com | bash
+exec -l $SHELL
+
+# Inicializar y autenticar
+gcloud init
+gcloud auth login
 ```
 
-Este script:
-- ✅ Verifica prerequisitos
-- ✅ Configura Google Cloud
-- ✅ Construye imágenes Docker
-- ✅ Sube contenedores a Google Cloud
-- ✅ Muestra información de despliegue
+## Configuración
 
-### Opción 2: Despliegue Manual
+### 1. Variables de Entorno (opcional)
+
+Puedes modificar las siguientes variables en `deploy-cloud.sh`:
+
 ```bash
-# 1. Autenticar con Google Cloud
-gcloud auth activate-service-account --key-file=hospital-credentials.json
-
-# 2. Configurar proyecto
-gcloud config set project hospital-470223
-
-# 3. Configurar Docker
-gcloud auth configure-docker
-
-# 4. Construir frontend
-docker build -f Dockerfile.frontend -t hospital-frontend:v1.0.0 .
-docker tag hospital-frontend:v1.0.0 gcr.io/hospital-470223/hospital-frontend:v1.0.0
-
-# 5. Construir backend (requiere JAR compilado)
-docker build -f Dockerfile -t hospital-backend:v1.0.0 .
-docker tag hospital-backend:v1.0.0 gcr.io/hospital-470223/hospital-backend:v1.0.0
-
-# 6. Subir imágenes
-docker push gcr.io/hospital-470223/hospital-frontend:v1.0.0
-docker push gcr.io/hospital-470223/hospital-backend:v1.0.0
+PROJECT_NAME="oracle-multi-db"    # Nombre del proyecto GCP
+REGION="us-central1"              # Región de GCP
+ZONE="us-central1-a"              # Zona específica
+MACHINE_TYPE="e2-standard-4"      # Tipo de máquina
+DISK_SIZE="50GB"                  # Tamaño del disco
 ```
 
-## 🐳 Ejecutar Contenedores
+### 2. Configurar el Proyecto
 
-### Desde Google Cloud
 ```bash
-# Frontend
-docker run -p 80:80 gcr.io/hospital-470223/hospital-frontend:v1.0.0
-
-# Backend
-docker run -p 8080:8080 gcr.io/hospital-470223/hospital-backend:v1.0.0
-```
-
-### Con Docker Compose
-```bash
-# Usar el archivo que incluye imágenes de Google Cloud
-docker-compose -f docker-compose.gcp.yml up -d
-```
-
-## 📊 Monitoreo y Logs
-
-### Ver Logs de Contenedores
-```bash
-# Frontend
-docker logs hospital-frontend-gcp
-
-# Backend
-docker logs hospital-backend-gcp
-```
-
-### Verificar Estado
-```bash
-# Estado de contenedores
-docker ps -a
-
-# Información de imágenes
-docker images | grep hospital
-```
-
-## 🔧 Configuración Avanzada
-
-### Variables de Entorno
-- `NODE_ENV`: Entorno del frontend (dev/prod)
-- `JAVA_OPTS`: Opciones de JVM para el backend
-- `QUARKUS_PROFILE`: Perfil de Quarkus
-
-### Puertos
-- **Frontend**: 80 (HTTP)
-- **Backend**: 8080 (HTTP)
-- **Base de Datos**: 1521 (Oracle)
-
-### Redes
-- **Subnet**: 172.20.0.0/16
-- **Driver**: bridge
-
-## 🚨 Solución de Problemas
-
-### Error: "No se pudo autenticar"
-```bash
-# Verificar archivo de credenciales
-cat hospital-credentials.json
-
-# Reautenticar
-gcloud auth activate-service-account --key-file=hospital-credentials.json
-```
-
-### Error: "Proyecto no encontrado"
-```bash
-# Verificar proyecto configurado
+# Verificar el proyecto actual
 gcloud config get-value project
 
-# Configurar proyecto correcto
-gcloud config set project hospital-470223
+# Cambiar a tu proyecto existente (si ya tienes uno)
+gcloud config set project TU_PROYECTO_EXISTENTE
 ```
 
-### Error: "Docker no puede autenticarse"
+## Uso Local (Antes de subir a la nube)
+
+### 1. Cargar la Imagen Docker
+
 ```bash
-# Reconfigurar Docker
-gcloud auth configure-docker
-
-# Verificar configuración
-cat ~/.docker/config.json
+# Cargar tu imagen Oracle existente
+./load-image.sh
 ```
 
-### Error: "JAR del backend no encontrado"
+### 2. Ejecutar Contenedores Localmente
+
 ```bash
-# Construir proyecto Java primero
-cd backend
-mvn clean package -DskipTests
-cd ..
+# Iniciar los 3 contenedores
+./run-local.sh start
+
+# Ver estado
+./run-local.sh status
+
+# Detener contenedores
+./run-local.sh stop
 ```
 
-## 📈 Escalabilidad
+### 3. Verificar Funcionamiento
 
-### Kubernetes (GKE)
-Para producción, considera usar Google Kubernetes Engine:
 ```bash
-# Crear cluster GKE
-gcloud container clusters create hospital-cluster \
-  --zone=us-central1-a \
-  --num-nodes=3 \
-  --machine-type=e2-medium
+# Ver contenedores en ejecución
+docker-compose ps
 
-# Desplegar con kubectl
-kubectl apply -f k8s/
+# Ver logs
+docker-compose logs -f
+
+# Conectar a una base de datos
+sqlplus system/Oracle123@localhost:1521/DB1
 ```
 
-### Cloud Run
-Para serverless:
+## Despliegue en Google Cloud
+
+### Despliegue Automático
+
 ```bash
-# Desplegar frontend
-gcloud run deploy hospital-frontend \
-  --image gcr.io/hospital-470223/hospital-frontend:latest \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
+# Dar permisos de ejecución
+chmod +x deploy-cloud.sh
+
+# Ejecutar el despliegue
+./deploy-cloud.sh deploy
 ```
 
-## 🔒 Seguridad
+### Despliegue Manual
 
-### Buenas Prácticas
-- ✅ Usar cuentas de servicio con permisos mínimos
-- ✅ Rotar claves regularmente
-- ✅ Usar imágenes escaneadas
-- ✅ Implementar health checks
-- ✅ Configurar logs centralizados
+Si prefieres hacerlo paso a paso:
 
-### IAM Roles Recomendados
-- **Storage Admin**: Para Container Registry
-- **Artifact Registry Admin**: Para Artifact Registry
-- **Cloud Build Editor**: Para builds automatizados
+```bash
+# 1. Crear proyecto (opcional)
+gcloud projects create oracle-multi-db --name="Oracle Multi Database"
 
-## 📞 Soporte
+# 2. Configurar proyecto
+gcloud config set project oracle-multi-db
 
-Si encuentras problemas:
-1. Verifica los logs del script
-2. Revisa la configuración de Google Cloud
-3. Verifica permisos de la cuenta de servicio
-4. Consulta la documentación oficial de Google Cloud
+# 3. Habilitar APIs
+gcloud services enable compute.googleapis.com
+gcloud services enable container.googleapis.com
 
-## 🎯 Próximos Pasos
+# 4. Crear instancia
+gcloud compute instances create oracle-multi-db \
+    --zone=us-central1-a \
+    --machine-type=e2-standard-4 \
+    --image-family=ubuntu-2004-lts \
+    --image-project=ubuntu-os-cloud \
+    --boot-disk-size=50GB
 
-- [ ] Configurar CI/CD con Cloud Build
-- [ ] Implementar monitoreo con Cloud Monitoring
-- [ ] Configurar backups automáticos
-- [ ] Implementar blue-green deployments
-- [ ] Configurar alertas y notificaciones
+# 5. Copiar archivos del proyecto
+gcloud compute scp --recurse . oracle-multi-db:~/oracle-project --zone=us-central1-a
 
----
+# 6. Copiar imagen Docker
+gcloud compute scp /home/jose/Downloads/oracle_xe_con_datos/oracle_xe_con_datos.tar oracle-multi-db:~/oracle-project/ --zone=us-central1-a
 
-**¡Feliz despliegue! 🚀**
+# 7. Conectar y ejecutar
+gcloud compute ssh oracle-multi-db --zone=us-central1-a
+cd ~/oracle-project
+chmod +x load-image.sh
+./load-image.sh
+docker-compose up -d
+```
 
+## Estructura de Archivos
+
+```
+oracle-multi-db/
+├── docker-compose.yml           # Orquestación de contenedores
+├── load-image.sh                # Script para cargar imagen Docker
+├── run-local.sh                 # Script para ejecutar localmente
+├── deploy-cloud.sh              # Script de despliegue en GCP
+├── scripts/
+│   ├── setup/
+│   │   └── extract_data.sh      # Extracción de datos (opcional)
+│   └── startup/
+│       ├── runOracle.sh         # Script de inicio (opcional)
+│       └── healthcheck.sql      # Verificación de salud
+└── data/
+    ├── db1/                     # Datos para DB1
+    ├── db2/                     # Datos para DB2
+    └── db3/                     # Datos para DB3
+```
+
+## Acceso a las Bases de Datos
+
+### Desde la Instancia Local
+
+```bash
+# Verificar estado de contenedores
+./run-local.sh status
+
+# Ver logs
+docker-compose logs -f oracle-db1
+docker-compose logs -f oracle-db2
+docker-compose logs -f oracle-db3
+```
+
+### Conexión a las Bases de Datos
+
+```bash
+# DB1 (Puerto 1521)
+sqlplus system/Oracle123@localhost:1521/DB1
+
+# DB2 (Puerto 1522)
+sqlplus system/Oracle123@localhost:1522/DB2
+
+# DB3 (Puerto 1523)
+sqlplus system/Oracle123@localhost:1523/DB3
+```
+
+### Desde la Instancia GCP
+
+```bash
+# Conectar a la instancia GCP
+gcloud compute ssh oracle-multi-db --zone=us-central1-a
+
+# Verificar estado de contenedores
+docker-compose ps
+
+# Ver logs
+docker-compose logs -f oracle-db1
+docker-compose logs -f oracle-db2
+docker-compose logs -f oracle-db3
+```
+
+## Monitoreo y Mantenimiento
+
+### Verificar Estado de Salud
+
+```bash
+# Verificar healthcheck de todos los contenedores
+docker-compose ps
+
+# Ver logs en tiempo real
+docker-compose logs -f
+
+# Ver logs de un contenedor específico
+docker-compose logs -f oracle-db1
+```
+
+### Backup y Restauración
+
+```bash
+# Crear backup de una base de datos
+docker exec oracle-db1 expdp system/Oracle123@DB1 \
+    directory=DATA_PUMP_DIR \
+    dumpfile=backup_$(date +%Y%m%d).dmp \
+    schemas=TU_SCHEMA
+
+# Restaurar desde backup
+docker exec oracle-db1 impdp system/Oracle123@DB1 \
+    directory=DATA_PUMP_DIR \
+    dumpfile=backup_20241201.dmp \
+    schemas=TU_SCHEMA
+```
+
+## Solución de Problemas
+
+### Problemas Comunes
+
+1. **Error de permisos**: Verificar que el usuario tenga permisos de Compute Engine
+2. **Puerto ocupado**: Verificar que los puertos 1521-1523 estén disponibles
+3. **Memoria insuficiente**: Aumentar el tipo de máquina en `deploy-cloud.sh`
+4. **Disco lleno**: Aumentar el tamaño del disco en `deploy-cloud.sh`
+5. **Imagen no encontrada**: Ejecutar `./load-image.sh` antes de `docker-compose up`
+
+### Logs de Depuración
+
+```bash
+# Ver logs detallados de Docker
+docker-compose logs --tail=100 oracle-db1
+
+# Ver logs del sistema (en GCP)
+gcloud compute ssh oracle-multi-db --zone=us-central1-a --command="journalctl -u docker"
+
+# Ver uso de recursos (en GCP)
+gcloud compute ssh oracle-multi-db --zone=us-central1-a --command="htop"
+```
+
+## Costos Estimados
+
+### Google Cloud Platform
+
+- **Instancia e2-standard-4**: ~$0.15/hora (~$110/mes)
+- **Disco de 50GB**: ~$0.08/GB/mes (~$4/mes)
+- **Transferencia de datos**: Variable según uso
+- **Total estimado**: ~$120-150/mes
+
+### Optimización de Costos
+
+```bash
+# Detener instancia cuando no se use
+gcloud compute instances stop oracle-multi-db --zone=us-central1-a
+
+# Iniciar cuando se necesite
+gcloud compute instances start oracle-multi-db --zone=us-central1-a
+
+# Usar instancias preemptibles para desarrollo (más baratas)
+gcloud compute instances create oracle-multi-db-dev \
+    --preemptible \
+    --zone=us-central1-a \
+    --machine-type=e2-standard-2
+```
+
+## Seguridad
+
+### Configuraciones Recomendadas
+
+1. **Firewall**: Solo abrir puertos necesarios (1521-1523)
+2. **Contraseñas**: Cambiar `Oracle123` por contraseñas seguras
+3. **Redes**: Usar VPC privada para bases de datos sensibles
+4. **Backup**: Configurar backup automático en Cloud Storage
+
+### Configurar Firewall
+
+```bash
+# Crear regla de firewall para Oracle
+gcloud compute firewall-rules create oracle-db \
+    --allow tcp:1521-1523 \
+    --source-ranges=0.0.0.0/0 \
+    --description="Oracle Database ports"
+
+# Restringir a IPs específicas (recomendado)
+gcloud compute firewall-rules create oracle-db-secure \
+    --allow tcp:1521-1523 \
+    --source-ranges=TU_IP_PUBLICA/32 \
+    --description="Oracle Database ports (restricted)"
+```
+
+## Comandos Útiles
+
+```bash
+# Ver instancias en ejecución
+gcloud compute instances list
+
+# Ver información de la instancia
+gcloud compute instances describe oracle-multi-db --zone=us-central1-a
+
+# Reiniciar instancia
+gcloud compute instances reset oracle-multi-db --zone=us-central1-a
+
+# Eliminar instancia (¡CUIDADO!)
+gcloud compute instances delete oracle-multi-db --zone=us-central1-a
+
+# Ver logs de la instancia
+gcloud compute instances get-serial-port-output oracle-multi-db --zone=us-central1-a
+```
+
+## Flujo de Trabajo Recomendado
+
+### 1. Prueba Local
+```bash
+# Cargar imagen y probar localmente
+./load-image.sh
+./run-local.sh start
+./run-local.sh status
+```
+
+### 2. Despliegue en GCP
+```bash
+# Una vez que funcione localmente, desplegar en la nube
+./deploy-cloud.sh deploy
+```
+
+### 3. Verificación en GCP
+```bash
+# Conectar y verificar
+gcloud compute ssh oracle-multi-db --zone=us-central1-a
+docker-compose ps
+```
+
+## Soporte
+
+Para problemas específicos:
+
+1. **Google Cloud**: [Documentación oficial](https://cloud.google.com/docs)
+2. **Oracle Docker**: [Documentación oficial](https://docs.oracle.com/en/database/oracle/oracle-database/19/multi/)
+3. **Docker Compose**: [Documentación oficial](https://docs.docker.com/compose/)
+
+## Próximos Pasos
+
+1. **Monitoreo**: Configurar Cloud Monitoring para métricas de base de datos
+2. **Backup**: Configurar backup automático en Cloud Storage
+3. **Escalabilidad**: Implementar balanceador de carga si es necesario
+4. **Seguridad**: Configurar VPC privada y Cloud Armor

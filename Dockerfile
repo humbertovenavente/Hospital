@@ -1,25 +1,39 @@
-# Dockerfile para el backend del Hospital
-FROM registry.access.redhat.com/ubi8/openjdk-17:1.18
+FROM oraclelinux:8-slim
 
-# Metadatos
-LABEL maintainer="Hospital Team"
-LABEL version="1.0"
-LABEL description="Backend del Sistema Hospital"
+# Variables de entorno para Oracle
+ENV ORACLE_BASE=/opt/oracle
+ENV ORACLE_HOME=/opt/oracle/product/19c/dbhomeXE
+ENV ORACLE_SID=XE
+ENV PATH=$ORACLE_HOME/bin:$PATH
+ENV LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
 
-# Crear directorio de trabajo
-WORKDIR /app
+# Instalar dependencias
+RUN dnf update -y && \
+    dnf install -y oracle-database-preinstall-19c \
+                   oracle-instantclient-19c-basic \
+                   oracle-instantclient-19c-sqlplus \
+                   wget \
+                   unzip \
+                   tar \
+                   gzip \
+                   && dnf clean all
 
-# Copiar el archivo JAR del proyecto
-COPY backend/target/quarkus-app/lib/ /app/lib/
-COPY backend/target/quarkus-app/quarkus-run.jar /app/quarkus-run.jar
-COPY backend/target/quarkus-app/app/ /app/app/
-COPY backend/target/quarkus-app/quarkus/ /app/quarkus/
+# Crear directorios necesarios
+RUN mkdir -p $ORACLE_BASE && \
+    mkdir -p $ORACLE_HOME && \
+    mkdir -p /opt/oracle/scripts/startup && \
+    mkdir -p /opt/oracle/scripts/setup
 
-# Exponer puerto
-EXPOSE 8080
+# Copiar scripts de configuración
+COPY scripts/setup/* /opt/oracle/scripts/setup/
+COPY scripts/startup/* /opt/oracle/scripts/startup/
 
-# Variables de entorno
-ENV JAVA_OPTS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+# Dar permisos de ejecución
+RUN chmod +x /opt/oracle/scripts/startup/* && \
+    chmod +x /opt/oracle/scripts/setup/*
 
-# Comando para ejecutar la aplicación
-CMD ["java", "-jar", "quarkus-run.jar"] 
+# Puerto por defecto
+EXPOSE 1521
+
+# Comando de inicio
+CMD ["/opt/oracle/scripts/startup/runOracle.sh"] 

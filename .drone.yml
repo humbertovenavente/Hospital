@@ -1,0 +1,352 @@
+# ========================================
+# PIPELINE CI/CD HOSPITAL - 11 PASOS
+# ========================================
+# Pipeline que sigue el flujo exacto de Jenkins
+# con 11 pasos secuenciales
+
+# Variables globales
+---
+kind: pipeline
+type: docker
+name: global-config
+steps:
+  - name: detect-environment
+    image: alpine:latest
+    commands:
+      - echo "🔍 Detectando ambiente basado en rama: ${DRONE_BRANCH}"
+      - |
+        case "${DRONE_BRANCH}" in
+          prod)
+            echo "ENVIRONMENT=prod" >> /tmp/env
+            echo "DOCKER_COMPOSE_FILE=docker-compose.prod.yml" >> /tmp/env
+            echo "PORT_PREFIX=82" >> /tmp/env
+            echo "DB_PORT=1523" >> /tmp/env
+            echo "NODE_ENV=production" >> /tmp/env
+            echo "LOG_LEVEL=warn" >> /tmp/env
+            ;;
+          QA)
+            echo "ENVIRONMENT=qa" >> /tmp/env
+            echo "DOCKER_COMPOSE_FILE=docker-compose.qa.yml" >> /tmp/env
+            echo "PORT_PREFIX=81" >> /tmp/env
+            echo "DB_PORT=1522" >> /tmp/env
+            echo "NODE_ENV=qa" >> /tmp/env
+            echo "LOG_LEVEL=info" >> /tmp/env
+            ;;
+          dev|feature/*)
+            echo "ENVIRONMENT=dev" >> /tmp/env
+            echo "DOCKER_COMPOSE_FILE=docker-compose.dev.yml" >> /tmp/env
+            echo "PORT_PREFIX=80" >> /tmp/env
+            echo "DB_PORT=1521" >> /tmp/env
+            echo "NODE_ENV=development" >> /tmp/env
+            echo "LOG_LEVEL=debug" >> /tmp/env
+            ;;
+          *)
+            echo "ENVIRONMENT=dev" >> /tmp/env
+            echo "DOCKER_COMPOSE_FILE=docker-compose.dev.yml" >> /tmp/env
+            echo "PORT_PREFIX=80" >> /tmp/env
+            echo "DB_PORT=1521" >> /tmp/env
+            echo "NODE_ENV=development" >> /tmp/env
+            echo "LOG_LEVEL=debug" >> /tmp/env
+            ;;
+        esac
+      - echo "📋 Configuración detectada:"
+      - cat /tmp/env
+    volumes:
+      - name: env-config
+        path: /tmp
+
+# Pipeline principal con 11 pasos
+---
+kind: pipeline
+type: docker
+name: hospital-pipeline
+depends_on: [global-config]
+
+# Configuración del workspace
+workspace:
+  base: /drone/src
+  path: .
+
+# Variables de entorno
+environment:
+  DOCKER_REGISTRY: 34.10.223.20:5000
+  PROJECT_NAME: hospital
+  ENVIRONMENT: dev
+  DOCKER_COMPOSE_FILE: docker-compose.dev.yml
+  PORT_PREFIX: 80
+  DB_PORT: 1521
+  NODE_ENV: development
+  LOG_LEVEL: debug
+
+steps:
+  # PASO 1: Setup Environment
+  - name: setup-environment
+    image: alpine:latest
+    commands:
+      - echo "🔧 PASO 1: Setup Environment"
+      - source /tmp/env
+      - echo "ENVIRONMENT=$ENVIRONMENT" >> /drone/src/.env
+      - echo "DOCKER_COMPOSE_FILE=$DOCKER_COMPOSE_FILE" >> /drone/src/.env
+      - echo "PORT_PREFIX=$PORT_PREFIX" >> /drone/src/.env
+      - echo "DB_PORT=$DB_PORT" >> /drone/src/.env
+      - echo "NODE_ENV=$NODE_ENV" >> /drone/src/.env
+      - echo "LOG_LEVEL=$LOG_LEVEL" >> /drone/src/.env
+      - echo "📋 Configuración cargada:"
+      - cat /drone/src/.env
+      - echo "✅ Setup Environment completado"
+    volumes:
+      - name: env-config
+        path: /tmp
+
+  # PASO 2: Build Backend
+  - name: build-backend
+    image: node:18-alpine
+    commands:
+      - echo "🔨 PASO 2: Build Backend"
+      - cd backend
+      - npm install
+      - |
+        case "${NODE_ENV}" in
+          production)
+            npm run build:prod
+            ;;
+          qa)
+            npm run build:qa
+            ;;
+          *)
+            npm run build
+            ;;
+        esac
+      - echo "✅ Build Backend completado"
+    depends_on: [setup-environment]
+
+  # PASO 3: Unit Tests Backend
+  - name: unit-tests-backend
+    image: node:18-alpine
+    commands:
+      - echo "🧪 PASO 3: Unit Tests Backend"
+      - cd backend
+      - npm install
+      - |
+        case "${NODE_ENV}" in
+          production)
+            npm run test:prod
+            ;;
+          qa)
+            npm run test:qa
+            ;;
+          *)
+            npm run test
+            ;;
+        esac
+      - echo "✅ Unit Tests Backend completados"
+    depends_on: [build-backend]
+
+  # PASO 4: Code Quality Check
+  - name: code-quality-check
+    image: sonarqube:latest
+    commands:
+      - echo "🔍 PASO 4: Code Quality Check"
+      - |
+        sonar-scanner \
+          -Dsonar.projectKey=hospital-${ENVIRONMENT} \
+          -Dsonar.sources=./backend \
+          -Dsonar.host.url=${SONAR_HOST_URL} \
+          -Dsonar.login=${SONAR_TOKEN} \
+          -Dsonar.branch.name=${DRONE_BRANCH}
+      - echo "✅ Code Quality Check completado"
+    environment:
+      SONAR_TOKEN: ${SONAR_TOKEN}
+      SONAR_HOST_URL: ${SONAR_HOST_URL}
+    depends_on: [unit-tests-backend]
+
+  # PASO 5: Build Frontend
+  - name: build-frontend
+    image: node:18-alpine
+    commands:
+      - echo "🎨 PASO 5: Build Frontend"
+      - cd frontend
+      - npm install
+      - |
+        case "${NODE_ENV}" in
+          production)
+            npm run build:prod
+            ;;
+          qa)
+            npm run build:qa
+            ;;
+          *)
+            npm run build
+            ;;
+        esac
+      - echo "✅ Build Frontend completado"
+    depends_on: [code-quality-check]
+
+  # PASO 6: Unit Tests Frontend
+  - name: unit-tests-frontend
+    image: node:18-alpine
+    commands:
+      - echo "🧪 PASO 6: Unit Tests Frontend"
+      - cd frontend
+      - npm install
+      - npm run test
+      - echo "✅ Unit Tests Frontend completados"
+    depends_on: [build-frontend]
+
+  # PASO 7: Integration Tests
+  - name: integration-tests
+    image: cypress/included:latest
+    commands:
+      - echo "🔗 PASO 7: Integration Tests"
+      - npm install
+      - npm run test:integration
+      - echo "✅ Integration Tests completados"
+    depends_on: [unit-tests-frontend]
+
+  # PASO 8: Build Docker Images
+  - name: build-docker-images
+    image: plugins/docker
+    settings:
+      registry: ${DOCKER_REGISTRY}
+      repo: ${DOCKER_REGISTRY}/${PROJECT_NAME}/backend
+      tags: [${ENVIRONMENT}, latest-${ENVIRONMENT}, v${DRONE_BUILD_NUMBER}]
+      dockerfile: Dockerfile
+      context: ./backend
+      build_args:
+        - NODE_ENV=${NODE_ENV}
+        - LOG_LEVEL=${LOG_LEVEL}
+    depends_on: [integration-tests]
+
+  # PASO 9: Deploy to Development
+  - name: deploy-to-development
+    image: plugins/docker-compose
+    settings:
+      config: docker-compose.dev.yml
+      environment: dev
+      compose_file: docker-compose.dev.yml
+    environment:
+      NODE_ENV: development
+      DB_PORT: 1521
+      LOG_LEVEL: debug
+    when:
+      branch: [dev, feature/*]
+    depends_on: [build-docker-images]
+
+  # PASO 10: Deploy to QA
+  - name: deploy-to-qa
+    image: plugins/docker-compose
+    settings:
+      config: docker-compose.qa.yml
+      environment: qa
+      compose_file: docker-compose.qa.yml
+    environment:
+      NODE_ENV: qa
+      DB_PORT: 1522
+      LOG_LEVEL: info
+    when:
+      branch: [QA]
+    depends_on: [build-docker-images]
+
+  # PASO 11: Deploy to Production
+  - name: deploy-to-production
+    image: plugins/docker-compose
+    settings:
+      config: docker-compose.prod.yml
+      environment: prod
+      compose_file: docker-compose.prod.yml
+    environment:
+      NODE_ENV: production
+      DB_PORT: 1523
+      LOG_LEVEL: warn
+    when:
+      branch: [prod]
+    depends_on: [build-docker-images]
+
+  # Health check final
+  - name: health-check
+    image: curlimages/curl
+    commands:
+      - echo "🏥 Ejecutando health check final..."
+      - sleep 30
+      - curl -f http://34.10.223.20:${PORT_PREFIX}/health || exit 1
+      - echo "✅ Health check exitoso"
+    depends_on: [deploy-to-development, deploy-to-qa, deploy-to-production]
+
+  # Análisis con Grok AI (solo para producción)
+  - name: grok-analysis
+    image: curlimages/curl
+    commands:
+      - echo "🤖 Ejecutando análisis con Grok AI..."
+      - |
+        curl -X POST "${GROK_BASE_URL}/chat/completions" \
+          -H "Authorization: Bearer ${GROK_API_KEY}" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "model": "llama-3.1-70b-versatile",
+            "messages": [
+              {
+                "role": "system",
+                "content": "Eres un asistente de análisis de código. Analiza el deployment y proporciona recomendaciones."
+              },
+              {
+                "role": "user",
+                "content": "Deployment completado en ambiente '${ENVIRONMENT}' para rama '${DRONE_BRANCH}'. Proporciona un resumen y recomendaciones."
+              }
+            ],
+            "max_tokens": 500
+          }' > grok_analysis.json
+      - echo "📊 Análisis de Grok completado"
+      - cat grok_analysis.json
+    environment:
+      GROK_API_KEY: ${GROK_API_KEY}
+      GROK_BASE_URL: ${GROK_BASE_URL}
+    when:
+      branch: [prod]
+    depends_on: [deploy-to-production]
+
+  # Notificación final
+  - name: notify-deployment
+    image: plugins/slack
+    settings:
+      webhook: ${SLACK_WEBHOOK}
+      channel: deployments
+      message: "🚀 Hospital app deployed to ${ENVIRONMENT^^} environment (${DRONE_BRANCH}) - Pipeline completado exitosamente"
+    when:
+      status: success
+    depends_on: [health-check, grok-analysis]
+
+# Pipeline para Oracle Database (se ejecuta en paralelo)
+---
+kind: pipeline
+type: docker
+name: oracle-database
+depends_on: []
+
+steps:
+  # Backup de base de datos
+  - name: backup-database
+    image: oracle/database:19.3.0-ee
+    commands:
+      - echo "💾 Creando backup de base de datos..."
+      - expdp system/Oracle123@DB1 directory=DATA_PUMP_DIR dumpfile=backup_${DRONE_BUILD_NUMBER}.dmp schemas=HOSPITAL
+    when:
+      event: [push, pull_request]
+
+  # Deploy de cambios de base de datos
+  - name: deploy-database-changes
+    image: oracle/database:19.3.0-ee
+    commands:
+      - echo "🗄️ Desplegando cambios de base de datos..."
+      - sqlplus system/Oracle123@DB1 @database/migrations/001_initial_schema.sql
+    when:
+      branch: [prod]
+
+# Configuración de triggers
+trigger:
+  branch: [prod, QA, dev, feature/*]
+  event: [push, pull_request, tag]
+
+# Volúmenes compartidos
+volumes:
+  - name: env-config
+    temp: {}

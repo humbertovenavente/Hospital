@@ -32,3 +32,11 @@ coverage
 test-results/
 playwright-report/
 hospital-credentials.json
+drone-local.env
+drone.env
+*.env
+.env.*
+**/drone.env
+**/drone-local.env
+**/.env
+**/.env.*

@@ -1,59 +1,89 @@
+version: '3.8'
+
 services:
-  # Base de datos Oracle - Comentado porque ya existe un contenedor
-  # oracle:
-  #   image: oracle-xe-con-datos:latest
-  #   container_name: oracle-xe
-  #   environment:
-  #     ORACLE_PWD: Unis
-  #     ORACLE_CHARACTERSET: AL32UTF8
-  #   ports:
-  #     - "1524:1521"  # Mapeo del puerto 1524 externo al 1521 interno
-  #   volumes:
-  #     - oracle_data:/opt/oracle/oradata
-  #     - ./setup-oracle-users.sql:/opt/oracle/scripts/startup/setup-oracle-users.sql
-  #   healthcheck:
-  #     test: ["CMD", "sqlplus", "-L", "sys/Unis@//localhost:1521/XEPDB1", "AS", "SYSDBA", "@healthcheck.sql"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 5
-  #   networks:
-  #     - hospital-network
-
-  # Backend del Hospital
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: hospital-backend-prod
-    ports:
-      - "8060:8080"
-    # depends_on:
-    #   oracle:
-    #     condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - hospital-network
-
-  # Frontend del Hospital
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: hospital-frontend-prod
+  oracle-db1:
+    image: oracle_xe_con_datos:latest
+    container_name: oracle-db1
     environment:
-      VITE_API_URL: http://localhost:8060
-      NODE_ENV: production
+      - ORACLE_SID=DB1
+      - ORACLE_PWD=Oracle123
+      - ORACLE_CHARACTERSET=AL32UTF8
+      - ORACLE_NLS_LANG=AMERICAN_AMERICA.AL32UTF8
     ports:
-      - "5176:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
+      - "1521:1521"
+    volumes:
+      - oracle_data1:/opt/oracle/oradata
+      - oracle_backup1:/opt/oracle/backup
+      - ./data/db1:/opt/oracle/import
     networks:
-      - hospital-network
+      - oracle-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "system/Oracle123@localhost:1521/DB1", "AS", "SYSDBA", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
-# volumes:
-#   oracle_data:
+  oracle-db2:
+    image: oracle_xe_con_datos:latest
+    container_name: oracle-db2
+    environment:
+      - ORACLE_SID=DB2
+      - ORACLE_PWD=Oracle123
+      - ORACLE_CHARACTERSET=AL32UTF8
+      - ORACLE_NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+    ports:
+      - "1522:1521"
+    volumes:
+      - oracle_data2:/opt/oracle/oradata
+      - oracle_backup2:/opt/oracle/backup
+      - ./data/db2:/opt/oracle/import
+    networks:
+      - oracle-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "system/Oracle123@localhost:1521/DB2", "AS", "SYSDBA", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  oracle-db3:
+    image: oracle_xe_con_datos:latest
+    container_name: oracle-db3
+    environment:
+      - ORACLE_SID=DB3
+      - ORACLE_PWD=Oracle123
+      - ORACLE_CHARACTERSET=AL32UTF8
+      - ORACLE_NLS_LANG=AMERICAN_AMERICA.AL32UTF8
+    ports:
+      - "1523:1521"
+    volumes:
+      - oracle_data3:/opt/oracle/oradata
+      - oracle_backup3:/opt/oracle/backup
+      - ./data/db3:/opt/oracle/import
+    networks:
+      - oracle-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "sqlplus", "-L", "system/Oracle123@localhost:1521/DB3", "AS", "SYSDBA", "@healthcheck.sql"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  oracle_data1:
+    driver: local
+  oracle_data2:
+    driver: local
+  oracle_data3:
+    driver: local
+  oracle_backup1:
+    driver: local
+  oracle_backup2:
+    driver: local
+  oracle_backup3:
+    driver: local
 
 networks:
-  hospital-network:
+  oracle-network:
     driver: bridge
