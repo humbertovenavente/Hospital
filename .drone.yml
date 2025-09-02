@@ -29,10 +29,10 @@ steps:
 - name: test-backend
   image: openjdk:17-jdk-slim
   environment:
-    - JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom
-    - MAVEN_OPTS=-Xmx1024m -XX:MaxPermSize=256m
-    - SPRING_PROFILES_ACTIVE=test
-    - QUARKUS_PROFILE=test
+    JAVA_OPTS: "-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+    MAVEN_OPTS: "-Xmx1024m -XX:MaxPermSize=256m"
+    SPRING_PROFILES_ACTIVE: "test"
+    QUARKUS_PROFILE: "test"
   commands:
   - echo "Installing dependencies..."
   - apt-get update && apt-get install -y fontconfig fonts-dejavu-core curl
