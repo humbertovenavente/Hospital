@@ -31,5 +31,5 @@ steps:
   commands:
   - echo "Testing Hospital Backend..."
   - cd backend
-  - ./mvnw test
+  - ./mvnw test -Djava.awt.headless=true
   - echo "Backend tests completed"
