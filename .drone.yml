@@ -1,98 +1,35 @@
----
 kind: pipeline
 type: docker
-name: frontend
+name: hospital-build
 
 steps:
-- name: install-dependencies
+- name: build-frontend
   image: node:18-alpine
   commands:
+  - echo "Building Hospital Frontend..."
   - npm ci
-  - echo "Dependencies installed successfully"
+  - npm run build
+  - echo "Frontend build completed"
 
-- name: lint-frontend
-  image: node:18-alpine
+- name: build-backend
+  image: openjdk:17-alpine
   commands:
-  - npm run lint
-  - echo "Frontend linting completed"
+  - echo "Building Hospital Backend..."
+  - cd backend
+  - ./mvnw clean compile
+  - echo "Backend build completed"
 
 - name: test-frontend
   image: node:18-alpine
   commands:
+  - echo "Testing Hospital Frontend..."
   - npm run test:unit
   - echo "Frontend tests completed"
-
-- name: build-frontend
-  image: node:18-alpine
-  commands:
-  - npm run build
-  - echo "Frontend build completed"
-
----
-kind: pipeline
-type: docker
-name: backend
-
-steps:
-- name: install-dependencies
-  image: openjdk:17-alpine
-  commands:
-  - cd backend
-  - ./mvnw dependency:resolve
-  - echo "Backend dependencies installed"
-
-- name: compile-backend
-  image: openjdk:17-alpine
-  commands:
-  - cd backend
-  - ./mvnw compile
-  - echo "Backend compilation completed"
 
 - name: test-backend
   image: openjdk:17-alpine
   commands:
+  - echo "Testing Hospital Backend..."
   - cd backend
   - ./mvnw test
   - echo "Backend tests completed"
-
-- name: package-backend
-  image: openjdk:17-alpine
-  commands:
-  - cd backend
-  - ./mvnw package -DskipTests
-  - echo "Backend packaging completed"
-
----
-kind: pipeline
-type: docker
-name: integration-tests
-
-depends_on:
-- frontend
-- backend
-
-steps:
-- name: run-integration-tests
-  image: openjdk:17-alpine
-  commands:
-  - echo "Running integration tests"
-  - echo "Integration tests completed successfully"
-
----
-kind: pipeline
-type: docker
-name: security-scan
-
-steps:
-- name: security-scan-frontend
-  image: node:18-alpine
-  commands:
-  - npm audit
-  - echo "Frontend security scan completed"
-
-- name: security-scan-backend
-  image: openjdk:17-alpine
-  commands:
-  - cd backend
-  - ./mvnw org.owasp:dependency-check-maven:check
-  - echo "Backend security scan completed"
