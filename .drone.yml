@@ -256,4 +256,4 @@ data: _json_key_content_here
 ---
 kind: secret
 name: slack_webhook
-data: _slack_webhook_url_here
+data: _slack_webhook_url_here# Drone CI/CD Pipeline activated
