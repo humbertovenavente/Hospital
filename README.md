@@ -2,3 +2,4 @@
 # Testing webhook with secret configured
 # Test webhook
 # Test webhook with new secret
+# Test webhook with correct configuration
