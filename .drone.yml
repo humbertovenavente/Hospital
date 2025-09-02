@@ -46,12 +46,13 @@ steps:
   - echo "Backend tests completed"
 
 - name: sonar-backend-dev
-  image: sonarqube:9-community
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
   - echo "Running SonarQube analysis for Backend - DEV..."
+  - apt-get update && apt-get install -y curl
   - chmod +x analyze-backend-sonar-dev.sh
   - ./analyze-backend-sonar-dev.sh
   - echo "Backend SonarQube analysis completed"
@@ -116,12 +117,13 @@ steps:
   - echo "Backend tests completed"
 
 - name: sonar-backend-qa
-  image: sonarqube:9-community
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
   - echo "Running SonarQube analysis for Backend - QA..."
+  - apt-get update && apt-get install -y curl
   - chmod +x analyze-backend-sonar-dev.sh
   - SONAR_CONFIG=sonar-project-backend-qa.properties ./analyze-backend-sonar-dev.sh
   - echo "Backend SonarQube analysis completed"
