@@ -1,12 +1,16 @@
+---
+# Pipeline para rama DEV
 kind: pipeline
 type: docker
-name: hospital-build
+name: hospital-dev
+trigger:
+  branch: [dev]
 
 steps:
 - name: build-frontend
   image: node:18-alpine
   commands:
-  - echo "Building Hospital Frontend..."
+  - echo "Building Hospital Frontend - DEV..."
   - npm ci
   - npm run build
   - echo "Frontend build completed"
@@ -14,7 +18,7 @@ steps:
 - name: build-backend
   image: openjdk:17-alpine
   commands:
-  - echo "Building Hospital Backend..."
+  - echo "Building Hospital Backend - DEV..."
   - cd backend
   - ./mvnw clean compile
   - echo "Backend build completed"
@@ -22,7 +26,7 @@ steps:
 - name: test-frontend
   image: node:18-alpine
   commands:
-  - echo "Testing Hospital Frontend..."
+  - echo "Testing Hospital Frontend - DEV..."
   - npm run test:unit
   - echo "Frontend tests completed"
 
@@ -36,7 +40,170 @@ steps:
   commands:
   - echo "Installing dependencies..."
   - apt-get update && apt-get install -y fontconfig fonts-dejavu-core curl
-  - echo "Testing Hospital Backend..."
+  - echo "Testing Hospital Backend - DEV..."
   - cd backend
   - ./mvnw test -Djava.awt.headless=true -Dspring.profiles.active=test -Dquarkus.profile=test -Dquarkus.test.continuous-testing=disabled
   - echo "Backend tests completed"
+
+- name: sonar-backend-dev
+  image: sonarqube:9-community
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Running SonarQube analysis for Backend - DEV..."
+  - cd backend
+  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-dev -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-dev
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Installing SonarQube Scanner..."
+  - npm install -g sonar-scanner
+  - echo "Running SonarQube analysis for Frontend - DEV..."
+  - sonar-scanner -Dsonar.projectKey=hospital-frontend-dev -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Frontend SonarQube analysis completed"
+
+---
+# Pipeline para rama QA
+kind: pipeline
+type: docker
+name: hospital-qa
+trigger:
+  branch: [qa]
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Building Hospital Frontend - QA..."
+  - npm ci
+  - npm run build
+  - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+  - echo "Building Hospital Backend - QA..."
+  - cd backend
+  - ./mvnw clean compile
+  - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Testing Hospital Frontend - QA..."
+  - npm run test:unit
+  - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-jdk-slim
+  environment:
+    JAVA_OPTS: "-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+    MAVEN_OPTS: "-Xmx1024m"
+    SPRING_PROFILES_ACTIVE: "test"
+    QUARKUS_PROFILE: "test"
+  commands:
+  - echo "Installing dependencies..."
+  - apt-get update && apt-get install -y fontconfig fonts-dejavu-core curl
+  - echo "Testing Hospital Backend - QA..."
+  - cd backend
+  - ./mvnw test -Djava.awt.headless=true -Dspring.profiles.active=test -Dquarkus.profile=test -Dquarkus.test.continuous-testing=disabled
+  - echo "Backend tests completed"
+
+- name: sonar-backend-qa
+  image: sonarqube:9-community
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Running SonarQube analysis for Backend - QA..."
+  - cd backend
+  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-qa -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-qa
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Installing SonarQube Scanner..."
+  - npm install -g sonar-scanner
+  - echo "Running SonarQube analysis for Frontend - QA..."
+  - sonar-scanner -Dsonar.projectKey=hospital-frontend-qa -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Frontend SonarQube analysis completed"
+
+---
+# Pipeline para rama PROD
+kind: pipeline
+type: docker
+name: hospital-prod
+trigger:
+  branch: [main, master]
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Building Hospital Frontend - PROD..."
+  - npm ci
+  - npm run build
+  - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+  - echo "Building Hospital Backend - PROD..."
+  - cd backend
+  - ./mvnw clean compile
+  - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Testing Hospital Frontend - PROD..."
+  - npm run test:unit
+  - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-jdk-slim
+  environment:
+    JAVA_OPTS: "-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+    MAVEN_OPTS: "-Xmx1024m"
+    SPRING_PROFILES_ACTIVE: "test"
+    QUARKUS_PROFILE: "test"
+  commands:
+  - echo "Installing dependencies..."
+  - apt-get update && apt-get install -y fontconfig fonts-dejavu-core curl
+  - echo "Testing Hospital Backend - PROD..."
+  - cd backend
+  - ./mvnw test -Djava.awt.headless=true -Dspring.profiles.active=test -Dquarkus.profile=test -Dquarkus.test.continuous-testing=disabled
+  - echo "Backend tests completed"
+
+- name: sonar-backend-prod
+  image: sonarqube:9-community
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Running SonarQube analysis for Backend - PROD..."
+  - cd backend
+  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-prod -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-prod
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://localhost:9000"
+    SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
+  commands:
+  - echo "Installing SonarQube Scanner..."
+  - npm install -g sonar-scanner
+  - echo "Running SonarQube analysis for Frontend - PROD..."
+  - sonar-scanner -Dsonar.projectKey=hospital-frontend-prod -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - echo "Frontend SonarQube analysis completed"
