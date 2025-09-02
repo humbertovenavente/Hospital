@@ -7,24 +7,24 @@ steps:
   - name: hello-world
     image: alpine:latest
     commands:
-      - echo "🚀 Hello from Drone CI/CD!"
-      - echo "📅 Date: $(date)"
-      - echo "👤 User: $(whoami)"
-      - echo "📁 Working directory: $(pwd)"
-      - echo "✅ Pipeline ejecutándose correctamente"
+      - echo "Hello from Drone CI/CD!"
+      - echo "Date: $(date)"
+      - echo "User: $(whoami)"
+      - echo "Working directory: $(pwd)"
+      - echo "Pipeline ejecutandose correctamente"
 
   - name: test-node
     image: node:18-alpine
     commands:
-      - echo "📦 Node.js version:"
+      - echo "Node.js version:"
       - node --version
-      - echo "📦 NPM version:"
+      - echo "NPM version:"
       - npm --version
 
   - name: test-java
     image: openjdk:17-alpine
     commands:
-      - echo "☕ Java version:"
+      - echo "Java version:"
       - java --version
-      - echo "📦 Maven version:"
+      - echo "Maven version:"
       - mvn --version
