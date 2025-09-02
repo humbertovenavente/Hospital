@@ -52,8 +52,8 @@ steps:
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
   - echo "Running SonarQube analysis for Backend - DEV..."
-  - cd backend
-  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-dev -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - chmod +x analyze-backend-sonar-dev.sh
+  - ./analyze-backend-sonar-dev.sh
   - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-dev
@@ -122,8 +122,8 @@ steps:
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
   - echo "Running SonarQube analysis for Backend - QA..."
-  - cd backend
-  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-qa -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
+  - chmod +x analyze-backend-sonar-dev.sh
+  - SONAR_CONFIG=sonar-project-backend-qa.properties ./analyze-backend-sonar-dev.sh
   - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-qa
