@@ -1,259 +1,30 @@
 ---
 kind: pipeline
 type: docker
-name: frontend
-
-# Pipeline para el Frontend (Vue.js)
-steps:
-  - name: install-dependencies
-    image: node:18-alpine
-    commands:
-      - echo "📦 Instalando dependencias del frontend..."
-      - npm ci
-    volumes:
-      - name: node_modules
-        path: /app/node_modules
-
-  - name: lint-frontend
-    image: node:18-alpine
-    commands:
-      - echo "🔍 Ejecutando linter del frontend..."
-      - npm run lint
-    volumes:
-      - name: node_modules
-        path: /app/node_modules
-
-  - name: test-frontend
-    image: node:18-alpine
-    commands:
-      - echo "🧪 Ejecutando tests del frontend..."
-      - npm run test:unit
-    volumes:
-      - name: node_modules
-        path: /app/node_modules
-
-  - name: build-frontend
-    image: node:18-alpine
-    commands:
-      - echo "🏗️ Construyendo el frontend..."
-      - npm run build
-    volumes:
-      - name: node_modules
-        path: /app/node_modules
-
-  - name: build-frontend-docker
-    image: plugins/docker
-    settings:
-      dockerfile: Dockerfile.frontend
-      repo: hospital-frontend
-      tags: [latest, ${DRONE_COMMIT_SHA:0:8}]
-      registry: us-central1-docker.pkg.dev
-      username:
-        from_secret: gcp_username
-      password:
-        from_secret: gcp_password
-
-volumes:
-  - name: node_modules
-    temp: {}
-
----
-kind: pipeline
-type: docker
-name: backend
-
-# Pipeline para el Backend (Java/Quarkus)
-steps:
-  - name: install-dependencies
-    image: maven:3.9-openjdk-17
-    commands:
-      - echo "📦 Instalando dependencias del backend..."
-      - cd backend
-      - mvn dependency:resolve
-
-  - name: compile-backend
-    image: maven:3.9-openjdk-17
-    commands:
-      - echo "🔨 Compilando el backend..."
-      - cd backend
-      - mvn clean compile
-
-  - name: test-backend
-    image: maven:3.9-openjdk-17
-    commands:
-      - echo "🧪 Ejecutando tests del backend..."
-      - cd backend
-      - mvn test
-
-  - name: package-backend
-    image: maven:3.9-openjdk-17
-    commands:
-      - echo "📦 Empaquetando el backend..."
-      - cd backend
-      - mvn package -DskipTests
-
-  - name: build-backend-docker
-    image: plugins/docker
-    settings:
-      dockerfile: Dockerfile
-      repo: hospital-backend
-      tags: [latest, ${DRONE_COMMIT_SHA:0:8}]
-      registry: us-central1-docker.pkg.dev
-      username:
-        from_secret: gcp_username
-      password:
-        from_secret: gcp_password
-
----
-kind: pipeline
-type: docker
-name: integration-tests
-
-# Pipeline para tests de integración
-depends_on:
-  - frontend
-  - backend
+name: test
 
 steps:
-  - name: wait-for-services
+  - name: hello-world
     image: alpine:latest
     commands:
-      - echo "⏳ Esperando que los servicios estén listos..."
-      - apk add --no-cache curl
-      - sleep 30
+      - echo "🚀 Hello from Drone CI/CD!"
+      - echo "📅 Date: $(date)"
+      - echo "👤 User: $(whoami)"
+      - echo "📁 Working directory: $(pwd)"
+      - echo "✅ Pipeline ejecutándose correctamente"
 
-  - name: test-frontend-integration
+  - name: test-node
     image: node:18-alpine
     commands:
-      - echo "🔗 Ejecutando tests de integración del frontend..."
-      - npm run test:e2e
+      - echo "📦 Node.js version:"
+      - node --version
+      - echo "📦 NPM version:"
+      - npm --version
 
-  - name: test-backend-integration
-    image: maven:3.9-openjdk-17
+  - name: test-java
+    image: openjdk:17-alpine
     commands:
-      - echo "🔗 Ejecutando tests de integración del backend..."
-      - cd backend
-      - mvn test -Dtest=*IntegrationTest
-
----
-kind: pipeline
-type: docker
-name: security-scan
-
-# Pipeline para análisis de seguridad
-steps:
-  - name: frontend-security-scan
-    image: node:18-alpine
-    commands:
-      - echo "🔒 Ejecutando análisis de seguridad del frontend..."
-      - npm audit --audit-level moderate
-
-  - name: backend-security-scan
-    image: maven:3.9-openjdk-17
-    commands:
-      - echo "🔒 Ejecutando análisis de seguridad del backend..."
-      - cd backend
-      - mvn org.owasp:dependency-check-maven:check
-
----
-kind: pipeline
-type: docker
-name: deploy-staging
-
-# Pipeline para despliegue en staging
-depends_on:
-  - frontend
-  - backend
-  - integration-tests
-
-when:
-  branch: [dev, staging]
-
-steps:
-  - name: deploy-to-staging
-    image: plugins/docker-compose
-    settings:
-      config: docker-compose.qa.yml
-      environment:
-        - ENVIRONMENT=staging
-        - VERSION=${DRONE_COMMIT_SHA:0:8}
-
-  - name: health-check-staging
-    image: alpine:latest
-    commands:
-      - echo "🏥 Verificando salud de los servicios en staging..."
-      - apk add --no-cache curl
-      - curl -f http://staging.hospital.com/health || exit 1
-
----
-kind: pipeline
-type: docker
-name: deploy-production
-
-# Pipeline para despliegue en producción
-depends_on:
-  - frontend
-  - backend
-  - integration-tests
-  - security-scan
-
-when:
-  branch: [main, master]
-
-steps:
-  - name: deploy-to-production
-    image: plugins/docker-compose
-    settings:
-      config: docker-compose.prod.yml
-      environment:
-        - ENVIRONMENT=production
-        - VERSION=${DRONE_COMMIT_SHA:0:8}
-
-  - name: health-check-production
-    image: alpine:latest
-    commands:
-      - echo "🏥 Verificando salud de los servicios en producción..."
-      - apk add --no-cache curl
-      - curl -f https://hospital.com/health || exit 1
-
-  - name: notify-success
-    image: plugins/slack
-    settings:
-      webhook:
-        from_secret: slack_webhook
-      channel: deployments
-      message: |
-        🎉 ¡Despliegue exitoso!
-        Repositorio: ${DRONE_REPO_NAME}
-        Rama: ${DRONE_BRANCH}
-        Commit: ${DRONE_COMMIT_SHA:0:8}
-        Autor: ${DRONE_COMMIT_AUTHOR}
-
----
-kind: pipeline
-type: docker
-name: cleanup
-
-# Pipeline para limpieza
-steps:
-  - name: cleanup-old-images
-    image: alpine:latest
-    commands:
-      - echo "🧹 Limpiando imágenes Docker antiguas..."
-      - apk add --no-cache docker-cli
-      - docker system prune -f
-
----
-kind: secret
-name: gcp_username
-data: _json_key_content_here
-
----
-kind: secret
-name: gcp_password
-data: _json_key_content_here
-
----
-kind: secret
-name: slack_webhook
-data: _slack_webhook_url_here# Drone CI/CD Pipeline activated
+      - echo "☕ Java version:"
+      - java --version
+      - echo "📦 Maven version:"
+      - mvn --version
