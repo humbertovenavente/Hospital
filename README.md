@@ -7,3 +7,4 @@
 # Test without webhook verification
 # Test after server restart
 # Test with polling instead of webhooks
+# Test with HTTP protocol
