@@ -41,6 +41,13 @@ public class AseguradoraConexionResource {
 @Path("/{id}")
 @Transactional
 public Response actualizar(@PathParam("id") Long id, Map<String, String> body) {
+    // Verificar si body es null
+    if (body == null) {
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity("Datos de actualización requeridos")
+                .build();
+    }
+    
     AseguradoraConexion existente = repository.findById(id);
     if (existente == null) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -68,6 +75,13 @@ public Response eliminar(@PathParam("id") Long id) {
     @Transactional
     public Response registrarAseguradora(Map<String, String> body) {
         try {
+            // Verificar si body es null
+            if (body == null) {
+                return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity("Error interno al registrar")
+                        .build();
+            }
+            
             String nombre = body.get("nombre");
             String url = body.get("url");
 
