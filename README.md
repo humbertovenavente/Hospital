@@ -6,3 +6,4 @@
 # Final webhook test
 # Test without webhook verification
 # Test after server restart
+# Test with polling instead of webhooks
