@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Script para analizar el backend de desarrollo con SonarQube
-echo "🔍 Analizando Backend Hospital - DEV con SonarQube..."
+# Script alternativo para analizar el backend de desarrollo con SonarQube usando Maven directamente
+echo "🔍 Analizando Backend Hospital - DEV con SonarQube (Maven directo)..."
 
 # Configuración
 PROJECT_DIR="backend"
 SONAR_CONFIG="sonar-project-backend-dev.properties"
 
-# Configurar variables de entorno para Maven Wrapper
+# Configurar variables de entorno para Maven
 export MAVEN_OPTS="-Dmaven.repo.local=/tmp/maven-repo"
 export M2_HOME="/tmp/maven-home"
 export MAVEN_HOME="/tmp/maven-home"
@@ -33,16 +33,16 @@ fi
 cd $PROJECT_DIR
 
 echo "📦 Compilando proyecto backend..."
-# Limpiar y compilar el proyecto
-./mvnw clean compile test-compile -Dmaven.repo.local=/tmp/maven-repo
+# Limpiar y compilar el proyecto usando Maven directamente
+mvn clean compile test-compile -Dmaven.repo.local=/tmp/maven-repo
 
 echo "🧪 Ejecutando tests..."
 # Ejecutar tests con cobertura
-./mvnw test jacoco:report -Dmaven.repo.local=/tmp/maven-repo
+mvn test jacoco:report -Dmaven.repo.local=/tmp/maven-repo
 
 echo "📊 Ejecutando análisis SonarQube..."
 # Ejecutar análisis SonarQube
-./mvnw sonar:sonar -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
+mvn sonar:sonar -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
 
 # Regresar al directorio raíz
 cd ..
