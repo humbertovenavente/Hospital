@@ -40,3 +40,4 @@ drone.env
 **/drone-local.env
 **/.env
 **/.env.*
+drone-secrets.env

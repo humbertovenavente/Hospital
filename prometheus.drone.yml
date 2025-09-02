@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Configuración de Drone Server
+  - job_name: 'drone-server'
+    static_configs:
+      - targets: ['drone-server:80']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Configuración de Drone Runner
+  - job_name: 'drone-runner'
+    static_configs:
+      - targets: ['drone-runner:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Configuración de Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:80']
+    metrics_path: '/nginx_status'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Configuración de Prometheus (auto-monitoreo)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
