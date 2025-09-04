@@ -58,15 +58,16 @@ steps:
   - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-dev
-  image: node:18-alpine
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
-  - echo "Installing SonarQube Scanner..."
+  - echo "Installing Node.js and SonarQube Scanner..."
+  - apt-get update && apt-get install -y curl
+  - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+  - apt-get install -y nodejs
   - npm install -g sonar-scanner
-  - echo "Fixing permissions..."
-  - chmod +x /usr/local/lib/node_modules/sonar-scanner/bin/sonar-scanner
   - echo "Running SonarQube analysis for Frontend - DEV..."
   - sonar-scanner -Dsonar.projectKey=hospital-frontend-dev -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
   - echo "Frontend SonarQube analysis completed"
@@ -131,15 +132,16 @@ steps:
   - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-qa
-  image: node:18-alpine
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://localhost:9000"
     SONAR_TOKEN: "sqa_8f9c9ffeaf833e1486015527efadabc251e75755"
   commands:
-  - echo "Installing SonarQube Scanner..."
+  - echo "Installing Node.js and SonarQube Scanner..."
+  - apt-get update && apt-get install -y curl
+  - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+  - apt-get install -y nodejs
   - npm install -g sonar-scanner
-  - echo "Fixing permissions..."
-  - chmod +x /usr/local/lib/node_modules/sonar-scanner/bin/sonar-scanner
   - echo "Running SonarQube analysis for Frontend - QA..."
   - sonar-scanner -Dsonar.projectKey=hospital-frontend-qa -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqa_8f9c9ffeaf833e1486015527efadabc251e75755
   - echo "Frontend SonarQube analysis completed"
