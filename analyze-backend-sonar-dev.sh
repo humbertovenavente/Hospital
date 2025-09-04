@@ -55,10 +55,10 @@ fi
 
 echo "📊 Ejecutando análisis SonarQube..."
 # Ejecutar análisis SonarQube con nombre correcto
-./mvnw sonar:sonar -Dsonar.projectKey=sonar-backend-dev-drone -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
+./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-dev-drone -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
 
 # Regresar al directorio raíz
 cd ..
 
 echo "✅ Análisis de Backend DEV completado"
-echo " Ver resultados en: http://104.197.237.11:9003/dashboard?id=sonar-backend-dev-drone"
+echo " Ver resultados en: http://104.197.237.11:9003/dashboard?id=backend-hospital-dev-drone"
