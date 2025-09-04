@@ -69,7 +69,7 @@ steps:
   - apt-get install -y nodejs
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - DEV..."
-  - sonar-scanner -Dsonar.projectKey=sonar-frontend-dev-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-dev-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__
   - echo "Frontend SonarQube analysis completed"
 
 ---
@@ -143,7 +143,7 @@ steps:
   - apt-get install -y nodejs
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - QA..."
-  - sonar-scanner -Dsonar.projectKey=sonar-frontend-qa-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-qa-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__
   - echo "Frontend SonarQube analysis completed"
 
 ---
@@ -213,5 +213,5 @@ steps:
   - echo "Installing SonarQube Scanner..."
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - PROD..."
-  - sonar-scanner -Dsonar.projectKey=sonar-frontend-prod-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-prod-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__
   - echo "Frontend SonarQube analysis completed"

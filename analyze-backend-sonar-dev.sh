@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Script para analizar el backend de desarrollo con SonarQube
-echo "🔍 Analizando Backend Hospital - DEV con SonarQube..."
+echo " Analizando Backend Hospital - DEV con SonarQube..."
 
 # Configuración
 PROJECT_DIR="backend"
 SONAR_CONFIG="sonar-project-backend-dev.properties"
 
-# Configurar variables de entorno para Maven Wrapper
+# Configurar variables de entorno para Maven
 export MAVEN_OPTS="-Dmaven.repo.local=/tmp/maven-repo"
 export M2_HOME="/tmp/maven-home"
 export MAVEN_HOME="/tmp/maven-home"
@@ -44,7 +44,7 @@ echo "📈 Generando reporte de cobertura JaCoCo..."
 # Generar reporte de cobertura
 ./mvnw jacoco:report -Dmaven.repo.local=/tmp/maven-repo
 
-echo "🔍 Verificando reporte de cobertura..."
+echo " Verificando reporte de cobertura..."
 # Verificar que el reporte se generó
 if [ -f "target/site/jacoco/jacoco.xml" ]; then
     echo "✅ Reporte JaCoCo generado correctamente"
@@ -54,11 +54,11 @@ else
 fi
 
 echo "📊 Ejecutando análisis SonarQube..."
-# Ejecutar análisis SonarQube
-./mvnw sonar:sonar -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
+# Ejecutar análisis SonarQube con nombre correcto
+./mvnw sonar:sonar -Dsonar.projectKey=sonar-backend-dev-drone -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
 
 # Regresar al directorio raíz
 cd ..
 
 echo "✅ Análisis de Backend DEV completado"
-echo "🌐 Ver resultados en: http://localhost:9000/dashboard?id=hospital-backend-dev"
+echo " Ver resultados en: http://104.197.237.11:9003/dashboard?id=sonar-backend-dev-drone"
