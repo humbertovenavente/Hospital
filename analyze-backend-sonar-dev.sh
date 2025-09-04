@@ -37,8 +37,21 @@ echo "📦 Compilando proyecto backend..."
 ./mvnw clean compile test-compile -Dmaven.repo.local=/tmp/maven-repo
 
 echo "🧪 Ejecutando tests..."
-# Ejecutar tests con cobertura
-./mvnw test jacoco:report -Dmaven.repo.local=/tmp/maven-repo
+# Ejecutar tests
+./mvnw test -Dmaven.repo.local=/tmp/maven-repo
+
+echo "📈 Generando reporte de cobertura JaCoCo..."
+# Generar reporte de cobertura
+./mvnw jacoco:report -Dmaven.repo.local=/tmp/maven-repo
+
+echo "🔍 Verificando reporte de cobertura..."
+# Verificar que el reporte se generó
+if [ -f "target/site/jacoco/jacoco.xml" ]; then
+    echo "✅ Reporte JaCoCo generado correctamente"
+else
+    echo "❌ Error: No se generó el reporte JaCoCo"
+    exit 1
+fi
 
 echo "📊 Ejecutando análisis SonarQube..."
 # Ejecutar análisis SonarQube
