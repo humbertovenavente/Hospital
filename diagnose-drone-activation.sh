@@ -113,3 +113,4 @@ echo "6. **Verificar logs en tiempo real:**"
 echo "   - docker logs -f drone-server-local"
 
 
+

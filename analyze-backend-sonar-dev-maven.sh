@@ -49,3 +49,4 @@ cd ..
 
 echo "✅ Análisis de Backend DEV completado"
 echo "🌐 Ver resultados en: http://localhost:9000/dashboard?id=hospital-backend-dev"
+

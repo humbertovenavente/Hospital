@@ -37,3 +37,4 @@ echo "Puede escribir en /home/sonarqube: $(touch /home/sonarqube/test-write 2>/d
 
 echo ""
 echo "✅ Diagnóstico completado"
+
