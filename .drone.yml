@@ -69,7 +69,7 @@ steps:
   - apt-get install -y nodejs
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - DEV..."
-  - sonar-scanner -Dsonar.projectKey=hospital-frontend-dev -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-dev-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
   - echo "Frontend SonarQube analysis completed"
 
 ---
@@ -143,7 +143,7 @@ steps:
   - apt-get install -y nodejs
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - QA..."
-  - sonar-scanner -Dsonar.projectKey=hospital-frontend-qa -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-qa-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
   - echo "Frontend SonarQube analysis completed"
 
 ---
@@ -201,7 +201,7 @@ steps:
   commands:
   - echo "Running SonarQube analysis for Backend - PROD..."
   - cd backend
-  - ./mvnw sonar:sonar -Dsonar.projectKey=hospital-backend-prod -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+  - ./mvnw sonar:sonar -Dsonar.projectKey=sonar-backend-prod-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
   - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-prod
@@ -213,5 +213,5 @@ steps:
   - echo "Installing SonarQube Scanner..."
   - npm install -g sonar-scanner
   - echo "Running SonarQube analysis for Frontend - PROD..."
-  - sonar-scanner -Dsonar.projectKey=hospital-frontend-prod -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+  - sonar-scanner -Dsonar.projectKey=sonar-frontend-prod-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src
   - echo "Frontend SonarQube analysis completed"
