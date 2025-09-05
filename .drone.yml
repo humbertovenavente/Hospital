@@ -4,7 +4,8 @@ kind: pipeline
 type: docker
 name: hospital-dev
 trigger:
-  branch: [dev]
+  branch:
+    - dev
 
 steps:
 - name: build-frontend
@@ -85,7 +86,8 @@ kind: pipeline
 type: docker
 name: hospital-qa
 trigger:
-  branch: [QA]
+  branch:
+    - QA
 
 volumes:
 - name: docker_sock
@@ -188,7 +190,9 @@ kind: pipeline
 type: docker
 name: hospital-prod
 trigger:
-  branch: [main, master]
+  branch:
+    - main
+    - master
 
 volumes:
 - name: docker_sock
