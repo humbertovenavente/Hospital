@@ -7,6 +7,11 @@ trigger:
   branch:
     - dev
 
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
 steps:
 - name: build-frontend
   image: node:18-alpine
@@ -74,6 +79,10 @@ steps:
 
 - name: build-docker-backend-dev
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Backend Docker image - DEV..."
     - cd backend
@@ -82,6 +91,10 @@ steps:
 
 - name: build-docker-frontend-dev
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Frontend Docker image - DEV..."
     - docker build -f Dockerfile.frontend -t hospital-frontend-dev .
@@ -89,6 +102,10 @@ steps:
 
 - name: deploy-backend-dev
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Backend - DEV..."
     - docker stop hospital-backend-dev-cloud || true
@@ -99,6 +116,10 @@ steps:
 
 - name: deploy-frontend-dev
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Frontend - DEV..."
     - docker stop hospital-frontend-dev-cloud || true
@@ -115,6 +136,11 @@ name: hospital-qa
 trigger:
   branch:
     - QA
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
 
 steps:
 - name: build-frontend
@@ -183,6 +209,10 @@ steps:
 
 - name: build-docker-backend-qa
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Backend Docker image - QA..."
     - cd backend
@@ -191,6 +221,10 @@ steps:
 
 - name: build-docker-frontend-qa
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Frontend Docker image - QA..."
     - docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
@@ -198,6 +232,10 @@ steps:
 
 - name: deploy-backend-qa
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Backend - QA..."
     - docker stop hospital-backend-qa-cloud || true
@@ -208,6 +246,10 @@ steps:
 
 - name: deploy-frontend-qa
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Frontend - QA..."
     - docker stop hospital-frontend-qa-cloud || true
@@ -225,6 +267,11 @@ trigger:
   branch:
     - main
     - master
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
 
 steps:
 - name: build-frontend
@@ -292,6 +339,10 @@ steps:
 
 - name: build-docker-backend-prod
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Backend Docker image - PROD..."
     - cd backend
@@ -300,6 +351,10 @@ steps:
 
 - name: build-docker-frontend-prod
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Building Frontend Docker image - PROD..."
     - docker build -f Dockerfile.frontend.cloud -t hospital-frontend-prod .
@@ -307,6 +362,10 @@ steps:
 
 - name: deploy-backend-prod
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Backend - PROD..."
     - docker stop hospital-backend-prod-cloud || true
@@ -317,6 +376,10 @@ steps:
 
 - name: deploy-frontend-prod
   image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
     - echo "Deploying Frontend - PROD..."
     - docker stop hospital-frontend-prod-cloud || true
