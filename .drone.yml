@@ -84,8 +84,7 @@ steps:
     path: /var/run/docker.sock
   commands:
   - echo "Building Backend Docker image - DEV..."
-  - cd backend
-  - docker build -t hospital-backend-dev .
+  - docker build -f backend/Dockerfile.jvm -t hospital-backend-dev .
   - echo "Backend image built successfully"
 
 - name: deploy-backend-dev
@@ -109,7 +108,7 @@ steps:
     path: /var/run/docker.sock
   commands:
   - echo "Building Frontend Docker image - DEV..."
-  - docker build -t hospital-frontend-dev .
+  - docker build -f Dockerfile.frontend.cloud -t hospital-frontend-dev .
   - echo "Frontend image built successfully"
 
 - name: deploy-frontend-dev
