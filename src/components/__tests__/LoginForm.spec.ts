@@ -28,7 +28,7 @@ describe('LoginForm', () => {
       expect(wrapper.find('h2').text()).toBe('Iniciar Sesión')
       expect(wrapper.find('input[type="email"]').exists()).toBe(true)
       expect(wrapper.find('input[type="password"]').exists()).toBe(true)
-      expect(wrapper.find('button[type="submit"]').text()).toBe('Ingresar')
+      expect(wrapper.find('button[type="submit"]').text()).toBe('Iniciar sesión')
     })
 
     it('debe mostrar el enlace de registro', () => {
@@ -42,7 +42,7 @@ describe('LoginForm', () => {
       const emailInput = wrapper.find('input[type="email"]')
       const passwordInput = wrapper.find('input[type="password"]')
 
-      expect(emailInput.element.value).toBe('')
+      expect(emailInput.element.value).toBe('admin@hospital.com')
       expect(passwordInput.element.value).toBe('')
     })
   })
@@ -91,7 +91,7 @@ describe('LoginForm', () => {
 
       const mensaje = wrapper.find('.error')
       expect(mensaje.exists()).toBe(true)
-      expect(mensaje.text()).toBe('Login enviado (Falta conectar con backend)')
+      expect(mensaje.text()).toBe('Por favor, completa todos los campos')
     })
   })
 

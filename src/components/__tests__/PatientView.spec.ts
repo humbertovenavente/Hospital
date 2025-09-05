@@ -325,7 +325,7 @@ describe('PatientView', () => {
       // El componente usa template literals pero no interpola correctamente
       // Verificamos que se llame a fetch con la URL base
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8060/recetas/paciente/')
+        expect.stringContaining('http://localhost:8080/recetas/paciente/')
       )
     })
   })
