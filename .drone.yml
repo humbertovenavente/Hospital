@@ -58,15 +58,18 @@ steps:
     - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-dev
-  image: node:18-alpine
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://34.46.73.44:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Installing SonarQube Scanner..."
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - DEV..."
-    - sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-dev
@@ -164,15 +167,18 @@ steps:
     - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-qa
-  image: node:18-alpine
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://34.46.73.44:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Installing SonarQube Scanner..."
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - QA..."
-    - sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-qa
@@ -270,15 +276,18 @@ steps:
     - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-prod
-  image: node:18-alpine
+  image: openjdk:17-jdk-slim
   environment:
     SONAR_HOST_URL: "http://34.46.73.44:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Installing SonarQube Scanner..."
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - PROD..."
-    - sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-prod
