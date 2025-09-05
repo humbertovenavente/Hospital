@@ -3,7 +3,9 @@
     <h2>Iniciar Sesión</h2>
     <input v-model="correo" placeholder="Correo" type="email" required />
     <input v-model="contrasena" type="password" placeholder="Contraseña" required />
-    <button type="submit">Ingresar</button>
+    <button type="submit" :disabled="loading">
+      {{ loading ? 'Iniciando sesión...' : 'Iniciar sesión' }}
+    </button>
 
     <p v-if="mensaje" class="error">{{ mensaje }}</p>
 
@@ -17,13 +19,33 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { loginUser } from "../services/authService";
+import { setUser } from "../stores/authStore";
 
-const correo = ref("");
+const router = useRouter();
+const correo = ref("admin@hospital.com");
 const contrasena = ref("");
 const mensaje = ref("");
+const loading = ref(false);
 
-const login = () => {
-  mensaje.value = "Login enviado (Falta conectar con backend)";
+const login = async () => {
+  if (!correo.value || !contrasena.value) {
+    mensaje.value = "Por favor, completa todos los campos";
+    return;
+  }
+
+  loading.value = true;
+  mensaje.value = "";
+
+  try {
+    const { id, roleId } = await loginUser(correo.value, contrasena.value);
+    setUser(id, roleId, router);
+  } catch (error: any) {
+    mensaje.value = error.message || "Error al iniciar sesión";
+  } finally {
+    loading.value = false;
+  }
 };
 </script>
 

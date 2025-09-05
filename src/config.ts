@@ -1,5 +1,5 @@
 // Configuración dinámica basada en el entorno
-const API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:8060';
+const API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://34.46.73.44:8060';
 
 const FRONTEND_URL = 'http://localhost:5174'; // Puerto del frontend en QA
 
