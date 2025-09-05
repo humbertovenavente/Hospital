@@ -68,8 +68,8 @@ steps:
   - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
   - apt-get install -y nodejs
   - npm install -g sonar-scanner
-  - echo "Running SonarQube analysis for Frontend - DEV..."
-  - sonar-scanner -Dsonar.projectKey=backend-hospital-dev-drone -Dsonar.host.url=http://104.197.237.11:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+  - echo "Running SonarQube analysis for Frontend - DEV (Updated URL)..."
+  - sonar-scanner -Dsonar.projectKey=backend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
   - echo "Frontend SonarQube analysis completed"
 
 ---
