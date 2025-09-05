@@ -1,17 +1,15 @@
 ---
-# Volumen para Docker socket
-volumes:
-- name: docker_sock
-  host:
-    path: /var/run/docker.sock
-
----
 # Pipeline para rama DEV
 kind: pipeline
 type: docker
 name: hospital-dev
 trigger:
   branch: [dev]
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
 
 steps:
 - name: build-frontend
@@ -111,6 +109,11 @@ name: hospital-qa
 trigger:
   branch: [QA]
 
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
 steps:
 - name: build-frontend
   image: node:18-alpine
@@ -208,6 +211,11 @@ type: docker
 name: hospital-prod
 trigger:
   branch: [main, master]
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
 
 steps:
 - name: build-frontend
