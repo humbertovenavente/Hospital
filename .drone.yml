@@ -126,6 +126,59 @@ steps:
     - docker run -d --name hospital-frontend-dev-cloud --restart=always -p 8061:80 hospital-frontend-dev
     - echo "Frontend DEV deployed successfully on port 8061"
 
+- name: notify-failure-dev
+  image: alpine:latest
+  environment:
+    GMAIL_USER: 
+      from_secret: gmail_user
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital DEV"
+    DRONE_COMMIT_BRANCH: "dev"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]
+
 ---
 kind: pipeline
 type: docker
@@ -254,6 +307,59 @@ steps:
     - docker run -d --name hospital-frontend-qa-cloud --restart=always -p 8031:80 hospital-frontend-qa
     - echo "Frontend QA deployed successfully on port 8031"
 
+- name: notify-failure-qa
+  image: alpine:latest
+  environment:
+    GMAIL_USER: 
+      from_secret: gmail_user
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital QA"
+    DRONE_COMMIT_BRANCH: "QA"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]
+
 ---
 kind: pipeline
 type: docker
@@ -381,3 +487,56 @@ steps:
     - docker rm hospital-frontend-prod-cloud || true
     - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 hospital-frontend-prod
     - echo "Frontend PROD deployed successfully on port 8021"
+
+- name: notify-failure-prod
+  image: alpine:latest
+  environment:
+    GMAIL_USER: 
+      from_secret: gmail_user
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital PROD"
+    DRONE_COMMIT_BRANCH: "main"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]
