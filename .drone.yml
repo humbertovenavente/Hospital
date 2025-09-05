@@ -78,7 +78,7 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-dev
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
@@ -90,7 +90,7 @@ steps:
   - echo "Backend DEV deployed successfully"
 
 - name: deploy-frontend-dev
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
@@ -181,7 +181,7 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-qa
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
@@ -193,7 +193,7 @@ steps:
   - echo "Backend QA deployed successfully"
 
 - name: deploy-frontend-qa
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
@@ -280,7 +280,7 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-prod
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
@@ -292,7 +292,7 @@ steps:
   - echo "Backend PROD deployed successfully"
 
 - name: deploy-frontend-prod
-  image: docker:20.10.16-cli
+  image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
