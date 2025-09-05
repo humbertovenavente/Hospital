@@ -77,14 +77,14 @@ steps:
   commands:
     - echo "Building Backend Docker image - DEV..."
     - cd backend
-    - docker build -t hospital-backend-dev .
+    - docker build -f Dockerfile.jvm -t hospital-backend-dev .
     - echo "Backend Docker image built successfully"
 
 - name: build-docker-frontend-dev
   image: docker:20.10.16
   commands:
     - echo "Building Frontend Docker image - DEV..."
-    - docker build -t hospital-frontend-dev .
+    - docker build -f Dockerfile.frontend -t hospital-frontend-dev .
     - echo "Frontend Docker image built successfully"
 
 - name: deploy-backend-dev
@@ -186,14 +186,14 @@ steps:
   commands:
     - echo "Building Backend Docker image - QA..."
     - cd backend
-    - docker build -t hospital-backend-qa .
+    - docker build -f Dockerfile.jvm -t hospital-backend-qa .
     - echo "Backend Docker image built successfully"
 
 - name: build-docker-frontend-qa
   image: docker:20.10.16
   commands:
     - echo "Building Frontend Docker image - QA..."
-    - docker build -t hospital-frontend-qa .
+    - docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
     - echo "Frontend Docker image built successfully"
 
 - name: deploy-backend-qa
@@ -295,14 +295,14 @@ steps:
   commands:
     - echo "Building Backend Docker image - PROD..."
     - cd backend
-    - docker build -t hospital-backend-prod .
+    - docker build -f Dockerfile.jvm -t hospital-backend-prod .
     - echo "Backend Docker image built successfully"
 
 - name: build-docker-frontend-prod
   image: docker:20.10.16
   commands:
     - echo "Building Frontend Docker image - PROD..."
-    - docker build -t hospital-frontend-prod .
+    - docker build -f Dockerfile.frontend.cloud -t hospital-frontend-prod .
     - echo "Frontend Docker image built successfully"
 
 - name: deploy-backend-prod
