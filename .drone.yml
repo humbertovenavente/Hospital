@@ -75,11 +75,11 @@ steps:
 - name: test-deployment-dev
   image: alpine:latest
   commands:
-  - echo 'Testing deployment process - DEV...'
-  - echo 'Frontend change: Fer me trata como migajero - Pipeline Test'
-  - echo 'Backend would be built with: cd backend and docker build -f Dockerfile.jvm -t hospital-backend-dev .'
-  - echo 'Frontend would be built with: docker build -f Dockerfile.frontend.cloud -t hospital-frontend-dev .'
-  - echo 'Deployment test completed successfully'
+  - echo "Testing deployment process - DEV"
+  - echo "Frontend change: Fer me trata como migajero - Pipeline Test"
+  - echo "Backend would be built with cd backend and docker build"
+  - echo "Frontend would be built with docker build"
+  - echo "Deployment test completed successfully"
 
 ---
 # Pipeline para rama QA
