@@ -1,4 +1,11 @@
 ---
+# Volumen para Docker socket
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
+---
 # Pipeline para rama DEV
 kind: pipeline
 type: docker
@@ -73,9 +80,10 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-dev
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Backend - DEV..."
   - docker stop hospital-backend-dev-cloud || true
@@ -84,9 +92,10 @@ steps:
   - echo "Backend DEV deployed successfully"
 
 - name: deploy-frontend-dev
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Frontend - DEV..."
   - docker stop hospital-frontend-dev-cloud || true
@@ -169,9 +178,10 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-qa
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Backend - QA..."
   - docker stop hospital-backend-qa-cloud || true
@@ -180,9 +190,10 @@ steps:
   - echo "Backend QA deployed successfully"
 
 - name: deploy-frontend-qa
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Frontend - QA..."
   - docker stop hospital-frontend-qa-cloud || true
@@ -261,9 +272,10 @@ steps:
   - echo "Frontend SonarQube analysis completed"
 
 - name: deploy-backend-prod
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Backend - PROD..."
   - docker stop hospital-backend-prod-cloud || true
@@ -272,9 +284,10 @@ steps:
   - echo "Backend PROD deployed successfully"
 
 - name: deploy-frontend-prod
-  image: docker:20.10.16-dind
-  environment:
-    DOCKER_HOST: "tcp://host.docker.internal:2375"
+  image: docker:20.10.16-cli
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
   commands:
   - echo "Deploying Frontend - PROD..."
   - docker stop hospital-frontend-prod-cloud || true
