@@ -77,7 +77,7 @@ steps:
   commands:
   - echo "Testing deployment process - DEV..."
   - echo "Frontend change: Fer me trata como migajero - Pipeline Test"
-  - echo "Backend would be built with: cd backend && docker build -f Dockerfile.jvm -t hospital-backend-dev ."
+  - echo "Backend would be built with: cd backend and docker build -f Dockerfile.jvm -t hospital-backend-dev ."
   - echo "Frontend would be built with: docker build -f Dockerfile.frontend.cloud -t hospital-frontend-dev ."
   - echo "Deployment test completed successfully"
 
