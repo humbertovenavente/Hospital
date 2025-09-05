@@ -77,11 +77,24 @@ steps:
   - sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
   - echo "Frontend SonarQube analysis completed"
 
+- name: build-backend-image-dev
+  image: docker:20.10.16
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+  - echo "Building Backend Docker image - DEV..."
+  - cd backend
+  - docker build -t hospital-backend-dev .
+  - echo "Backend image built successfully"
+
 - name: deploy-backend-dev
   image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
+  depends_on:
+  - build-backend-image-dev
   commands:
   - echo "Deploying Backend - DEV..."
   - docker stop hospital-backend-dev-cloud || true
@@ -89,11 +102,23 @@ steps:
   - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 hospital-backend-dev
   - echo "Backend DEV deployed successfully"
 
+- name: build-frontend-image-dev
+  image: docker:20.10.16
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+  - echo "Building Frontend Docker image - DEV..."
+  - docker build -t hospital-frontend-dev .
+  - echo "Frontend image built successfully"
+
 - name: deploy-frontend-dev
   image: docker:20.10.16
   volumes:
   - name: docker_sock
     path: /var/run/docker.sock
+  depends_on:
+  - build-frontend-image-dev
   commands:
   - echo "Deploying Frontend - DEV..."
   - docker stop hospital-frontend-dev-cloud || true
