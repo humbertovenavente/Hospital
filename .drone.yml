@@ -45,11 +45,64 @@ steps:
     - ./mvnw test
     - echo "Backend tests completed"
 
-- name: deploy-test-dev
-  image: alpine:latest
+- name: sonar-backend-dev
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Testing deployment process - DEV"
-    - echo "Deployment test completed successfully"
+    - echo "Running SonarQube analysis for Backend - DEV..."
+    - apt-get update && apt-get install -y curl
+    - chmod +x analyze-backend-sonar-dev.sh
+    - ./analyze-backend-sonar-dev.sh
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-dev
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing SonarQube Scanner..."
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - DEV..."
+    - sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-dev
+  image: docker:20.10.16
+  commands:
+    - echo "Building Backend Docker image - DEV..."
+    - cd backend
+    - docker build -t hospital-backend-dev .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-dev
+  image: docker:20.10.16
+  commands:
+    - echo "Building Frontend Docker image - DEV..."
+    - docker build -t hospital-frontend-dev .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-dev
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Backend - DEV..."
+    - docker stop hospital-backend-dev-cloud || true
+    - docker rm hospital-backend-dev-cloud || true
+    - docker rmi hospital-backend-dev || true
+    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 hospital-backend-dev
+    - echo "Backend DEV deployed successfully on port 8060"
+
+- name: deploy-frontend-dev
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Frontend - DEV..."
+    - docker stop hospital-frontend-dev-cloud || true
+    - docker rm hospital-frontend-dev-cloud || true
+    - docker rmi hospital-frontend-dev || true
+    - docker run -d --name hospital-frontend-dev-cloud --restart=always -p 8061:80 hospital-frontend-dev
+    - echo "Frontend DEV deployed successfully on port 8061"
 
 ---
 kind: pipeline
@@ -98,11 +151,64 @@ steps:
     - ./mvnw test
     - echo "Backend tests completed"
 
-- name: deploy-test-qa
-  image: alpine:latest
+- name: sonar-backend-qa
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Testing deployment process - QA"
-    - echo "QA deployment test completed successfully"
+    - echo "Running SonarQube analysis for Backend - QA..."
+    - apt-get update && apt-get install -y curl
+    - chmod +x analyze-backend-sonar-dev.sh
+    - SONAR_CONFIG=sonar-project-backend-qa.properties ./analyze-backend-sonar-dev.sh
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-qa
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing SonarQube Scanner..."
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - QA..."
+    - sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-qa
+  image: docker:20.10.16
+  commands:
+    - echo "Building Backend Docker image - QA..."
+    - cd backend
+    - docker build -t hospital-backend-qa .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-qa
+  image: docker:20.10.16
+  commands:
+    - echo "Building Frontend Docker image - QA..."
+    - docker build -t hospital-frontend-qa .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-qa
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Backend - QA..."
+    - docker stop hospital-backend-qa-cloud || true
+    - docker rm hospital-backend-qa-cloud || true
+    - docker rmi hospital-backend-qa || true
+    - docker run -d --name hospital-backend-qa-cloud --restart=always -p 8030:8080 hospital-backend-qa
+    - echo "Backend QA deployed successfully on port 8030"
+
+- name: deploy-frontend-qa
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Frontend - QA..."
+    - docker stop hospital-frontend-qa-cloud || true
+    - docker rm hospital-frontend-qa-cloud || true
+    - docker rmi hospital-frontend-qa || true
+    - docker run -d --name hospital-frontend-qa-cloud --restart=always -p 8031:80 hospital-frontend-qa
+    - echo "Frontend QA deployed successfully on port 8031"
 
 ---
 kind: pipeline
@@ -152,8 +258,60 @@ steps:
     - ./mvnw test
     - echo "Backend tests completed"
 
-- name: deploy-test-prod
-  image: alpine:latest
+- name: sonar-backend-prod
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Testing deployment process - PROD"
-    - echo "PROD deployment test completed successfully"
+    - echo "Running SonarQube analysis for Backend - PROD..."
+    - cd backend
+    - ./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-prod
+  image: node:18-alpine
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing SonarQube Scanner..."
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - PROD..."
+    - sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-prod
+  image: docker:20.10.16
+  commands:
+    - echo "Building Backend Docker image - PROD..."
+    - cd backend
+    - docker build -t hospital-backend-prod .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-prod
+  image: docker:20.10.16
+  commands:
+    - echo "Building Frontend Docker image - PROD..."
+    - docker build -t hospital-frontend-prod .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-prod
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Backend - PROD..."
+    - docker stop hospital-backend-prod-cloud || true
+    - docker rm hospital-backend-prod-cloud || true
+    - docker rmi hospital-backend-prod || true
+    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 hospital-backend-prod
+    - echo "Backend PROD deployed successfully on port 8020"
+
+- name: deploy-frontend-prod
+  image: docker:20.10.16
+  commands:
+    - echo "Deploying Frontend - PROD..."
+    - docker stop hospital-frontend-prod-cloud || true
+    - docker rm hospital-frontend-prod-cloud || true
+    - docker rmi hospital-frontend-prod || true
+    - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 hospital-frontend-prod
+    - echo "Frontend PROD deployed successfully on port 8021"
