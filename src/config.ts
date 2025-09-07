@@ -37,14 +37,6 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
-// Debug: Mostrar qué backend se está usando
-console.log('🔧 Configuración de API:', {
-  API_URL,
-  hostname: window.location.hostname,
-  port: window.location.port,
-  fullUrl: window.location.href
-});
-
 const FRONTEND_URL = 'http://localhost:5174'; // Puerto del frontend en QA
 
 const NGINX_URL = 'http://localhost:8083'; // Puerto de nginx en QA
