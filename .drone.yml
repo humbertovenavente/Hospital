@@ -74,7 +74,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - DEV..."
-    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-dev.properties
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-dev
@@ -254,7 +254,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - QA..."
-    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-qa
@@ -434,7 +434,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - PROD..."
-    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-prod.properties
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-prod
