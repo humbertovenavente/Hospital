@@ -44,7 +44,8 @@ public class CorsFilter implements ContainerResponseFilter {
             "http://localhost:8021",  // Frontend prod cloud
             "http://34.46.73.44:8061", // Frontend dev cloud externo
             "http://34.46.73.44:8031", // Frontend qa cloud externo
-            "http://34.46.73.44:8021"  // Frontend prod cloud externo
+            "http://34.46.73.44:8021", // Frontend prod cloud externo
+            "http://34.46.73.44:8060"  // Backend dev cloud externo
         };
         
         // Verificar si el origen está permitido

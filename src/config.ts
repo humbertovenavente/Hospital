@@ -11,7 +11,7 @@ const getApiUrl = () => {
 
   // Desarrollo
   if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '5174') {
-    return 'http://34.46.73.44:8080'; // Backend Dev
+    return 'http://34.46.73.44:8060'; // Backend Dev
   }
 
   // QA
@@ -25,7 +25,7 @@ const getApiUrl = () => {
   }
 
   // Por defecto, usar desarrollo
-  return 'http://34.46.73.44:8080';
+  return 'http://34.46.73.44:8060';
 };
 
 const API_URL = getApiUrl();
