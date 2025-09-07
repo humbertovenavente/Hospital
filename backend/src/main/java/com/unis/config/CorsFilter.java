@@ -26,18 +26,25 @@ public class CorsFilter implements ContainerResponseFilter {
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) throws IOException {
         
-        // Solo ejecutar en ambiente de QA
-        if (!"qa".equals(profile)) {
-            return;
-        }
+        // Ejecutar en todos los ambientes (dev, qa, prod)
+        // if (!"qa".equals(profile)) {
+        //     return;
+        // }
         
         // Obtener el origen de la petición
         String origin = requestContext.getHeaderString("Origin");
         
-        // Lista de orígenes permitidos para QA
+        // Lista de orígenes permitidos para todos los ambientes
         String[] allowedOrigins = {
             "http://localhost:8083",  // Nginx reverse proxy
-            "http://localhost:5174"   // Frontend directo
+            "http://localhost:5174",  // Frontend directo
+            "http://localhost:5173",  // Frontend dev
+            "http://localhost:8061",  // Frontend dev cloud
+            "http://localhost:8031",  // Frontend qa cloud
+            "http://localhost:8021",  // Frontend prod cloud
+            "http://34.46.73.44:8061", // Frontend dev cloud externo
+            "http://34.46.73.44:8031", // Frontend qa cloud externo
+            "http://34.46.73.44:8021"  // Frontend prod cloud externo
         };
         
         // Verificar si el origen está permitido
