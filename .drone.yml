@@ -129,8 +129,7 @@ steps:
 - name: notify-failure-dev
   image: alpine:latest
   environment:
-    GMAIL_USER: 
-      from_secret: gmail_user
+    GMAIL_USER: "humbertovenavente7@gmail.com"
     GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
     PIPELINE_NAME: "Hospital DEV"
     DRONE_COMMIT_BRANCH: "dev"
@@ -291,7 +290,7 @@ steps:
     - echo "Deploying Backend - QA..."
     - docker stop hospital-backend-qa-cloud || true
     - docker rm hospital-backend-qa-cloud || true
-    - docker run -d --name hospital-backend-qa-cloud --restart=always -p 8030:8030 hospital-backend-qa
+    - docker run -d --name hospital-backend-qa-cloud --restart=always -p 8030:8080 hospital-backend-qa
     - echo "Backend QA deployed successfully on port 8030"
 
 - name: deploy-frontend-qa
@@ -310,8 +309,7 @@ steps:
 - name: notify-failure-qa
   image: alpine:latest
   environment:
-    GMAIL_USER: 
-      from_secret: gmail_user
+    GMAIL_USER: "humbertovenavente7@gmail.com"
     GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
     PIPELINE_NAME: "Hospital QA"
     DRONE_COMMIT_BRANCH: "QA"
@@ -472,7 +470,7 @@ steps:
     - echo "Deploying Backend - PROD..."
     - docker stop hospital-backend-prod-cloud || true
     - docker rm hospital-backend-prod-cloud || true
-    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8020 hospital-backend-prod
+    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 hospital-backend-prod
     - echo "Backend PROD deployed successfully on port 8020"
 
 - name: deploy-frontend-prod
@@ -491,8 +489,7 @@ steps:
 - name: notify-failure-prod
   image: alpine:latest
   environment:
-    GMAIL_USER: 
-      from_secret: gmail_user
+    GMAIL_USER: "humbertovenavente7@gmail.com"
     GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
     PIPELINE_NAME: "Hospital PROD"
     DRONE_COMMIT_BRANCH: "main"
