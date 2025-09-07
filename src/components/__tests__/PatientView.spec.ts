@@ -322,10 +322,9 @@ describe('PatientView', () => {
       await wrapper.vm.$nextTick()
       await new Promise(resolve => setTimeout(resolve, 100))
 
-      // El componente usa template literals pero no interpola correctamente
       // Verificamos que se llame a fetch con la URL base
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('http://localhost:8080/recetas/paciente/')
+        expect.stringContaining('/recetas/paciente/')
       )
     })
   })

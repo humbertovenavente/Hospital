@@ -33,7 +33,7 @@ steps:
   image: node:18-alpine
   commands:
     - echo "Testing Hospital Frontend - DEV..."
-    - npm run test:unit
+    - npm run test:unit -- --coverage
     - echo "Frontend tests completed"
 
 - name: test-backend
@@ -74,7 +74,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - DEV..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-dev.properties
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-dev
@@ -213,7 +213,7 @@ steps:
   image: node:18-alpine
   commands:
     - echo "Testing Hospital Frontend - QA..."
-    - npm run test:unit
+    - npm run test:unit -- --coverage
     - echo "Frontend tests completed"
 
 - name: test-backend
@@ -254,7 +254,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - QA..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-qa
@@ -394,7 +394,7 @@ steps:
   image: node:18-alpine
   commands:
     - echo "Testing Hospital Frontend - PROD..."
-    - npm run test:unit
+    - npm run test:unit -- --coverage
     - echo "Frontend tests completed"
 
 - name: test-backend
@@ -434,7 +434,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - PROD..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts
+    - npx sonar-scanner -Dproject.settings=sonar-project-frontend-prod.properties
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-prod

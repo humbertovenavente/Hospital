@@ -4,26 +4,26 @@ const getApiUrl = () => {
   if (typeof __API_URL__ !== 'undefined') {
     return __API_URL__;
   }
-  
+
   // Detectar entorno basado en la URL actual
   const hostname = window.location.hostname;
   const port = window.location.port;
-  
+
   // Desarrollo
   if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '5174') {
     return 'http://34.46.73.44:8060'; // Backend Dev
   }
-  
+
   // QA
   if (port === '8031' || hostname.includes('qa')) {
     return 'http://34.46.73.44:8030'; // Backend QA
   }
-  
+
   // Producción
   if (port === '8021' || hostname.includes('prod') || hostname.includes('production')) {
     return 'http://34.46.73.44:8020'; // Backend Prod
   }
-  
+
   // Por defecto, usar desarrollo
   return 'http://34.46.73.44:8060';
 };
