@@ -110,7 +110,7 @@ steps:
     - echo "Deploying Backend - DEV..."
     - docker stop hospital-backend-dev-cloud || true
     - docker rm hospital-backend-dev-cloud || true
-    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8060 hospital-backend-dev
+    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 hospital-backend-dev
     - echo "Backend DEV deployed successfully on port 8060"
 
 - name: deploy-frontend-dev
