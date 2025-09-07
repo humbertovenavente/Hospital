@@ -9,8 +9,15 @@ const getApiUrl = () => {
   const hostname = window.location.hostname;
   const port = window.location.port;
 
-  // Desarrollo
-  if (hostname === 'localhost' || hostname === '127.0.0.1' || port === '5173' || port === '5174') {
+  console.log('🔍 Debug detección:', { hostname, port, fullUrl: window.location.href });
+
+  // Desarrollo local
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return 'http://34.46.73.44:8060'; // Backend Dev
+  }
+
+  // Desarrollo cloud (puerto 8061)
+  if (hostname === '34.46.73.44' && port === '8061') {
     return 'http://34.46.73.44:8060'; // Backend Dev
   }
 
