@@ -109,7 +109,7 @@ steps:
   commands:
     - echo "Deploying Backend - DEV..."
     - docker stop hospital-backend-dev-cloud || true
-    - docker rm hospital-backend-dev-cloud || true
+    - docker rm -f hospital-backend-dev-cloud || true
     - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 hospital-backend-dev
     - echo "Backend DEV deployed successfully on port 8060"
 
@@ -289,7 +289,7 @@ steps:
   commands:
     - echo "Deploying Backend - QA..."
     - docker stop hospital-backend-qa-cloud || true
-    - docker rm hospital-backend-qa-cloud || true
+    - docker rm -f hospital-backend-qa-cloud || true
     - docker run -d --name hospital-backend-qa-cloud --restart=always -p 8030:8080 hospital-backend-qa
     - echo "Backend QA deployed successfully on port 8030"
 
@@ -469,7 +469,7 @@ steps:
   commands:
     - echo "Deploying Backend - PROD..."
     - docker stop hospital-backend-prod-cloud || true
-    - docker rm hospital-backend-prod-cloud || true
+    - docker rm -f hospital-backend-prod-cloud || true
     - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 hospital-backend-prod
     - echo "Backend PROD deployed successfully on port 8020"
 
