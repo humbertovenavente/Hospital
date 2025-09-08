@@ -1,8 +1,8 @@
 import axios from "axios";
 import emailjs from "emailjs-com";
 
-// URL de la API para desarrollo
-const API_URL = 'http://34.46.73.44:8060';
+// URL de la API para QA
+const API_URL = 'http://34.46.73.44:8030';
 
 // Configuración de EmailJS
 const SERVICE_ID = "service_f70s6q3";
@@ -94,6 +94,17 @@ export const loginUser = async (correo, contrasena) => {
     return { id, roleId: rol.id }; // 🔹 Retorna ID y Role
   } catch (error) {
     console.error("Error iniciando sesión:", error.response?.data || error.message);
+
+    // Manejo específico de errores de CORS
+    if (error.code === 'ERR_NETWORK' || error.message.includes('CORS')) {
+      throw new Error("Error de conexión: El servidor no permite peticiones desde este origen. Contacta al administrador.");
+    }
+
+    // Manejo de errores de red
+    if (error.code === 'ERR_NETWORK') {
+      throw new Error("Error de red: No se pudo conectar al servidor. Verifica tu conexión a internet.");
+    }
+
     throw error;
   }
 };
