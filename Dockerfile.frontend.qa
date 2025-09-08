@@ -13,6 +13,14 @@ RUN npm ci
 # Copiar código fuente
 COPY . .
 
+# Variables de entorno para la construcción
+ARG NODE_ENV=production
+ARG VITE_API_URL=http://104.197.237.11:8030
+
+# Establecer variables de entorno
+ENV NODE_ENV=${NODE_ENV}
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Construir la aplicación
 RUN npm run build
 
@@ -23,7 +31,7 @@ FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copiar configuración de Nginx para QA
-COPY nginx.qa.conf /etc/nginx/nginx.conf
+COPY nginx/qa.conf /etc/nginx/nginx.conf
 
 # Exponer puerto
 EXPOSE 80
