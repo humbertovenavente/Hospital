@@ -110,7 +110,7 @@ steps:
     - echo "Deploying Backend - DEV..."
     - docker stop hospital-backend-dev-cloud || true
     - docker rm -f hospital-backend-dev-cloud || true
-    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 hospital-backend-dev
+    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 -e NODE_ENV=development -e QUARKUS_PROFILE=dev -e DB_HOST=34.56.133.126 -e DB_PORT=1521 -e DB_SID=XE -e DB_USER=system -e DB_PASSWORD=Oracle123 -e LOG_LEVEL=debug hospital-backend-dev
     - echo "Backend DEV deployed successfully on port 8060"
 
 - name: deploy-frontend-dev
