@@ -48,9 +48,9 @@ export default {
   // Endpoints específicos para QA
   endpoints: {
     // Autenticación
-    login: `${API_URL}/api/auth/login`,
-    register: `${API_URL}/api/auth/register`,
-    refresh: `${API_URL}/api/auth/refresh`,
+    login: `${API_URL}/usuarios/login`,
+    register: `${API_URL}/usuarios/registro`,
+    refresh: `${API_URL}/usuarios/refresh`,
 
     // Usuarios
     users: `${API_URL}/api/users`,
