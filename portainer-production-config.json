@@ -1,0 +1,32 @@
+{
+  "hospital-backend-prod-cloud": {
+    "name": "hospital-backend-prod-cloud",
+    "image": "hospital-backend-prod",
+    "ports": {
+      "8020": "8080"
+    },
+    "environment": {
+      "QUARKUS_PROFILE": "prod",
+      "QUARKUS_DATASOURCE_JDBC_URL": "jdbc:oracle:thin:@34.56.133.126:1521/XE",
+      "QUARKUS_DATASOURCE_USERNAME": "system",
+      "QUARKUS_DATASOURCE_PASSWORD": "Oracle123",
+      "QUARKUS_HTTP_CORS": "true",
+      "QUARKUS_HTTP_CORS_ORIGINS": "http://34.46.73.44:8021,http://localhost:8021,http://localhost:5173,http://localhost:8080",
+      "QUARKUS_HTTP_CORS_METHODS": "GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD",
+      "QUARKUS_HTTP_CORS_HEADERS": "*",
+      "QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS": "true",
+      "QUARKUS_HTTP_CORS_EXPOSED_HEADERS": "Content-Disposition"
+    },
+    "restart_policy": "always",
+    "command": "java -jar /app/quarkus-run.jar"
+  },
+  "hospital-frontend-prod-cloud": {
+    "name": "hospital-frontend-prod-cloud",
+    "image": "hospital-frontend-prod",
+    "ports": {
+      "8021": "80"
+    },
+    "restart_policy": "always",
+    "command": "nginx -g daemon off;"
+  }
+}

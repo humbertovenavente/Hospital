@@ -1,6 +1,6 @@
-// Configuración para el entorno de desarrollo en la nube
-const API_URL = 'http://34.46.73.44:8060';
-const FRONTEND_URL = 'http://34.46.73.44:8061'; // URL del frontend en la nube
+// Configuración para el entorno de producción en la nube
+const API_URL = 'http://34.46.73.44:8020';
+const FRONTEND_URL = 'http://34.46.73.44:8021'; // URL del frontend en la nube
 const NGINX_URL = 'http://34.46.73.44:80';     // URL de nginx en la nube
 
 export default {

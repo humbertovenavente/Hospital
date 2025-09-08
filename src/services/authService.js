@@ -1,8 +1,8 @@
 import axios from "axios";
 import emailjs from "emailjs-com";
 
-// URL de la API para desarrollo
-const API_URL = 'http://34.46.73.44:8060';
+// URL de la API para producción
+const API_URL = 'http://34.46.73.44:8020';
 
 // Configuración de EmailJS
 const SERVICE_ID = "service_f70s6q3";
