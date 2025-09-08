@@ -1,41 +1,5 @@
 // Configuración dinámica basada en el entorno
-const getApiUrl = () => {
-  // Si hay una variable de entorno definida, usarla
-  if (typeof __API_URL__ !== 'undefined') {
-    return __API_URL__;
-  }
-
-  // Detectar entorno basado en la URL actual
-  const hostname = window.location.hostname;
-  const port = window.location.port;
-
-  console.log('🔍 Debug detección:', { hostname, port, fullUrl: window.location.href });
-
-  // Desarrollo local
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    return 'http://34.46.73.44:8060'; // Backend Dev
-  }
-
-  // Desarrollo cloud (puerto 8061)
-  if (hostname === '34.46.73.44' && port === '8061') {
-    return 'http://34.46.73.44:8060'; // Backend Dev
-  }
-
-  // QA
-  if (port === '8031' || hostname.includes('qa')) {
-    return 'http://34.46.73.44:8030'; // Backend QA
-  }
-
-  // Producción
-  if (port === '8021' || hostname.includes('prod') || hostname.includes('production')) {
-    return 'http://34.46.73.44:8020'; // Backend Prod
-  }
-
-  // Por defecto, usar desarrollo
-  return 'http://34.46.73.44:8060';
-};
-
-const API_URL = getApiUrl();
+const API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://34.46.73.44:8060';
 
 const FRONTEND_URL = 'http://localhost:5174'; // Puerto del frontend en QA
 
