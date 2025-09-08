@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || 'http://34.46.73.44:8030';
 
 /**
  * Servicio para enviar reportes de deuda técnica por email
