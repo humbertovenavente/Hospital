@@ -28,7 +28,7 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 // URL de la API para QA
-const API_URL = 'http://localhost:8060';
+const API_URL = 'http://localhost:8080';
 
 const faqs = ref([]);
 

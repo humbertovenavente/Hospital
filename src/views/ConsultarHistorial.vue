@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 // URL de la API para QA
-const API_URL = 'http://localhost:8060';
+const API_URL = 'http://localhost:8080';
 
 const dpi = ref("");
 const aseguradoras = ref([]);

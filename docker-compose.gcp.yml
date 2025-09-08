@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Frontend del Hospital (desde Google Cloud Artifact Registry)
+  frontend:
+    image: us-central1-docker.pkg.dev/hospital-470223/hospital-repo/hospital-frontend:v1.0.0
+    container_name: hospital-frontend-gcp
+    ports:
+      - "80:80"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Backend del Hospital (desde Google Cloud Artifact Registry)
+  backend:
+    image: us-central1-docker.pkg.dev/hospital-470223/hospital-repo/hospital-backend:v1.0.0
+    container_name: hospital-backend-gcp
+    ports:
+      - "8080:8080"
+    environment:
+      - JAVA_OPTS=-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager
+      - QUARKUS_PROFILE=prod
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - database
+
+  # Base de datos Oracle (opcional, puedes usar la que prefieras)
+  database:
+    image: container-registry.oracle.com/database/express:latest
+    container_name: hospital-database-gcp
+    environment:
+      - ORACLE_PWD=hospital123
+      - ORACLE_CHARACTERSET=AL32UTF8
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - hospital-network
+    restart: unless-stopped
+
+  # Nginx como proxy reverso (opcional)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: hospital-nginx-proxy-gcp
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.gcp.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    depends_on:
+      - frontend
+      - backend
+
+networks:
+  hospital-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  oracle_data:
+    driver: local

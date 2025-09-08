@@ -1,0 +1,10 @@
+kind: pipeline
+type: docker
+name: simple-test
+
+steps:
+- name: hello
+  image: alpine:latest
+  commands:
+  - echo "Hello World"
+  - echo "Test successful"

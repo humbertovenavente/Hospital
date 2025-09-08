@@ -4,7 +4,7 @@ node {
         parameters([
             booleanParam(name: 'FORCE_FAIL', defaultValue: false, description: 'Forzar fallo del pipeline para probar notificaciones por correo')
             ,
-            booleanParam(name: 'BUILD_DOCKER', defaultValue: true, description: 'Construir y desplegar imágenes Docker (activado por defecto para QA)')
+            booleanParam(name: 'BUILD_DOCKER', defaultValue: false, description: 'Construir y desplegar imágenes Docker (desactivado por defecto)')
         ])
     ])
     def DOCKER_REGISTRY = 'hospital-registry'
@@ -14,7 +14,7 @@ node {
     
     try {
         stage('Checkout') {
-            echo " Iniciando checkout del código..."
+            echo "🔄 Iniciando checkout del código..."
             // Limpiar workspace para evitar quedarnos en la rama anterior
             deleteDir()
             checkout scm
@@ -25,63 +25,28 @@ node {
             } else {
                 echo "📋 Build directo en rama: ${env.BRANCH_NAME}"
             }
-            echo "Checkout completado"
+            echo "✅ Checkout completado"
 
             // Normalizar nombre de rama cuando Jenkins no lo expone (evitar 'null')
             try {
                 if (!env.BRANCH_NAME || env.BRANCH_NAME == 'null') {
                     def detected = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     if (detected == 'HEAD') {
-                        // En estado detached, forzar uso de 'prod' para producción por defecto
-                        detected = 'prod'
-                        echo "🔍 Estado detached detectado, forzando rama: prod"
+                        // En estado detached (p.ej., PR). Preferir destino u origen del PR
+                        detected = env.CHANGE_TARGET ?: (env.CHANGE_BRANCH ?: 'dev')
                     }
                     env.BRANCH_NAME = detected
-                    echo " Rama detectada: ${env.BRANCH_NAME}"
+                    echo "🔖 Rama detectada: ${env.BRANCH_NAME}"
                 }
-                
-                // Verificación adicional para ramas específicas
-                if (env.BRANCH_NAME == 'QA' || env.BRANCH_NAME == 'qa') {
-                    env.BRANCH_NAME = 'qa'
-                    echo "Rama QA confirmada: ${env.BRANCH_NAME}"
-                } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
-                    env.BRANCH_NAME = 'prod'
-                    echo "Rama PROD confirmada: ${env.BRANCH_NAME}"
-                } else {
-                    // Cualquier otra rama se trata como producción
-                    env.BRANCH_NAME = 'prod'
-                    echo "Rama PROD confirmada: ${env.BRANCH_NAME}"
+                            } catch (err) {
+                    echo "⚠️  No se pudo detectar la rama vía git: ${err}. Usando 'dev' por defecto"
+                    env.BRANCH_NAME = env.BRANCH_NAME ?: 'dev'
                 }
-            } catch (err) {
-                echo "  No se pudo detectar la rama vía git: ${err}. Usando 'prod' por defecto"
-                env.BRANCH_NAME = 'prod'
-            }
-        }
-        
-        stage('Debug - Branch Detection') {
-            echo "🔍 === DEBUG INFORMACIÓN DE RAMA ==="
-            echo "📋 BRANCH_NAME: ${env.BRANCH_NAME}"
-            echo "📋 CHANGE_ID: ${env.CHANGE_ID}"
-            echo "📋 CHANGE_BRANCH: ${env.CHANGE_BRANCH}"
-            echo "📋 CHANGE_TARGET: ${env.CHANGE_TARGET}"
-            
-            // Mostrar qué entorno se usará
-            if (env.BRANCH_NAME == 'qa' || env.BRANCH_NAME == 'QA') {
-                echo " ENTORNO: QA"
-                echo "PROYECTOS SONARQUBE: hospital-backend-qa, hospital-frontend-qa"
-            } else if (env.BRANCH_NAME == 'prod' || env.BRANCH_NAME == 'production') {
-                echo "ENTORNO: PRODUCCIÓN"
-                echo "PROYECTOS SONARQUBE: hospital-backend-prod, hospital-frontend-prod"
-            } else {
-                echo "ENTORNO: DESARROLLO"
-                echo "PROYECTOS SONARQUBE: hospital-backend-dev, hospital-frontend-dev"
-            }
-            echo " === FIN DEBUG ==="
         }
         
         stage('Fail Injection (opcional)') {
             if (params.FORCE_FAIL) {
-                echo "  FAIL injection activado: se forzará un fallo para probar notificaciones"
+                echo "⚠️  FAIL injection activado: se forzará un fallo para probar notificaciones"
                 error('Fallo intencional para probar notificaciones por correo')
             } else {
                 echo 'Fail injection desactivado'
@@ -91,7 +56,7 @@ node {
 
 
         stage('Setup Environment') {
-            echo "  Configurando entorno de PRODUCCIÓN..."
+            echo "⚙️  Configurando entorno para rama: ${env.BRANCH_NAME}..."
             sh '''
                 echo "=== Verificando Java ==="
                 java -version
@@ -112,7 +77,7 @@ node {
                 echo "=== Verificando Git ==="
                 git --version
             '''
-            echo " Entorno configurado correctamente"
+            echo "✅ Entorno configurado correctamente"
         }
         
         stage('Build Backend') {
@@ -125,37 +90,17 @@ node {
                     echo "=== Backend empaquetado exitosamente ==="
                 '''
             }
-            echo " Build del backend completado"
+            echo "✅ Build del backend completado"
         }
         
         stage('Unit Tests Backend') {
-            echo "🧪 Ejecutando tests unitarios del backend con cobertura JaCoCo..."
+            echo "🧪 Ejecutando tests unitarios del backend..."
             dir('backend') {
                 sh '''
-                    echo "=== Ejecutando tests unitarios con JaCoCo ==="
-                    mvn test jacoco:report -DskipITs
-                    
-                    echo "📊 Verificando reportes generados..."
-                    if [ -f "target/site/jacoco/jacoco.xml" ]; then
-                        echo "✅ Reporte JaCoCo XML generado: target/site/jacoco/jacoco.xml"
-                        ls -la target/site/jacoco/ || true
-                    else
-                        echo "⚠️  Reporte JaCoCo XML no encontrado en target/site/jacoco/"
-                        find target -name "jacoco.xml" -type f || echo "No se encontró jacoco.xml"
-                    fi
-                    
-                    if [ -d "target/surefire-reports" ]; then
-                        test_count=$(find target/surefire-reports -name "*.xml" | wc -l)
-                        echo "✅ Encontrados $test_count reportes de tests"
-                        ls -la target/surefire-reports/ | head -5 || true
-                    else
-                        echo "⚠️  No se encontraron reportes de tests"
-                    fi
-                    
+                    echo "=== Ejecutando tests unitarios ==="
+                    mvn test -DskipITs
                     echo "=== Tests unitarios completados ==="
                 '''
-                // Publicar resultados de tests
-                junit testResults: 'target/surefire-reports/*.xml', allowEmptyResults: true
             }
             echo "✅ Tests unitarios del backend completados"
         }
@@ -180,71 +125,65 @@ node {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
                     // ANÁLISIS DEL BACKEND (con cobertura de tests y rama específica)
                     echo "   🔍 Analizando BACKEND para rama: ${env.BRANCH_NAME}..."
-                    dir('backend') {
-                        sh '''
-                            echo "=== Ejecutando SonarQube Analysis para BACKEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
-                            export PATH=$PATH:/opt/sonar-scanner/bin
-                            export BRANCH_NAME=''' + env.BRANCH_NAME + '''
-                            export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
-                            
-                            # Fallbacks: si la integración no expone variables, usar valores por defecto
-                            export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
-                            export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
+                    sh '''
+                        echo "=== Ejecutando SonarQube Analysis para BACKEND (Rama: ''' + env.BRANCH_NAME + ''') ==="
+                        export PATH=$PATH:/opt/sonar-scanner/bin
+                        export BRANCH_NAME=''' + env.BRANCH_NAME + '''
+                        export BUILD_NUMBER=''' + env.BUILD_NUMBER + '''
+                        
+                        # Fallbacks: si la integración no expone variables, usar valores por defecto
+                        export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
+                        export TOKEN_TO_USE=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                            # Configurar projectKey y projectName según la rama - DEV por defecto
-                            if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                                PROJECT_KEY="hospital-backend-prod"
-                                PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
-                            elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                                PROJECT_KEY="hospital-backend-qa"
-                                PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
-                            else
-                                # Por defecto usar DEV para desarrollo
-                                PROJECT_KEY="hospital-backend-dev"
-                                PROJECT_NAME="Hospital Backend - DEV (Java/Quarkus)"
-                            fi
+                        # Configurar projectKey y projectName según la rama
+                        if [ "$BRANCH_NAME" = "prod" ]; then
+                            PROJECT_KEY="hospital-backend-prod"
+                            PROJECT_NAME="Hospital Backend - PRODUCCIÓN (Java/Quarkus)"
+                        elif [ "$BRANCH_NAME" = "QA" ]; then
+                            PROJECT_KEY="hospital-backend-qa"
+                            PROJECT_NAME="Hospital Backend - QA (Java/Quarkus)"
+                        elif [ "$BRANCH_NAME" = "dev" ]; then
+                            PROJECT_KEY="hospital-backend-dev"
+                            PROJECT_NAME="Hospital Backend - DESARROLLO (Java/Quarkus)"
+                        else
+                            PROJECT_KEY="hospital-backend-${BRANCH_NAME}"
+                            PROJECT_NAME="Hospital Backend - ${BRANCH_NAME} (Java/Quarkus)"
+                        fi
 
-                            echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
+                        echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
+                        echo "   📈 Configurando análisis de cobertura con JaCoCo..."
 
-                            TEST_ARGS=""
-                            if [ -d "target/test-classes" ] && [ -d "src/test/java" ]; then
-                              TEST_ARGS="-Dsonar.tests=src/test/java -Dsonar.java.test.binaries=target/test-classes"
-                            else
-                              echo "⚠️  No se encontraron clases de prueba (target/test-classes). Se omitirá el análisis de tests."
-                            fi
+                        TEST_ARGS=""
+                        if [ -d backend/target/test-classes ] && [ -d backend/src/test/java ]; then
+                          TEST_ARGS="-Dsonar.tests=backend/src/test/java -Dsonar.java.test.binaries=backend/target/test-classes"
+                        else
+                          echo "⚠️  No se encontraron clases de prueba (backend/target/test-classes). Se omitirá el análisis de tests."
+                        fi
 
-                            # Usar archivos de configuración específicos según el entorno
-                            if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                                echo "   🔧 Usando configuración específica de QA para backend..."
-                                sonar-scanner -Dproject.settings=../sonar-project-backend-qa.properties
-                            elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                                echo "   🔧 Usando configuración específica de PROD para backend..."
-                                sonar-scanner -Dproject.settings=../sonar-project-backend.properties
-                            else
-                                echo "   🔧 Usando configuración específica de DEV para backend..."
-                                sonar-scanner -Dproject.settings=../sonar-project-backend-dev.properties
-                            fi
-                            
-                            # SIMULAR FALLO EN BACKEND - FORZAR ERROR DE CALIDAD
-                            echo "   🚨 SIMULANDO FALLO DE CALIDAD EN BACKEND..."
-                            if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Cobertura insuficiente (65% < 80%)"
-                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Vulnerabilidades críticas detectadas (3 > 0)"
-                                echo "   ❌ BACKEND PRODUCCIÓN: Fallo intencional - Deuda técnica excesiva (24h > 8h)"
-                                exit 1
-                            elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                                echo "   ❌ BACKEND QA: Fallo intencional - Code smells críticos (15 > 10)"
-                                echo "   ❌ BACKEND QA: Fallo intencional - Bugs de alta severidad (2 > 0)"
-                                exit 1
-                            else
-                                echo "   ❌ BACKEND DEV: Fallo intencional - Duplicación de código (8% > 3%)"
-                                echo "   ❌ BACKEND DEV: Fallo intencional - Mantenibilidad baja (rating 4/5)"
-                                exit 1
-                            fi
-                            
-                            echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
-                        '''
-                    }
+                        # Verificar que el reporte de JaCoCo existe
+                        if [ -f backend/target/site/jacoco/jacoco.xml ]; then
+                          echo "   ✅ Reporte de cobertura JaCoCo encontrado: backend/target/site/jacoco/jacoco.xml"
+                        else
+                          echo "   ⚠️  Reporte de cobertura JaCoCo no encontrado. Se ejecutará sin análisis de cobertura."
+                        fi
+
+                        sonar-scanner \
+                          -Dsonar.projectKey=$PROJECT_KEY \
+                          -Dsonar.projectName="$PROJECT_NAME" \
+                          -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.sources=backend/src/main/java \
+                          -Dsonar.java.source=17 \
+                          -Dsonar.java.binaries=backend/target/classes \
+                          ${TEST_ARGS} \
+                          -Dsonar.coverage.jacoco.xmlReportPaths=backend/target/site/jacoco/jacoco.xml \
+                          -Dsonar.coverage.jacoco.reportPaths=backend/target/site/jacoco/jacoco.xml \
+                          -Dsonar.host.url=${SONAR_HOST} \
+                          -Dsonar.token=${TOKEN_TO_USE} \
+                          -Dsonar.exclusions=**/target/**,**/*.min.js,**/*.min.css \
+                          -Dsonar.qualitygate.wait=true
+                        echo "=== Análisis de SonarQube para BACKEND (${BRANCH_NAME}) completado ==="
+                        echo "   📊 Análisis incluye: Código fuente, Tests unitarios y Cobertura de código (JaCoCo)"
+                    '''
                     
                     // ANÁLISIS DEL FRONTEND (con rama específica)
                     echo "   🔍 Analizando FRONTEND para rama: ${env.BRANCH_NAME}..."
@@ -256,17 +195,19 @@ node {
                         export SONAR_HOST=${SONAR_HOST_URL:-http://localhost:9000}
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
-                        # Configurar projectKey y projectName según la rama - DEV por defecto
-                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
+                        # Configurar projectKey y projectName según la rama
+                        if [ "$BRANCH_NAME" = "prod" ]; then
                             PROJECT_KEY="hospital-frontend-prod"
                             PROJECT_NAME="Hospital Frontend - PRODUCCIÓN (Vue.js/TypeScript)"
-                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
+                        elif [ "$BRANCH_NAME" = "QA" ]; then
                             PROJECT_KEY="hospital-frontend-qa"
                             PROJECT_NAME="Hospital Frontend - QA (Vue.js/TypeScript)"
-                        else
-                            # Por defecto usar DEV para desarrollo
+                        elif [ "$BRANCH_NAME" = "dev" ]; then
                             PROJECT_KEY="hospital-frontend-dev"
-                            PROJECT_NAME="Hospital Frontend - DEV (Vue.js/TypeScript)"
+                            PROJECT_NAME="Hospital Frontend - DESARROLLO (Vue.js/TypeScript)"
+                        else
+                            PROJECT_KEY="hospital-frontend-${BRANCH_NAME}"
+                            PROJECT_NAME="Hospital Frontend - ${BRANCH_NAME} (Vue.js/TypeScript)"
                         fi
 
                         echo "   📊 Proyecto SonarQube: $PROJECT_KEY - $PROJECT_NAME"
@@ -296,34 +237,28 @@ node {
                         npm run build || echo "   ⚠️  Build falló, continuando sin build"
 
                         echo "   🔍 Ejecutando análisis de SonarQube para frontend..."
-                        # Usar archivos de configuración específicos según el entorno
-                        if [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                            echo "   🔧 Usando configuración específica de QA para frontend..."
-                            sonar-scanner -Dproject.settings=sonar-project-frontend-qa.properties
-                        elif [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                            echo "   🔧 Usando configuración específica de PROD para frontend..."
-                            sonar-scanner -Dproject.settings=sonar-project-frontend.properties
-                        else
-                            echo "   🔧 Usando configuración específica de DEV para frontend..."
-                            sonar-scanner -Dproject.settings=sonar-project-frontend-dev.properties
-                        fi
-                        
-                        # SIMULAR FALLO EN FRONTEND - FORZAR ERROR DE CALIDAD
-                        echo "   🚨 SIMULANDO FALLO DE CALIDAD EN FRONTEND..."
-                        if [ "$BRANCH_NAME" = "prod" ] || [ "$BRANCH_NAME" = "production" ]; then
-                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - Tests fallando (3/10 tests pasaron)"
-                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - Linting errors (25 > 0)"
-                            echo "   ❌ FRONTEND PRODUCCIÓN: Fallo intencional - TypeScript errors (8 > 0)"
-                            exit 1
-                        elif [ "$BRANCH_NAME" = "qa" ] || [ "$BRANCH_NAME" = "QA" ]; then
-                            echo "   ❌ FRONTEND QA: Fallo intencional - Cobertura insuficiente (45% < 70%)"
-                            echo "   ❌ FRONTEND QA: Fallo intencional - Vulnerabilidades de dependencias (5 > 0)"
-                            exit 1
-                        else
-                            echo "   ❌ FRONTEND DEV: Fallo intencional - Code smells (18 > 12)"
-                            echo "   ❌ FRONTEND DEV: Fallo intencional - Duplicación (12% > 5%)"
-                            exit 1
-                        fi
+                        # Configuración robusta para evitar timeouts en JS/TS analysis
+                        sonar-scanner \
+                          -Dsonar.projectKey=$PROJECT_KEY \
+                          -Dsonar.projectName="$PROJECT_NAME" \
+                          -Dsonar.projectVersion=${BUILD_NUMBER} \
+                          -Dsonar.sources=src \
+                          -Dsonar.javascript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.typescript.lcov.reportsPaths=coverage/lcov.info \
+                          -Dsonar.host.url=${SONAR_HOST} \
+                          -Dsonar.token=${SONAR_TOKEN} \
+                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,**/*.min.css,**/e2e/**,**/public/** \
+                          -Dsonar.qualitygate.wait=true \
+                          -Dsonar.javascript.timeout=600000 \
+                          -Dsonar.typescript.timeout=600000 \
+                          -Dsonar.javascript.bridge.timeout=600000 \
+                          -Dsonar.javascript.bridge.connectionTimeout=600000 \
+                          -Dsonar.javascript.bridge.readTimeout=600000 \
+                          -Dsonar.javascript.bridge.serverTimeout=600000 \
+                          -Dsonar.javascript.bridge.keepAlive=true \
+                          -Dsonar.javascript.bridge.maxRetries=5 \
+                          -Dsonar.javascript.bridge.memory=4096 \
+                          -Dsonar.javascript.bridge.maxMemory=8192
                         
                         if [ $? -eq 0 ]; then
                             echo "   ✅ Análisis del FRONTEND completado exitosamente"
@@ -392,141 +327,200 @@ node {
             }
         }
         
-        stage('Deploy to Development') {
-            // Forzar BUILD_DOCKER = true para cualquier rama que no sea QA o PROD
-            if (env.BRANCH_NAME != 'qa' && env.BRANCH_NAME != 'QA' && env.BRANCH_NAME != 'prod' && env.BRANCH_NAME != 'production') {
-                env.BUILD_DOCKER = true
-                echo "✅ Forzando BUILD_DOCKER = true para rama DEV: ${env.BRANCH_NAME}"
-            }
-            
-            if (params.BUILD_DOCKER && env.BRANCH_NAME != 'qa' && env.BRANCH_NAME != 'QA' && env.BRANCH_NAME != 'prod' && env.BRANCH_NAME != 'production' && !env.CHANGE_ID) {
-                echo "🚀 Iniciando despliegue en ambiente de DESARROLLO (DEV)..."
-                echo "   🐳 Construyendo y desplegando contenedores DEV..."
+        stage('Deploy to Production (dev branch)') {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'dev' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN (rama dev)..."
+                echo "   🐳 Construyendo y desplegando con configuración de PRODUCCIÓN..."
                 sh '''
+                  # Construir backend con configuración de producción
+                  echo "🔨 Construyendo backend para PRODUCCIÓN..."
+                  docker build -t hospital-backend-local .
+                  
+                  # Construir frontend con configuración de producción
+                  echo "🎨 Construyendo frontend para PRODUCCIÓN..."
+                  docker build -f Dockerfile.frontend -t hospitalpipelineprod2-frontend .
+                  
+                  # Limpiar contenedores anteriores si existen
+                  echo "🧹 Limpiando contenedores anteriores..."
+                  docker stop hospital-backend-local hospital-frontend-local 2>/dev/null || true
+                  docker rm hospital-backend-local hospital-frontend-local 2>/dev/null || true
+                  
+                  # Verificar Docker Compose
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
                     DC="docker compose"
                   else
-                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                    echo "❌ docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Detener contenedores existentes del entorno de desarrollo
-                  echo "🛑 Deteniendo contenedores de desarrollo..."
-                  $DC -f docker-compose.dev.yml down 2>/dev/null || true
+                  # Crear red si no existe
+                  echo "🌐 Configurando red hospital-2_hospital-network..."
+                  docker network create hospital-2_hospital-network 2>/dev/null || true
                   
-                  # Forzar detención y eliminación SOLO de contenedores de DEV existentes
-                  echo "🗑️ Forzando limpieza SOLO de contenedores de DEV..."
-                  docker stop hospital-backend-dev 2>/dev/null || true
-                  docker rm hospital-backend-dev 2>/dev/null || true
-                  docker stop hospital-frontend-dev 2>/dev/null || true
-                  docker rm hospital-frontend-dev 2>/dev/null || true
+                  # Asegurar que oracle_xe3 esté disponible
+                  echo "🗄️ Verificando Oracle Database..."
+                  if ! docker ps | grep -q oracle_xe3; then
+                    echo "⚠️ Oracle XE3 no está ejecutándose. Iniciándolo..."
+                    docker start oracle_xe3 2>/dev/null || echo "Oracle XE3 no existe o ya está iniciado"
+                  fi
                   
-                  # Desplegar servicios de desarrollo
-                  echo "📦 Desplegando servicios de DEV..."
-                  $DC -f docker-compose.dev.yml up -d --build
-                  
-                  # Conectar backend a la red de Oracle
-                  echo "🔗 Conectando backend a la red de Oracle..."
-                  sleep 10
-                  docker network connect bridge hospital-backend-dev 2>/dev/null || true
+                  # Desplegar usando configuración de producción
+                  echo "📦 Desplegando con docker-compose-oracle-xe3.yml (PRODUCCIÓN)..."
+                  $DC -f docker-compose-oracle-xe3.yml up -d
                 '''
-                echo "   ⏳ Verificando salud de los servicios..."
+                echo "   🔍 Verificando salud de los servicios de PRODUCCIÓN..."
                 sleep 15
-                echo "✅ Despliegue en DEV completado exitosamente"
-                echo "🌐 URLs de acceso DEV:"
-                echo "   - Backend: http://localhost:8060"
-                echo "   - Frontend: http://localhost:5180"
-                echo "   - SonarQube: http://localhost:9000"
+                sh '''
+                  echo "=== Estado de contenedores PRODUCCIÓN ==="
+                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}" | grep -E "(hospital|oracle)"
+                  
+                  echo "=== Verificando Backend PRODUCCIÓN ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:8080/health; do echo "Esperando backend..."; sleep 2; done' || echo "⚠️ Backend aún no responde"
+                  
+                  echo "=== Verificando Frontend PRODUCCIÓN ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:5173; do echo "Esperando frontend..."; sleep 2; done' || echo "⚠️ Frontend aún no responde"
+                '''
+                echo "✅ Despliegue de PRODUCCIÓN completado exitosamente"
+                echo "🌐 URLs de acceso PRODUCCIÓN:"
+                echo "   - Backend: http://localhost:8080"
+                echo "   - Frontend: http://localhost:5173"
+                echo "   - Base de datos: localhost:1523 (oracle_xe3)"
+                echo "   - Admin Oracle: http://localhost:5503"
             } else {
-                echo "⏭️  Saltando despliegue de desarrollo (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de PRODUCCIÓN (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+            }
+        }
+        
+        stage('Deploy to Development') {
+            if (params.BUILD_DOCKER && env.BRANCH_NAME == 'desarrollo' && !env.CHANGE_ID) {
+                echo "🚀 Iniciando despliegue en ambiente de DESARROLLO..."
+                echo "   🐳 Construyendo y desplegando con configuración DEV..."
+                sh '''
+                  # Construir backend DEV
+                  echo "🔨 Construyendo backend para DESARROLLO..."
+                  docker build -t hospital-pipeline-hospital-backend-dev .
+                  
+                  # Construir frontend DEV
+                  echo "🎨 Construyendo frontend para DESARROLLO..."
+                  docker build -f Dockerfile.frontend -t hospital-pipeline-hospital-frontend-dev .
+                  
+                  # Limpiar contenedores DEV anteriores si existen
+                  echo "🧹 Limpiando contenedores DEV anteriores..."
+                  docker stop hospital-backend-dev hospital-frontend-dev 2>/dev/null || true
+                  docker rm hospital-backend-dev hospital-frontend-dev 2>/dev/null || true
+                  
+                  # Verificar Docker Compose
+                  if command -v docker-compose >/dev/null 2>&1; then
+                    DC="docker-compose"
+                  elif docker compose version >/dev/null 2>&1; then
+                    DC="docker compose"
+                  else
+                    echo "❌ docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                  fi
+                  
+                  # Verificar que Oracle XE esté disponible
+                  echo "🗄️ Verificando Oracle Database para DEV..."
+                  if ! docker ps | grep -q oracle_xe; then
+                    echo "⚠️ Oracle XE no está ejecutándose. Iniciándolo..."
+                    docker start oracle_xe 2>/dev/null || echo "Oracle XE no existe, será creado por docker-compose"
+                  fi
+                  
+                  # Desplegar usando configuración DEV
+                  echo "📦 Desplegando con docker-compose.dev.yml..."
+                  $DC -f docker-compose.dev.yml up -d --build
+                '''
+                echo "   🔍 Verificando salud de los servicios DEV..."
+                sleep 20
+                sh '''
+                  echo "=== Estado de contenedores DEV ==="
+                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}" | grep -E "(dev|oracle_xe)"
+                  
+                  echo "=== Verificando Backend DEV ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:8060/health; do echo "Esperando backend DEV..."; sleep 2; done' || echo "⚠️ Backend DEV aún no responde"
+                  
+                  echo "=== Verificando Frontend DEV ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:5180; do echo "Esperando frontend DEV..."; sleep 2; done' || echo "⚠️ Frontend DEV aún no responde"
+                '''
+                echo "✅ Despliegue en DESARROLLO completado exitosamente"
+                echo "🌐 URLs de acceso DESARROLLO:"
+                echo "   - Frontend DEV: http://localhost:5180"
+                echo "   - Backend API DEV: http://localhost:8060"
+                echo "   - Base de Datos: localhost:1521"
+                echo "   - Swagger/OpenAPI: http://localhost:8060/swagger-ui"
+            } else {
+                echo "⏭️  Saltando despliegue de DESARROLLO (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
         stage('Deploy to QA') {
-            // Forzar BUILD_DOCKER = true para rama QA
-            if (env.BRANCH_NAME == 'QA') {
-                env.BUILD_DOCKER = true
-                echo "✅ Forzando BUILD_DOCKER = true para rama QA"
-            }
-            
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'QA' && !env.CHANGE_ID) {
                 echo "🚀 Iniciando despliegue en ambiente de QA..."
-                echo "   🧹 Limpiando contenedores de QA existentes..."
+                echo "   🐳 Construyendo y desplegando con configuración QA..."
                 sh '''
+                  # Construir backend QA
+                  echo "🔨 Construyendo backend para QA..."
+                  docker build -t hospital-backend-qa .
+                  
+                  # Construir frontend QA
+                  echo "🎨 Construyendo frontend para QA..."
+                  docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
+                  
+                  # Limpiar contenedores QA anteriores si existen
+                  echo "🧹 Limpiando contenedores QA anteriores..."
+                  docker stop hospital-backend-qa hospital-frontend-qa hospital-nginx-qa hospital-prometheus-qa hospital-grafana-qa 2>/dev/null || true
+                  docker rm hospital-backend-qa hospital-frontend-qa hospital-nginx-qa hospital-prometheus-qa hospital-grafana-qa 2>/dev/null || true
+                  
+                  # Verificar Docker Compose
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
                     DC="docker compose"
                   else
-                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                    echo "❌ docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # Detener y limpiar contenedores de QA existentes
-                  echo "🛑 Deteniendo contenedores de QA..."
-                  $DC -f docker-compose.qa.yml down 2>/dev/null || true
-                  
-                  # Forzar detención y eliminación de contenedores de QA
-                  echo "🗑️ Forzando limpieza de contenedores de QA..."
-                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
-                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-sonarqube-qa --filter name=hospital-prometheus-qa --filter name=hospital-grafana-qa) 2>/dev/null || true
-                  
-                  # Limpiar contenedores huérfanos de QA
-                  echo "🗑️ Limpiando contenedores huérfanos de QA..."
-                  docker container prune -f 2>/dev/null || true
+                  # Desplegar usando configuración QA
+                  echo "📦 Desplegando con docker-compose.qa.yml..."
+                  $DC -f docker-compose.qa.yml up -d
                 '''
-                
-                echo "   🐳 Construyendo y desplegando contenedores de QA..."
+                echo "   🔍 Verificando salud de los servicios QA..."
+                sleep 20
                 sh '''
-                  # Construir backend para QA
-                  echo "🔨 Construyendo backend para QA..."
-                  docker build -t hospital-backend-qa .
+                  echo "=== Estado de contenedores QA ==="
+                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}" | grep -E "(qa|QA)"
                   
-                  # Construir frontend para QA
-                  echo "🎨 Construyendo frontend para QA..."
-                  docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
+                  echo "=== Verificando Backend QA ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:8090/health; do echo "Esperando backend QA..."; sleep 2; done' || echo "⚠️ Backend QA aún no responde"
                   
-                  # Configurar red para oracle_xe2 (usado en QA)
-                  echo "🌐 Configurando red para oracle_xe2..."
-                  docker network create hospital-network 2>/dev/null || true
-                  docker network connect hospital-network oracle_xe2 2>/dev/null || true
+                  echo "=== Verificando Frontend QA ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:5174; do echo "Esperando frontend QA..."; sleep 2; done' || echo "⚠️ Frontend QA aún no responde"
                   
-                  # Desplegar servicios de QA
-                  echo "📦 Desplegando servicios de QA..."
-                  docker-compose -f docker-compose.qa.yml up -d --build
-                  
-                  # Asegurar que el backend esté en la red correcta
-                  echo "🔗 Conectando backend a la red hospital-network..."
-                  docker network connect hospital-network hospital-backend-qa 2>/dev/null || true
-                  
-                  # Verificar conectividad de red
-                  echo "🔍 Verificando conectividad de red..."
-                  docker exec hospital-backend-qa ping -c 1 oracle_xe2 || echo "⚠️  Advertencia: No se pudo hacer ping a oracle_xe2"
+                  echo "=== Verificando Nginx Proxy QA ==="
+                  timeout 30 bash -c 'until curl -f http://localhost:8083; do echo "Esperando Nginx QA..."; sleep 2; done' || echo "⚠️ Nginx QA aún no responde"
                 '''
-                echo "   Verificando salud de los servicios..."
-                sleep 15
                 echo "✅ Despliegue en QA completado exitosamente"
-                echo "🌐 URLs de acceso:"
-                echo "   - Backend: http://localhost:8060"
+                echo "🌐 URLs de acceso QA:"
                 echo "   - Frontend: http://localhost:5174"
-                echo "   - Nginx Reverse Proxy: http://localhost:8083"
-                echo "   - Jenkins: http://localhost:8081"
-                echo "   - SonarQube: http://localhost:9001"
+                echo "   - Backend API: http://localhost:8090"
+                echo "   - Nginx Proxy: http://localhost:8083"
+                echo "   - SonarQube: http://localhost:9000"
                 echo "   - Prometheus: http://localhost:9091"
                 echo "   - Grafana: http://localhost:3001"
-                echo "   - Base de datos: localhost:1522 (oracle_xe2)"
             } else {
                 echo "⏭️  Saltando despliegue de QA (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         
-        stage('Deploy to Production') {
+        stage('Deploy to Production (prod branch)') {
             if (params.BUILD_DOCKER && env.BRANCH_NAME == 'prod' && !env.CHANGE_ID) {
-                echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN..."
-                echo "   ⚠️  ADVERTENCIA: Despliegue en producción"
+                echo "🚀 Iniciando despliegue en ambiente de PRODUCCIÓN REAL (rama prod)..."
+                echo "   ⚠️  ADVERTENCIA: Despliegue en producción REAL"
                 
-                // Limpiar solo los contenedores específicos que no necesitamos
-                echo "   🧹 Limpiando contenedores hospital innecesarios..."
+                // Solicitar confirmación manual en producción real
+                input message: '¿Confirmar despliegue en PRODUCCIÓN REAL?', ok: 'Desplegar'
+                
+                echo "   🧹 Limpiando contenedores anteriores..."
                 sh '''
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
@@ -536,70 +530,75 @@ node {
                     echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
                   fi
                   
-                  # LIMPIAR SOLO CONTENEDORES HOSPITAL INNECESARIOS
-                  echo "🛑 Deteniendo contenedores hospital innecesarios..."
-                  docker stop $(docker ps -q --filter name=hospital- --filter name=hospital-grafana --filter name=hospital-prometheus --filter name=hospital-nginx) 2>/dev/null || true
+                  # Detener contenedores de otros entornos
+                  echo "🛑 Deteniendo contenedores de otros entornos..."
+                  docker stop $(docker ps -q --filter name=hospital-backend-dev --filter name=hospital-frontend-dev --filter name=hospital-backend-qa --filter name=hospital-frontend-qa) 2>/dev/null || true
                   
-                  echo "🗑️ Eliminando contenedores hospital innecesarios..."
-                  docker rm $(docker ps -aq --filter name=hospital- --filter name=hospital-grafana --filter name=hospital-prometheus --filter name=hospital-nginx) 2>/dev/null || true
-                  
-                  # PRESERVAR oracle_xe3, hospital-backend-local, hospital-frontend-local
-                  echo "✅ Preservando contenedores esenciales: oracle_xe3, hospital-backend-local, hospital-frontend-local"
-                  
-                  # Verificar contenedores existentes
-                  echo "Verificando contenedores existentes..."
-                  docker ps -a --format "table {{.Names}}\t{{.Status}}"
+                  # Mantener oracle_xe3 para producción
+                  echo "✅ Preservando Oracle XE3 para producción"
                 '''
                 
-                echo "   🐳 Construyendo y desplegando solo los 3 contenedores esenciales..."
+                echo "   🐳 Construyendo y desplegando en PRODUCCIÓN..."
                 sh '''
-                  # Construir backend local
-                  echo "🔨 Construyendo backend local..."
+                  # Construir imágenes de producción
+                  echo "🔨 Construyendo backend para PRODUCCIÓN REAL..."
                   docker build -t hospital-backend-local .
                   
-                  # Construir frontend local
-                  echo "🎨 Construyendo frontend local..."
-                  docker build -f Dockerfile.frontend -t hospital-frontend-local .
+                  echo "🎨 Construyendo frontend para PRODUCCIÓN REAL..."
+                  docker build -f Dockerfile.frontend -t hospitalpipelineprod2-frontend .
                   
-                  # Desplegar usando docker-compose-oracle-xe3.yml
-                  echo "📦 Desplegando con configuración local..."
+                  # Verificar Docker Compose
                   if command -v docker-compose >/dev/null 2>&1; then
                     DC="docker-compose"
                   elif docker compose version >/dev/null 2>&1; then
                     DC="docker compose"
                   else
-                    echo "docker-compose no está instalado. Instala con: sudo apt-get install -y docker-compose-plugin"; exit 1
+                    echo "❌ docker-compose no está instalado."; exit 1
                   fi
                   
-                  # Asegurar que oracle_xe3 esté en la red correcta
-                  echo "🌐 Configurando red para oracle_xe3..."
-                  docker network create hospital-network 2>/dev/null || true
-                  docker network connect hospital-network oracle_xe3 2>/dev/null || true
+                  # Configurar red de producción
+                  echo "🌐 Configurando red hospital-2_hospital-network..."
+                  docker network create hospital-2_hospital-network 2>/dev/null || true
                   
-                  # Desplegar backend y frontend
+                  # Asegurar Oracle XE3 disponible
+                  echo "🗄️ Verificando Oracle XE3 para PRODUCCIÓN..."
+                  if ! docker ps | grep -q oracle_xe3; then
+                    echo "⚠️ Oracle XE3 no está ejecutándose. Iniciándolo..."
+                    docker start oracle_xe3 2>/dev/null || echo "Oracle XE3 no existe"
+                  fi
+                  
+                  # Conectar Oracle a la red de producción
+                  docker network connect hospital-2_hospital-network oracle_xe3 2>/dev/null || true
+                  
+                  # Desplegar usando configuración de producción
+                  echo "📦 Desplegando PRODUCCIÓN REAL con docker-compose-oracle-xe3.yml..."
                   $DC -f docker-compose-oracle-xe3.yml up -d
                 '''
                 
-                echo "   🔍 Verificando salud de los servicios..."
-                sleep 15
+                echo "   🔍 Verificando salud de los servicios de PRODUCCIÓN REAL..."
+                sleep 20
                 sh '''
-                  echo "=== Estado de los contenedores ==="
-                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}"
+                  echo "=== Estado de contenedores PRODUCCIÓN REAL ==="
+                  docker ps --format "table {{.Names}}\t{{.Ports}}\t{{.Status}}" | grep -E "(hospital|oracle)"
                   
-                  echo "=== Verificando backend ==="
-                  curl -f http://localhost:8080/faq || echo "⚠️ Backend no responde aún"
+                  echo "=== Verificando Backend PRODUCCIÓN ==="
+                  timeout 60 bash -c 'until curl -f http://localhost:8080/health; do echo "Esperando backend PRODUCCIÓN..."; sleep 3; done' || echo "⚠️ Backend PRODUCCIÓN aún no responde"
                   
-                  echo "=== Verificando frontend ==="
-                  curl -f http://localhost:5173 || echo "⚠️ Frontend no responde aún"
+                  echo "=== Verificando Frontend PRODUCCIÓN ==="
+                  timeout 60 bash -c 'until curl -f http://localhost:5173; do echo "Esperando frontend PRODUCCIÓN..."; sleep 3; done' || echo "⚠️ Frontend PRODUCCIÓN aún no responde"
+                  
+                  echo "=== Test básico de conectividad ==="
+                  curl -f http://localhost:8080/faq || echo "⚠️ API FAQ no responde"
                 '''
                 
-                echo "✅ Despliegue en producción completado exitosamente"
-                echo "🌐 URLs de acceso:"
+                echo "✅ Despliegue en PRODUCCIÓN REAL completado exitosamente"
+                echo "🌐 URLs de acceso PRODUCCIÓN REAL:"
                 echo "   - Backend: http://localhost:8080"
                 echo "   - Frontend: http://localhost:5173"
                 echo "   - Base de datos: localhost:1523 (oracle_xe3)"
+                echo "   - Admin Oracle: http://localhost:5503"
             } else {
-                echo "⏭️  Saltando despliegue de producción (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
+                echo "⏭️  Saltando despliegue de PRODUCCIÓN REAL (BUILD_DOCKER=${params.BUILD_DOCKER}, rama: ${env.BRANCH_NAME}, PR: ${env.CHANGE_ID})"
             }
         }
         

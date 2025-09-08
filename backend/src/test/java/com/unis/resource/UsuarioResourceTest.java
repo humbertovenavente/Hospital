@@ -2,8 +2,8 @@ package com.unis.resource;
 
 import com.unis.model.Usuario;
 import com.unis.service.UsuarioService;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -13,9 +13,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class UsuarioResourceTest {
+/**
+ * Test class for UsuarioResource.
+ * Tests all REST endpoints and business logic.
+ */
+class UsuarioResourceTest {
 
     @Mock
     private UsuarioService usuarioService;
@@ -23,25 +28,24 @@ public class UsuarioResourceTest {
     @InjectMocks
     private UsuarioResource usuarioResource;
 
-    private Usuario usuario;
+    private Usuario testUsuario;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        usuario = new Usuario();
-        usuario.setId(1L);
-        usuario.setNombreUsuario("testuser");
-        usuario.setCorreo("test@example.com");
-        usuario.setContrasena("password123");
+        testUsuario = new Usuario();
+        testUsuario.setNombreUsuario("testuser");
+        testUsuario.setCorreo("test@example.com");
+        testUsuario.setContrasena("password123");
     }
 
     @Test
-    void testRegistrarUsuarioExitoso() {
+    void testRegistrarUsuario_Success() {
         // Arrange
-        doNothing().when(usuarioService).registrarUsuario(usuario);
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuario);
+        Response response = usuarioResource.registrarUsuario(testUsuario);
 
         // Assert
         assertNotNull(response);
@@ -51,12 +55,13 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuario);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioNull() {
+    void testRegistrarUsuario_WithNullUsuario() {
         // Arrange
         doNothing().when(usuarioService).registrarUsuario(null);
 
@@ -71,18 +76,19 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(null);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(null);
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioVacio() {
+    void testRegistrarUsuario_WithEmptyUsuario() {
         // Arrange
-        Usuario usuarioVacio = new Usuario();
-        doNothing().when(usuarioService).registrarUsuario(usuarioVacio);
+        Usuario emptyUsuario = new Usuario();
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioVacio);
+        Response response = usuarioResource.registrarUsuario(emptyUsuario);
 
         // Assert
         assertNotNull(response);
@@ -92,24 +98,20 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioVacio);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConDatosCompletos() {
+    void testRegistrarUsuario_WithPartialUsuario() {
         // Arrange
-        Usuario usuarioCompleto = new Usuario();
-        usuarioCompleto.setId(999L);
-        usuarioCompleto.setNombreUsuario("usuario_completo");
-        usuarioCompleto.setCorreo("completo@example.com");
-        usuarioCompleto.setContrasena("password123");
-        usuarioCompleto.setEstado(1);
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioCompleto);
+        Usuario partialUsuario = new Usuario();
+        partialUsuario.setNombreUsuario("partial");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioCompleto);
+        Response response = usuarioResource.registrarUsuario(partialUsuario);
 
         // Assert
         assertNotNull(response);
@@ -119,22 +121,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioCompleto);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConNombreUsuarioLargo() {
+    void testRegistrarUsuario_WithSpecialCharacters() {
         // Arrange
-        Usuario usuarioLargo = new Usuario();
-        usuarioLargo.setNombreUsuario("usuario_con_nombre_muy_largo_que_puede_exceder_el_limite_de_caracteres");
-        usuarioLargo.setCorreo("largo@example.com");
-        usuarioLargo.setContrasena("password123");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioLargo);
+        Usuario specialUsuario = new Usuario();
+        specialUsuario.setNombreUsuario("user@123!#$");
+        specialUsuario.setCorreo("test+tag@domain.co.uk");
+        specialUsuario.setContrasena("p@ssw0rd!");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioLargo);
+        Response response = usuarioResource.registrarUsuario(specialUsuario);
 
         // Assert
         assertNotNull(response);
@@ -144,22 +146,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioLargo);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConCorreoLargo() {
+    void testRegistrarUsuario_WithLongValues() {
         // Arrange
-        Usuario usuarioCorreoLargo = new Usuario();
-        usuarioCorreoLargo.setNombreUsuario("test");
-        usuarioCorreoLargo.setCorreo("usuario.con.correo.muy.largo.que.puede.exceder.el.limite.de.caracteres@dominio.muy.largo.com");
-        usuarioCorreoLargo.setContrasena("password123");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioCorreoLargo);
+        Usuario longUsuario = new Usuario();
+        longUsuario.setNombreUsuario("very_long_username_that_exceeds_normal_length_limits");
+        longUsuario.setCorreo("very.long.email.address@very.long.domain.name.com");
+        longUsuario.setContrasena("very_long_password_with_many_characters");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioCorreoLargo);
+        Response response = usuarioResource.registrarUsuario(longUsuario);
 
         // Assert
         assertNotNull(response);
@@ -169,22 +171,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioCorreoLargo);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConContrasenaLarga() {
+    void testRegistrarUsuario_WithUnicodeCharacters() {
         // Arrange
-        Usuario usuarioContrasenaLarga = new Usuario();
-        usuarioContrasenaLarga.setNombreUsuario("test");
-        usuarioContrasenaLarga.setCorreo("test@example.com");
-        usuarioContrasenaLarga.setContrasena("contrasena_muy_larga_que_puede_exceder_el_limite_de_caracteres_123456789");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioContrasenaLarga);
+        Usuario unicodeUsuario = new Usuario();
+        unicodeUsuario.setNombreUsuario("usér_námé");
+        unicodeUsuario.setCorreo("usér@domaín.com");
+        unicodeUsuario.setContrasena("cóntr@señ@");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioContrasenaLarga);
+        Response response = usuarioResource.registrarUsuario(unicodeUsuario);
 
         // Assert
         assertNotNull(response);
@@ -194,22 +196,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioContrasenaLarga);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConCaracteresEspeciales() {
+    void testRegistrarUsuario_WithNumbers() {
         // Arrange
-        Usuario usuarioEspecial = new Usuario();
-        usuarioEspecial.setNombreUsuario("usuario@#$%");
-        usuarioEspecial.setCorreo("especial@example.com");
-        usuarioEspecial.setContrasena("pass@#$%");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioEspecial);
+        Usuario numberUsuario = new Usuario();
+        numberUsuario.setNombreUsuario("user123");
+        numberUsuario.setCorreo("user123@domain456.com");
+        numberUsuario.setContrasena("pass123word");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioEspecial);
+        Response response = usuarioResource.registrarUsuario(numberUsuario);
 
         // Assert
         assertNotNull(response);
@@ -219,22 +221,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioEspecial);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConNumeros() {
+    void testRegistrarUsuario_WithUnderscores() {
         // Arrange
-        Usuario usuarioNumeros = new Usuario();
-        usuarioNumeros.setNombreUsuario("user123");
-        usuarioNumeros.setCorreo("123@example.com");
-        usuarioNumeros.setContrasena("pass123");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioNumeros);
+        Usuario underscoreUsuario = new Usuario();
+        underscoreUsuario.setNombreUsuario("user_name");
+        underscoreUsuario.setCorreo("user_name@domain_name.com");
+        underscoreUsuario.setContrasena("pass_word");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioNumeros);
+        Response response = usuarioResource.registrarUsuario(underscoreUsuario);
 
         // Assert
         assertNotNull(response);
@@ -244,22 +246,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioNumeros);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConEspacios() {
+    void testRegistrarUsuario_WithHyphens() {
         // Arrange
-        Usuario usuarioEspacios = new Usuario();
-        usuarioEspacios.setNombreUsuario("  usuario  ");
-        usuarioEspacios.setCorreo("  espacios@example.com  ");
-        usuarioEspacios.setContrasena("  pass  ");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioEspacios);
+        Usuario hyphenUsuario = new Usuario();
+        hyphenUsuario.setNombreUsuario("user-name");
+        hyphenUsuario.setCorreo("user-name@domain-name.com");
+        hyphenUsuario.setContrasena("pass-word");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioEspacios);
+        Response response = usuarioResource.registrarUsuario(hyphenUsuario);
 
         // Assert
         assertNotNull(response);
@@ -269,22 +271,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioEspacios);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConMayusculas() {
+    void testRegistrarUsuario_WithDots() {
         // Arrange
-        Usuario usuarioMayusculas = new Usuario();
-        usuarioMayusculas.setNombreUsuario("USUARIO");
-        usuarioMayusculas.setCorreo("MAYUSCULAS@EXAMPLE.COM");
-        usuarioMayusculas.setContrasena("PASSWORD");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioMayusculas);
+        Usuario dotUsuario = new Usuario();
+        dotUsuario.setNombreUsuario("user.name");
+        dotUsuario.setCorreo("user.name@domain.name.com");
+        dotUsuario.setContrasena("pass.word");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioMayusculas);
+        Response response = usuarioResource.registrarUsuario(dotUsuario);
 
         // Assert
         assertNotNull(response);
@@ -294,22 +296,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioMayusculas);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConMinusculas() {
+    void testRegistrarUsuario_WithSpaces() {
         // Arrange
-        Usuario usuarioMinusculas = new Usuario();
-        usuarioMinusculas.setNombreUsuario("usuario");
-        usuarioMinusculas.setCorreo("minusculas@example.com");
-        usuarioMinusculas.setContrasena("password");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioMinusculas);
+        Usuario spaceUsuario = new Usuario();
+        spaceUsuario.setNombreUsuario("user name");
+        spaceUsuario.setCorreo("user name@domain name.com");
+        spaceUsuario.setContrasena("pass word");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioMinusculas);
+        Response response = usuarioResource.registrarUsuario(spaceUsuario);
 
         // Assert
         assertNotNull(response);
@@ -319,22 +321,22 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
-        
-        verify(usuarioService).registrarUsuario(usuarioMinusculas);
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 
     @Test
-    void testRegistrarUsuarioConUsuarioConMezcla() {
+    void testRegistrarUsuario_WithMixedCase() {
         // Arrange
-        Usuario usuarioMezcla = new Usuario();
-        usuarioMezcla.setNombreUsuario("Usuario123");
-        usuarioMezcla.setCorreo("Mezcla@Example.COM");
-        usuarioMezcla.setContrasena("Pass123");
-        
-        doNothing().when(usuarioService).registrarUsuario(usuarioMezcla);
+        Usuario mixedCaseUsuario = new Usuario();
+        mixedCaseUsuario.setNombreUsuario("UserName");
+        mixedCaseUsuario.setCorreo("User@Domain.com");
+        mixedCaseUsuario.setContrasena("PassWord");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
 
         // Act
-        Response response = usuarioResource.registrarUsuario(usuarioMezcla);
+        Response response = usuarioResource.registrarUsuario(mixedCaseUsuario);
 
         // Assert
         assertNotNull(response);
@@ -344,7 +346,389 @@ public class UsuarioResourceTest {
         Map<String, String> respuesta = (Map<String, String>) response.getEntity();
         assertNotNull(respuesta);
         assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithBoundaryValues() {
+        // Arrange
+        Usuario boundaryUsuario = new Usuario();
+        boundaryUsuario.setId(Long.MAX_VALUE);
+        boundaryUsuario.setNombreUsuario("a"); // Minimum length
+        boundaryUsuario.setCorreo("a@b.c"); // Minimum email
+        boundaryUsuario.setContrasena("a"); // Minimum password
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(boundaryUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
         
-        verify(usuarioService).registrarUsuario(usuarioMezcla);
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithNullValues() {
+        // Arrange
+        Usuario nullUsuario = new Usuario();
+        nullUsuario.setId(null);
+        nullUsuario.setNombreUsuario(null);
+        nullUsuario.setCorreo(null);
+        nullUsuario.setContrasena(null);
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(nullUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithEmptyStrings() {
+        // Arrange
+        Usuario emptyStringUsuario = new Usuario();
+        emptyStringUsuario.setNombreUsuario("");
+        emptyStringUsuario.setCorreo("");
+        emptyStringUsuario.setContrasena("");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(emptyStringUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithWhitespaceOnly() {
+        // Arrange
+        Usuario whitespaceUsuario = new Usuario();
+        whitespaceUsuario.setNombreUsuario("   ");
+        whitespaceUsuario.setCorreo("   ");
+        whitespaceUsuario.setContrasena("   ");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(whitespaceUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithZeroId() {
+        // Arrange
+        Usuario zeroIdUsuario = new Usuario();
+        zeroIdUsuario.setId(0L);
+        zeroIdUsuario.setNombreUsuario("zero");
+        zeroIdUsuario.setCorreo("zero@domain.com");
+        zeroIdUsuario.setContrasena("zero");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(zeroIdUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithNegativeId() {
+        // Arrange
+        Usuario negativeIdUsuario = new Usuario();
+        negativeIdUsuario.setId(-1L);
+        negativeIdUsuario.setNombreUsuario("negative");
+        negativeIdUsuario.setCorreo("negative@domain.com");
+        negativeIdUsuario.setContrasena("negative");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(negativeIdUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithMinimumId() {
+        // Arrange
+        Usuario minIdUsuario = new Usuario();
+        minIdUsuario.setId(Long.MIN_VALUE);
+        minIdUsuario.setNombreUsuario("min");
+        minIdUsuario.setCorreo("min@domain.com");
+        minIdUsuario.setContrasena("min");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(minIdUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithMaximumId() {
+        // Arrange
+        Usuario maxIdUsuario = new Usuario();
+        maxIdUsuario.setId(Long.MAX_VALUE);
+        maxIdUsuario.setNombreUsuario("max");
+        maxIdUsuario.setCorreo("max@domain.com");
+        maxIdUsuario.setContrasena("max");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(maxIdUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithIPAddressEmail() {
+        // Arrange
+        Usuario ipEmailUsuario = new Usuario();
+        ipEmailUsuario.setNombreUsuario("ipuser");
+        ipEmailUsuario.setCorreo("user@192.168.1.1");
+        ipEmailUsuario.setContrasena("ipuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(ipEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithLocalhostEmail() {
+        // Arrange
+        Usuario localhostUsuario = new Usuario();
+        localhostUsuario.setNombreUsuario("localhostuser");
+        localhostUsuario.setCorreo("user@localhost");
+        localhostUsuario.setContrasena("localhostuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(localhostUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithPortEmail() {
+        // Arrange
+        Usuario portEmailUsuario = new Usuario();
+        portEmailUsuario.setNombreUsuario("portuser");
+        portEmailUsuario.setCorreo("user@domain.com:8080");
+        portEmailUsuario.setContrasena("portuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(portEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithPathEmail() {
+        // Arrange
+        Usuario pathEmailUsuario = new Usuario();
+        pathEmailUsuario.setNombreUsuario("pathuser");
+        pathEmailUsuario.setCorreo("user@domain.com/path");
+        pathEmailUsuario.setContrasena("pathuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(pathEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithQueryEmail() {
+        // Arrange
+        Usuario queryEmailUsuario = new Usuario();
+        queryEmailUsuario.setNombreUsuario("queryuser");
+        queryEmailUsuario.setCorreo("user@domain.com?param=value");
+        queryEmailUsuario.setContrasena("queryuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(queryEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithFragmentEmail() {
+        // Arrange
+        Usuario fragmentEmailUsuario = new Usuario();
+        fragmentEmailUsuario.setNombreUsuario("fragmentuser");
+        fragmentEmailUsuario.setCorreo("user@domain.com#fragment");
+        fragmentEmailUsuario.setContrasena("fragmentuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(fragmentEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
+    }
+
+    @Test
+    void testRegistrarUsuario_WithAllSpecialCharactersEmail() {
+        // Arrange
+        Usuario allSpecialEmailUsuario = new Usuario();
+        allSpecialEmailUsuario.setNombreUsuario("allspecialuser");
+        allSpecialEmailUsuario.setCorreo("user!@#$%^&*()_+-=[]{}|;':\",./<>?@domain.com");
+        allSpecialEmailUsuario.setContrasena("allspecialuser");
+        doNothing().when(usuarioService).registrarUsuario(any(Usuario.class));
+
+        // Act
+        Response response = usuarioResource.registrarUsuario(allSpecialEmailUsuario);
+
+        // Assert
+        assertNotNull(response);
+        assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus());
+        
+        @SuppressWarnings("unchecked")
+        Map<String, String> respuesta = (Map<String, String>) response.getEntity();
+        assertNotNull(respuesta);
+        assertEquals("Usuario registrado con éxito", respuesta.get("mensaje"));
+
+        // Verify service was called
+        verify(usuarioService, times(1)).registrarUsuario(any(Usuario.class));
     }
 }

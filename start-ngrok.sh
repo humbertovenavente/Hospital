@@ -10,8 +10,8 @@ cd /home/jose
 export HOME=/home/jose
 export XDG_CONFIG_HOME=/home/jose/.config
 
-# Iniciar ngrok en el puerto 8082 (Jenkins)
-/usr/local/bin/ngrok http 8082
+# Iniciar ngrok en el puerto 8081 (Jenkins)
+/usr/local/bin/ngrok http 8081
 
 # Mantener el script ejecutándose
 sleep infinity

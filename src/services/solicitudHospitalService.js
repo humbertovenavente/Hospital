@@ -1,6 +1,6 @@
 import axios from "axios";
 // URL de la API para QA
-const API_URL = 'http://localhost:8060';
+const API_URL = 'http://localhost:8080';
 
 // nviar solicitud hospitalaria a Quarkus
 export const enviarSolicitudHospital = async (hospital) => {

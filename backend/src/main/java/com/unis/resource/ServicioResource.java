@@ -104,8 +104,13 @@ public class ServicioResource {
     @Transactional
     public Response agregarSubServicio(@PathParam("id") Long parentId, Map<String, Object> requestBody) {
         try {
-            // Log de solicitud recibida
-            // System.out.println("📥 Recibiendo solicitud: " + requestBody); // 🔍 Verifica qué recibe
+            // Verificar si requestBody es null
+            if (requestBody == null) {
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity("{\"error\": \"El cuerpo de la solicitud no puede estar vacío.\"}").build();
+            }
+            
+            System.out.println("📥 Recibiendo solicitud: " + requestBody); // 🔍 Verifica qué recibe
 
             if (!requestBody.containsKey("subServicioId")) {
                 return Response.status(Response.Status.BAD_REQUEST)

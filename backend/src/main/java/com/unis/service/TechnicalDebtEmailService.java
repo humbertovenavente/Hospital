@@ -66,7 +66,12 @@ public class TechnicalDebtEmailService {
             String htmlContent = generateTechnicalDebtReportHTML(projectKey, projectName);
             
             // Lista de destinatarios (incluyendo jflores@unis.edu.gt)
-            List<String> recipients = List.of(recipientEmail, "jflores@unis.edu.gt");
+            List<String> recipients;
+            if (recipientEmail == null) {
+                recipients = List.of("jflores@unis.edu.gt");
+            } else {
+                recipients = List.of(recipientEmail, "jflores@unis.edu.gt");
+            }
             LOG.info("Total de destinatarios: " + recipients.size());
             
             // Enviar email a todos los destinatarios usando Quarkus Mailer
@@ -100,6 +105,10 @@ public class TechnicalDebtEmailService {
      * Envía reportes de deuda técnica para múltiples proyectos
      */
     public List<TechnicalDebtEmailResponse> sendMultiProjectReports(List<ProjectInfo> projects, String recipientEmail) {
+        if (projects == null) {
+            LOG.warn("Lista de proyectos es null, retornando lista vacía");
+            return List.of();
+        }
         return projects.stream()
             .map(project -> sendTechnicalDebtReport(project.getKey(), project.getName(), recipientEmail))
             .toList();
