@@ -57,6 +57,7 @@ data/
 # Nginx
 nginx.*.conf
 !nginx.dev.conf
+!nginx.prod.conf
 
 # Scripts
 scripts/
@@ -70,6 +71,7 @@ __tests__/
 *.config.js
 *.conf
 !nginx.dev.conf
+!nginx.prod.conf
 
 # Large files
 *.tar
