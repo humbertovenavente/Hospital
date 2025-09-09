@@ -19,254 +19,254 @@ public class CitaDTOTest {
     @Test
     void testDefaultConstructor() {
         assertNotNull(citaDTO);
-        assertNull(citaDTO.dpi);
-        assertNull(citaDTO.nombre);
-        assertNull(citaDTO.apellido);
-        assertNull(citaDTO.fecha);
-        assertNull(citaDTO.horaInicio);
-        assertNull(citaDTO.horaFin);
-        assertNull(citaDTO.motivo);
-        assertNull(citaDTO.idHospital);
-        assertNull(citaDTO.idServicio);
-        assertNull(citaDTO.idAseguradora);
-        assertNull(citaDTO.numeroAutorizacion);
+        assertNull(citaDTO.getDpi());
+        assertNull(citaDTO.getNombre());
+        assertNull(citaDTO.getApellido());
+        assertNull(citaDTO.getFecha());
+        assertNull(citaDTO.getHoraInicio());
+        assertNull(citaDTO.getHoraFin());
+        assertNull(citaDTO.getMotivo());
+        assertNull(citaDTO.getIdHospital());
+        assertNull(citaDTO.getIdServicio());
+        assertNull(citaDTO.getIdAseguradora());
+        assertNull(citaDTO.getNumeroAutorizacion());
     }
     
     @Test
     void testSetAndGetDpi() {
-        citaDTO.dpi = "1234567890101";
-        assertEquals("1234567890101", citaDTO.dpi);
+        citaDTO.setDpi("1234567890101");
+        assertEquals("1234567890101", citaDTO.getDpi());
         
-        citaDTO.dpi = null;
-        assertNull(citaDTO.dpi);
+        citaDTO.setDpi(null);
+        assertNull(citaDTO.getDpi());
         
-        citaDTO.dpi = "";
-        assertEquals("", citaDTO.dpi);
+        citaDTO.setDpi("");
+        assertEquals("", citaDTO.getDpi());
         
-        citaDTO.dpi = "DPI-123";
-        assertEquals("DPI-123", citaDTO.dpi);
+        citaDTO.setDpi("DPI-123");
+        assertEquals("DPI-123", citaDTO.getDpi());
     }
     
     @Test
     void testSetAndGetNombre() {
-        citaDTO.nombre = "Juan";
-        assertEquals("Juan", citaDTO.nombre);
+        citaDTO.setNombre("Juan");
+        assertEquals("Juan", citaDTO.getNombre());
         
-        citaDTO.nombre = null;
-        assertNull(citaDTO.nombre);
+        citaDTO.setNombre(null);
+        assertNull(citaDTO.getNombre());
         
-        citaDTO.nombre = "";
-        assertEquals("", citaDTO.nombre);
+        citaDTO.setNombre("");
+        assertEquals("", citaDTO.getNombre());
         
-        citaDTO.nombre = "María José";
-        assertEquals("María José", citaDTO.nombre);
+        citaDTO.setNombre("María José");
+        assertEquals("María José", citaDTO.getNombre());
     }
     
     @Test
     void testSetAndGetApellido() {
-        citaDTO.apellido = "Pérez";
-        assertEquals("Pérez", citaDTO.apellido);
+        citaDTO.setApellido("Pérez");
+        assertEquals("Pérez", citaDTO.getApellido());
         
-        citaDTO.apellido = null;
-        assertNull(citaDTO.apellido);
+        citaDTO.setApellido(null);
+        assertNull(citaDTO.getApellido());
         
-        citaDTO.apellido = "";
-        assertEquals("", citaDTO.apellido);
+        citaDTO.setApellido("");
+        assertEquals("", citaDTO.getApellido());
         
-        citaDTO.apellido = "García López";
-        assertEquals("García López", citaDTO.apellido);
+        citaDTO.setApellido("García López");
+        assertEquals("García López", citaDTO.getApellido());
     }
     
     @Test
     void testSetAndGetFecha() {
-        citaDTO.fecha = testDate;
-        assertEquals(testDate, citaDTO.fecha);
+        citaDTO.setFecha(testDate);
+        assertEquals(testDate, citaDTO.getFecha());
         
-        citaDTO.fecha = null;
-        assertNull(citaDTO.fecha);
+        citaDTO.setFecha(null);
+        assertNull(citaDTO.getFecha());
         
         LocalDate pastDate = LocalDate.of(2020, 1, 1);
-        citaDTO.fecha = pastDate;
-        assertEquals(pastDate, citaDTO.fecha);
+        citaDTO.setFecha(pastDate);
+        assertEquals(pastDate, citaDTO.getFecha());
         
         LocalDate futureDate = LocalDate.of(2030, 12, 31);
-        citaDTO.fecha = futureDate;
-        assertEquals(futureDate, citaDTO.fecha);
+        citaDTO.setFecha(futureDate);
+        assertEquals(futureDate, citaDTO.getFecha());
     }
     
     @Test
     void testSetAndGetHoraInicio() {
-        citaDTO.horaInicio = "09:00";
-        assertEquals("09:00", citaDTO.horaInicio);
+        citaDTO.setHoraInicio("09:00");
+        assertEquals("09:00", citaDTO.getHoraInicio());
         
-        citaDTO.horaInicio = null;
-        assertNull(citaDTO.horaInicio);
+        citaDTO.setHoraInicio(null);
+        assertNull(citaDTO.getHoraInicio());
         
-        citaDTO.horaInicio = "";
-        assertEquals("", citaDTO.horaInicio);
+        citaDTO.setHoraInicio("");
+        assertEquals("", citaDTO.getHoraInicio());
         
-        citaDTO.horaInicio = "14:30";
-        assertEquals("14:30", citaDTO.horaInicio);
+        citaDTO.setHoraInicio("14:30");
+        assertEquals("14:30", citaDTO.getHoraInicio());
     }
     
     @Test
     void testSetAndGetHoraFin() {
-        citaDTO.horaFin = "10:00";
-        assertEquals("10:00", citaDTO.horaFin);
+        citaDTO.setHoraFin("10:00");
+        assertEquals("10:00", citaDTO.getHoraFin());
         
-        citaDTO.horaFin = null;
-        assertNull(citaDTO.horaFin);
+        citaDTO.setHoraFin(null);
+        assertNull(citaDTO.getHoraFin());
         
-        citaDTO.horaFin = "";
-        assertEquals("", citaDTO.horaFin);
+        citaDTO.setHoraFin("");
+        assertEquals("", citaDTO.getHoraFin());
         
-        citaDTO.horaFin = "15:30";
-        assertEquals("15:30", citaDTO.horaFin);
+        citaDTO.setHoraFin("15:30");
+        assertEquals("15:30", citaDTO.getHoraFin());
     }
     
     @Test
     void testSetAndGetMotivo() {
-        citaDTO.motivo = "Consulta general";
-        assertEquals("Consulta general", citaDTO.motivo);
+        citaDTO.setMotivo("Consulta general");
+        assertEquals("Consulta general", citaDTO.getMotivo());
         
-        citaDTO.motivo = null;
-        assertNull(citaDTO.motivo);
+        citaDTO.setMotivo(null);
+        assertNull(citaDTO.getMotivo());
         
-        citaDTO.motivo = "";
-        assertEquals("", citaDTO.motivo);
+        citaDTO.setMotivo("");
+        assertEquals("", citaDTO.getMotivo());
         
-        citaDTO.motivo = "Revisión de resultados";
-        assertEquals("Revisión de resultados", citaDTO.motivo);
+        citaDTO.setMotivo("Revisión de resultados");
+        assertEquals("Revisión de resultados", citaDTO.getMotivo());
     }
     
     @Test
     void testSetAndGetIdHospital() {
-        citaDTO.idHospital = 1L;
-        assertEquals(1L, citaDTO.idHospital);
+        citaDTO.setIdHospital(1L);
+        assertEquals(1L, citaDTO.getIdHospital());
         
-        citaDTO.idHospital = null;
-        assertNull(citaDTO.idHospital);
+        citaDTO.setIdHospital(null);
+        assertNull(citaDTO.getIdHospital());
         
-        citaDTO.idHospital = 0L;
-        assertEquals(0L, citaDTO.idHospital);
+        citaDTO.setIdHospital(0L);
+        assertEquals(0L, citaDTO.getIdHospital());
         
-        citaDTO.idHospital = 999L;
-        assertEquals(999L, citaDTO.idHospital);
+        citaDTO.setIdHospital(999L);
+        assertEquals(999L, citaDTO.getIdHospital());
     }
     
     @Test
     void testSetAndGetIdServicio() {
-        citaDTO.idServicio = 1L;
-        assertEquals(1L, citaDTO.idServicio);
+        citaDTO.setIdServicio(1L);
+        assertEquals(1L, citaDTO.getIdServicio());
         
-        citaDTO.idServicio = null;
-        assertNull(citaDTO.idServicio);
+        citaDTO.setIdServicio(null);
+        assertNull(citaDTO.getIdServicio());
         
-        citaDTO.idServicio = 0L;
-        assertEquals(0L, citaDTO.idServicio);
+        citaDTO.setIdServicio(0L);
+        assertEquals(0L, citaDTO.getIdServicio());
         
-        citaDTO.idServicio = 100L;
-        assertEquals(100L, citaDTO.idServicio);
+        citaDTO.setIdServicio(100L);
+        assertEquals(100L, citaDTO.getIdServicio());
     }
     
     @Test
     void testSetAndGetIdAseguradora() {
-        citaDTO.idAseguradora = 1L;
-        assertEquals(1L, citaDTO.idAseguradora);
+        citaDTO.setIdAseguradora(1L);
+        assertEquals(1L, citaDTO.getIdAseguradora());
         
-        citaDTO.idAseguradora = null;
-        assertNull(citaDTO.idAseguradora);
+        citaDTO.setIdAseguradora(null);
+        assertNull(citaDTO.getIdAseguradora());
         
-        citaDTO.idAseguradora = 0L;
-        assertEquals(0L, citaDTO.idAseguradora);
+        citaDTO.setIdAseguradora(0L);
+        assertEquals(0L, citaDTO.getIdAseguradora());
         
-        citaDTO.idAseguradora = 50L;
-        assertEquals(50L, citaDTO.idAseguradora);
+        citaDTO.setIdAseguradora(50L);
+        assertEquals(50L, citaDTO.getIdAseguradora());
     }
     
     @Test
     void testSetAndGetNumeroAutorizacion() {
-        citaDTO.numeroAutorizacion = "AUTH-12345";
-        assertEquals("AUTH-12345", citaDTO.numeroAutorizacion);
+        citaDTO.setNumeroAutorizacion("AUTH-12345");
+        assertEquals("AUTH-12345", citaDTO.getNumeroAutorizacion());
         
-        citaDTO.numeroAutorizacion = null;
-        assertNull(citaDTO.numeroAutorizacion);
+        citaDTO.setNumeroAutorizacion(null);
+        assertNull(citaDTO.getNumeroAutorizacion());
         
-        citaDTO.numeroAutorizacion = "";
-        assertEquals("", citaDTO.numeroAutorizacion);
+        citaDTO.setNumeroAutorizacion("");
+        assertEquals("", citaDTO.getNumeroAutorizacion());
         
-        citaDTO.numeroAutorizacion = "AUT-2024-001";
-        assertEquals("AUT-2024-001", citaDTO.numeroAutorizacion);
+        citaDTO.setNumeroAutorizacion("AUT-2024-001");
+        assertEquals("AUT-2024-001", citaDTO.getNumeroAutorizacion());
     }
     
     @Test
     void testCompleteObject() {
         // Set all fields
-        citaDTO.dpi = "1234567890101";
-        citaDTO.nombre = "Juan Carlos";
-        citaDTO.apellido = "Pérez García";
-        citaDTO.fecha = testDate;
-        citaDTO.horaInicio = "09:00";
-        citaDTO.horaFin = "10:00";
-        citaDTO.motivo = "Consulta de rutina";
-        citaDTO.idHospital = 1L;
-        citaDTO.idServicio = 5L;
-        citaDTO.idAseguradora = 2L;
-        citaDTO.numeroAutorizacion = "AUTH-2024-001";
+        citaDTO.setDpi("1234567890101");
+        citaDTO.setNombre("Juan Carlos");
+        citaDTO.setApellido("Pérez García");
+        citaDTO.setFecha(testDate);
+        citaDTO.setHoraInicio("09:00");
+        citaDTO.setHoraFin("10:00");
+        citaDTO.setMotivo("Consulta de rutina");
+        citaDTO.setIdHospital(1L);
+        citaDTO.setIdServicio(5L);
+        citaDTO.setIdAseguradora(2L);
+        citaDTO.setNumeroAutorizacion("AUTH-2024-001");
         
         // Verify all fields
-        assertEquals("1234567890101", citaDTO.dpi);
-        assertEquals("Juan Carlos", citaDTO.nombre);
-        assertEquals("Pérez García", citaDTO.apellido);
-        assertEquals(testDate, citaDTO.fecha);
-        assertEquals("09:00", citaDTO.horaInicio);
-        assertEquals("10:00", citaDTO.horaFin);
-        assertEquals("Consulta de rutina", citaDTO.motivo);
-        assertEquals(1L, citaDTO.idHospital);
-        assertEquals(5L, citaDTO.idServicio);
-        assertEquals(2L, citaDTO.idAseguradora);
-        assertEquals("AUTH-2024-001", citaDTO.numeroAutorizacion);
+        assertEquals("1234567890101", citaDTO.getDpi());
+        assertEquals("Juan Carlos", citaDTO.getNombre());
+        assertEquals("Pérez García", citaDTO.getApellido());
+        assertEquals(testDate, citaDTO.getFecha());
+        assertEquals("09:00", citaDTO.getHoraInicio());
+        assertEquals("10:00", citaDTO.getHoraFin());
+        assertEquals("Consulta de rutina", citaDTO.getMotivo());
+        assertEquals(1L, citaDTO.getIdHospital());
+        assertEquals(5L, citaDTO.getIdServicio());
+        assertEquals(2L, citaDTO.getIdAseguradora());
+        assertEquals("AUTH-2024-001", citaDTO.getNumeroAutorizacion());
     }
     
     @Test
     void testFieldModification() {
         // Set initial values
-        citaDTO.dpi = "1111111111111";
-        citaDTO.nombre = "María";
-        citaDTO.idHospital = 1L;
+        citaDTO.setDpi("1111111111111");
+        citaDTO.setNombre("María");
+        citaDTO.setIdHospital(1L);
         
         // Modify values
-        citaDTO.dpi = "2222222222222";
-        citaDTO.nombre = "Ana";
-        citaDTO.idHospital = 2L;
+        citaDTO.setDpi("2222222222222");
+        citaDTO.setNombre("Ana");
+        citaDTO.setIdHospital(2L);
         
         // Verify modifications
-        assertEquals("2222222222222", citaDTO.dpi);
-        assertEquals("Ana", citaDTO.nombre);
-        assertEquals(2L, citaDTO.idHospital);
+        assertEquals("2222222222222", citaDTO.getDpi());
+        assertEquals("Ana", citaDTO.getNombre());
+        assertEquals(2L, citaDTO.getIdHospital());
     }
     
     @Test
     void testEdgeCases() {
         // Test with very long strings
         String longString = "A".repeat(1000);
-        citaDTO.motivo = longString;
-        assertEquals(longString, citaDTO.motivo);
+        citaDTO.setMotivo(longString);
+        assertEquals(longString, citaDTO.getMotivo());
         
         // Test with special characters
-        citaDTO.nombre = "José María & Ana";
-        assertEquals("José María & Ana", citaDTO.nombre);
+        citaDTO.setNombre("José María & Ana");
+        assertEquals("José María & Ana", citaDTO.getNombre());
         
         // Test with numbers in strings
-        citaDTO.apellido = "García123";
-        assertEquals("García123", citaDTO.apellido);
+        citaDTO.setApellido("García123");
+        assertEquals("García123", citaDTO.getApellido());
         
         // Test with extreme date values
         LocalDate minDate = LocalDate.MIN;
         LocalDate maxDate = LocalDate.MAX;
-        citaDTO.fecha = minDate;
-        assertEquals(minDate, citaDTO.fecha);
-        citaDTO.fecha = maxDate;
-        assertEquals(maxDate, citaDTO.fecha);
+        citaDTO.setFecha(minDate);
+        assertEquals(minDate, citaDTO.getFecha());
+        citaDTO.setFecha(maxDate);
+        assertEquals(maxDate, citaDTO.getFecha());
     }
 }

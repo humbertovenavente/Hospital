@@ -31,7 +31,7 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class FaqController {
 
-    private final FaqService faqService;
+    public final FaqService faqService;
 
     /**
      * Constructor for dependency injection.

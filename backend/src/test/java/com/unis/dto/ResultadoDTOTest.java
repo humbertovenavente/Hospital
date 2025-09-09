@@ -19,182 +19,193 @@ public class ResultadoDTOTest {
     @Test
     void testDefaultConstructor() {
         assertNotNull(resultadoDTO);
-        assertNull(resultadoDTO.documento);
-        assertNull(resultadoDTO.diagnostico);
-        assertNull(resultadoDTO.resultados);
-        assertNull(resultadoDTO.fecha);
-        assertNull(resultadoDTO.idCita);
+        assertNull(resultadoDTO.getDocumento());
+        assertNull(resultadoDTO.getDiagnostico());
+        assertNull(resultadoDTO.getResultados());
+        assertNull(resultadoDTO.getFecha());
+        assertNull(resultadoDTO.getIdCita());
     }
     
     @Test
     void testSetAndGetDocumento() {
-        resultadoDTO.documento = "DOC-001";
-        assertEquals("DOC-001", resultadoDTO.documento);
+        resultadoDTO.setDocumento("DOC-001");
+        assertEquals("DOC-001", resultadoDTO.getDocumento());
         
-        resultadoDTO.documento = null;
-        assertNull(resultadoDTO.documento);
+        resultadoDTO.setDocumento(null);
+        assertNull(resultadoDTO.getDocumento());
         
-        resultadoDTO.documento = "";
-        assertEquals("", resultadoDTO.documento);
+        resultadoDTO.setDocumento("");
+        assertEquals("", resultadoDTO.getDocumento());
         
-        resultadoDTO.documento = "RESULTADO-2024-001";
-        assertEquals("RESULTADO-2024-001", resultadoDTO.documento);
+        resultadoDTO.setDocumento("RESULTADO-2024-001");
+        assertEquals("RESULTADO-2024-001", resultadoDTO.getDocumento());
     }
     
     @Test
     void testSetAndGetDiagnostico() {
-        resultadoDTO.diagnostico = "Gripe común";
-        assertEquals("Gripe común", resultadoDTO.diagnostico);
+        resultadoDTO.setDiagnostico("Gripe común");
+        assertEquals("Gripe común", resultadoDTO.getDiagnostico());
         
-        resultadoDTO.diagnostico = null;
-        assertNull(resultadoDTO.diagnostico);
+        resultadoDTO.setDiagnostico(null);
+        assertNull(resultadoDTO.getDiagnostico());
         
-        resultadoDTO.diagnostico = "";
-        assertEquals("", resultadoDTO.diagnostico);
+        resultadoDTO.setDiagnostico("");
+        assertEquals("", resultadoDTO.getDiagnostico());
         
-        resultadoDTO.diagnostico = "Hipertensión arterial";
-        assertEquals("Hipertensión arterial", resultadoDTO.diagnostico);
+        resultadoDTO.setDiagnostico("Hipertensión arterial");
+        assertEquals("Hipertensión arterial", resultadoDTO.getDiagnostico());
     }
     
     @Test
     void testSetAndGetResultados() {
-        resultadoDTO.resultados = "Paciente presenta síntomas leves";
-        assertEquals("Paciente presenta síntomas leves", resultadoDTO.resultados);
+        resultadoDTO.setResultados("Hemograma completo normal");
+        assertEquals("Hemograma completo normal", resultadoDTO.getResultados());
         
-        resultadoDTO.resultados = null;
-        assertNull(resultadoDTO.resultados);
+        resultadoDTO.setResultados(null);
+        assertNull(resultadoDTO.getResultados());
         
-        resultadoDTO.resultados = "";
-        assertEquals("", resultadoDTO.resultados);
+        resultadoDTO.setResultados("");
+        assertEquals("", resultadoDTO.getResultados());
         
-        resultadoDTO.resultados = "Análisis de sangre: normal";
-        assertEquals("Análisis de sangre: normal", resultadoDTO.resultados);
+        resultadoDTO.setResultados("Presión arterial: 140/90 mmHg");
+        assertEquals("Presión arterial: 140/90 mmHg", resultadoDTO.getResultados());
     }
     
     @Test
     void testSetAndGetFecha() {
-        resultadoDTO.fecha = testDate;
-        assertEquals(testDate, resultadoDTO.fecha);
+        resultadoDTO.setFecha(testDate);
+        assertEquals(testDate, resultadoDTO.getFecha());
         
-        resultadoDTO.fecha = null;
-        assertNull(resultadoDTO.fecha);
+        resultadoDTO.setFecha(null);
+        assertNull(resultadoDTO.getFecha());
         
         LocalDate pastDate = LocalDate.of(2020, 1, 1);
-        resultadoDTO.fecha = pastDate;
-        assertEquals(pastDate, resultadoDTO.fecha);
+        resultadoDTO.setFecha(pastDate);
+        assertEquals(pastDate, resultadoDTO.getFecha());
         
         LocalDate futureDate = LocalDate.of(2030, 12, 31);
-        resultadoDTO.fecha = futureDate;
-        assertEquals(futureDate, resultadoDTO.fecha);
+        resultadoDTO.setFecha(futureDate);
+        assertEquals(futureDate, resultadoDTO.getFecha());
     }
     
     @Test
     void testSetAndGetIdCita() {
-        resultadoDTO.idCita = 1L;
-        assertEquals(1L, resultadoDTO.idCita);
+        resultadoDTO.setIdCita(1L);
+        assertEquals(1L, resultadoDTO.getIdCita());
         
-        resultadoDTO.idCita = null;
-        assertNull(resultadoDTO.idCita);
+        resultadoDTO.setIdCita(null);
+        assertNull(resultadoDTO.getIdCita());
         
-        resultadoDTO.idCita = 0L;
-        assertEquals(0L, resultadoDTO.idCita);
+        resultadoDTO.setIdCita(0L);
+        assertEquals(0L, resultadoDTO.getIdCita());
         
-        resultadoDTO.idCita = 999L;
-        assertEquals(999L, resultadoDTO.idCita);
+        resultadoDTO.setIdCita(999L);
+        assertEquals(999L, resultadoDTO.getIdCita());
     }
     
     @Test
     void testCompleteObject() {
         // Set all fields
-        resultadoDTO.documento = "RES-2024-001";
-        resultadoDTO.diagnostico = "Diabetes tipo 2";
-        resultadoDTO.resultados = "Glucosa en ayunas: 180 mg/dL";
-        resultadoDTO.fecha = testDate;
-        resultadoDTO.idCita = 123L;
+        resultadoDTO.setDocumento("RES-2024-001");
+        resultadoDTO.setDiagnostico("Diabetes tipo 2");
+        resultadoDTO.setResultados("Glucosa en ayunas: 180 mg/dL");
+        resultadoDTO.setFecha(testDate);
+        resultadoDTO.setIdCita(123L);
         
         // Verify all fields
-        assertEquals("RES-2024-001", resultadoDTO.documento);
-        assertEquals("Diabetes tipo 2", resultadoDTO.diagnostico);
-        assertEquals("Glucosa en ayunas: 180 mg/dL", resultadoDTO.resultados);
-        assertEquals(testDate, resultadoDTO.fecha);
-        assertEquals(123L, resultadoDTO.idCita);
+        assertEquals("RES-2024-001", resultadoDTO.getDocumento());
+        assertEquals("Diabetes tipo 2", resultadoDTO.getDiagnostico());
+        assertEquals("Glucosa en ayunas: 180 mg/dL", resultadoDTO.getResultados());
+        assertEquals(testDate, resultadoDTO.getFecha());
+        assertEquals(123L, resultadoDTO.getIdCita());
     }
     
     @Test
     void testFieldModification() {
         // Set initial values
-        resultadoDTO.documento = "DOC-001";
-        resultadoDTO.diagnostico = "Gripe";
-        resultadoDTO.idCita = 1L;
+        resultadoDTO.setDocumento("INITIAL");
+        resultadoDTO.setDiagnostico("Initial Diagnosis");
+        resultadoDTO.setIdCita(1L);
         
         // Modify values
-        resultadoDTO.documento = "DOC-002";
-        resultadoDTO.diagnostico = "Resfriado";
-        resultadoDTO.idCita = 2L;
+        resultadoDTO.setDocumento("MODIFIED");
+        resultadoDTO.setDiagnostico("Modified Diagnosis");
+        resultadoDTO.setIdCita(2L);
         
         // Verify modifications
-        assertEquals("DOC-002", resultadoDTO.documento);
-        assertEquals("Resfriado", resultadoDTO.diagnostico);
-        assertEquals(2L, resultadoDTO.idCita);
+        assertEquals("MODIFIED", resultadoDTO.getDocumento());
+        assertEquals("Modified Diagnosis", resultadoDTO.getDiagnostico());
+        assertEquals(2L, resultadoDTO.getIdCita());
     }
     
     @Test
     void testEdgeCases() {
         // Test with very long strings
         String longString = "A".repeat(1000);
-        resultadoDTO.diagnostico = longString;
-        assertEquals(longString, resultadoDTO.diagnostico);
+        resultadoDTO.setResultados(longString);
+        assertEquals(longString, resultadoDTO.getResultados());
         
         // Test with special characters
-        resultadoDTO.diagnostico = "Diagnóstico & Resultados";
-        assertEquals("Diagnóstico & Resultados", resultadoDTO.diagnostico);
+        resultadoDTO.setDiagnostico("Cáncer de pulmón (estadio III)");
+        assertEquals("Cáncer de pulmón (estadio III)", resultadoDTO.getDiagnostico());
         
         // Test with numbers in strings
-        resultadoDTO.documento = "DOC123";
-        assertEquals("DOC123", resultadoDTO.documento);
+        resultadoDTO.setDocumento("RESULTADO-2024-001");
+        assertEquals("RESULTADO-2024-001", resultadoDTO.getDocumento());
         
         // Test with extreme date values
         LocalDate minDate = LocalDate.MIN;
         LocalDate maxDate = LocalDate.MAX;
-        resultadoDTO.fecha = minDate;
-        assertEquals(minDate, resultadoDTO.fecha);
-        resultadoDTO.fecha = maxDate;
-        assertEquals(maxDate, resultadoDTO.fecha);
-        
-        // Test with extreme ID values
-        resultadoDTO.idCita = Long.MAX_VALUE;
-        assertEquals(Long.MAX_VALUE, resultadoDTO.idCita);
-        resultadoDTO.idCita = Long.MIN_VALUE;
-        assertEquals(Long.MIN_VALUE, resultadoDTO.idCita);
+        resultadoDTO.setFecha(minDate);
+        assertEquals(minDate, resultadoDTO.getFecha());
+        resultadoDTO.setFecha(maxDate);
+        assertEquals(maxDate, resultadoDTO.getFecha());
     }
     
     @Test
     void testNullHandling() {
         // Test setting all fields to null
-        resultadoDTO.documento = null;
-        resultadoDTO.diagnostico = null;
-        resultadoDTO.resultados = null;
-        resultadoDTO.fecha = null;
-        resultadoDTO.idCita = null;
+        resultadoDTO.setDocumento(null);
+        resultadoDTO.setDiagnostico(null);
+        resultadoDTO.setResultados(null);
+        resultadoDTO.setFecha(null);
+        resultadoDTO.setIdCita(null);
         
-        // Verify all fields are null
-        assertNull(resultadoDTO.documento);
-        assertNull(resultadoDTO.diagnostico);
-        assertNull(resultadoDTO.resultados);
-        assertNull(resultadoDTO.fecha);
-        assertNull(resultadoDTO.idCita);
+        // Verify all are null
+        assertNull(resultadoDTO.getDocumento());
+        assertNull(resultadoDTO.getDiagnostico());
+        assertNull(resultadoDTO.getResultados());
+        assertNull(resultadoDTO.getFecha());
+        assertNull(resultadoDTO.getIdCita());
     }
     
     @Test
     void testEmptyStringHandling() {
-        // Test setting all string fields to empty strings
-        resultadoDTO.documento = "";
-        resultadoDTO.diagnostico = "";
-        resultadoDTO.resultados = "";
+        // Test setting all fields to empty strings
+        resultadoDTO.setDocumento("");
+        resultadoDTO.setDiagnostico("");
+        resultadoDTO.setResultados("");
         
-        // Verify all string fields are empty
-        assertEquals("", resultadoDTO.documento);
-        assertEquals("", resultadoDTO.diagnostico);
-        assertEquals("", resultadoDTO.resultados);
+        // Verify all are empty strings
+        assertEquals("", resultadoDTO.getDocumento());
+        assertEquals("", resultadoDTO.getDiagnostico());
+        assertEquals("", resultadoDTO.getResultados());
+    }
+    
+    @Test
+    void testMedicalScenario() {
+        // Test a realistic medical scenario
+        resultadoDTO.setDocumento("LAB-2024-001");
+        resultadoDTO.setDiagnostico("Hipertensión arterial controlada");
+        resultadoDTO.setResultados("Presión arterial: 120/80 mmHg, ECG normal");
+        resultadoDTO.setFecha(LocalDate.of(2024, 6, 15));
+        resultadoDTO.setIdCita(456L);
+        
+        // Verify the medical scenario
+        assertEquals("LAB-2024-001", resultadoDTO.getDocumento());
+        assertEquals("Hipertensión arterial controlada", resultadoDTO.getDiagnostico());
+        assertEquals("Presión arterial: 120/80 mmHg, ECG normal", resultadoDTO.getResultados());
+        assertEquals(LocalDate.of(2024, 6, 15), resultadoDTO.getFecha());
+        assertEquals(456L, resultadoDTO.getIdCita());
     }
 }

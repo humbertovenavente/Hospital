@@ -141,4 +141,14 @@ public class Historia {
     public void setEditorEmail(String editorEmail) {
         this.editorEmail = editorEmail;
     }
+
+    /** @return the detailed history content (alias for getContenidoHistoria). */
+    public String getHistoria() {
+        return contenidoHistoria;
+    }
+
+    /** @param historia the detailed history content (alias for setContenidoHistoria). */
+    public void setHistoria(String historia) {
+        this.contenidoHistoria = historia;
+    }
 }

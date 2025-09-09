@@ -31,7 +31,7 @@ import jakarta.ws.rs.core.Response;
 @Consumes(MediaType.APPLICATION_JSON)
 public class HistoriaController {
 
-    private final HistoriaService historiaService;
+    public final HistoriaService historiaService;
 
     /**
      * Constructor for dependency injection.
