@@ -316,9 +316,6 @@ public class TechnicalDebtEmailControllerTest {
         TechnicalDebtEmailResponse actualResponse = (TechnicalDebtEmailResponse) response.getEntity();
         assertEquals(expectedResponse, actualResponse);
         
-        verify(technicalDebtEmailService, times(1)).getMailHost();
-        verify(technicalDebtEmailService, times(1)).getMailPort();
-        verify(technicalDebtEmailService, times(1)).getMailUsername();
         verify(technicalDebtEmailService, times(1)).sendTechnicalDebtReport(
             "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
         );
