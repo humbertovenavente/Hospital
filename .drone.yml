@@ -1,0 +1,539 @@
+---
+kind: pipeline
+type: docker
+name: hospital-dev
+
+trigger:
+  branch:
+    - dev
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Building Hospital Frontend - DEV..."
+    - npm ci
+    - npm run build
+    - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+    - echo "Building Hospital Backend - DEV..."
+    - cd backend
+    - ./mvnw clean compile
+    - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Testing Hospital Frontend - DEV..."
+    - npm run test:unit -- --coverage
+    - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-jdk-slim
+  environment:
+    JAVA_OPTS: "-Djava.awt.headless=true"
+    MAVEN_OPTS: "-Xmx1024m"
+    SPRING_PROFILES_ACTIVE: "test"
+  commands:
+    - echo "Installing dependencies..."
+    - apt-get update && apt-get install -y fontconfig fonts-dejavu-core
+    - echo "Testing Hospital Backend - DEV..."
+    - cd backend
+    - ./mvnw test
+    - echo "Backend tests completed"
+
+- name: sonar-backend-dev
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Running SonarQube analysis for Backend - DEV..."
+    - apt-get update && apt-get install -y curl
+    - chmod +x analyze-backend-sonar-dev.sh
+    - ./analyze-backend-sonar-dev.sh
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-dev
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - DEV..."
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-dev
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Backend Docker image - DEV..."
+    - cd backend
+    - docker build -f Dockerfile.jvm -t hospital-backend-dev .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-dev
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Frontend Docker image - DEV..."
+    - docker build -f Dockerfile.frontend -t hospital-frontend-dev .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-dev
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Backend - DEV..."
+    - docker stop hospital-backend-dev-cloud || true
+    - docker rm -f hospital-backend-dev-cloud || true
+    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 -e NODE_ENV=development -e QUARKUS_PROFILE=dev -e DB_HOST=34.56.133.126 -e DB_PORT=1521 -e DB_SID=XE -e DB_USER=system -e DB_PASSWORD=Oracle123 -e LOG_LEVEL=debug -e QUARKUS_HTTP_CORS_ORIGINS=http://34.46.73.44:8061,http://34.46.73.44:8060,http://localhost:5173,http://localhost:5174,http://localhost:8061 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition -e QUARKUS_HTTP_CORS_MAX_AGE=3600 hospital-backend-dev
+    - echo "Backend DEV deployed successfully on port 8060"
+
+- name: deploy-frontend-dev
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Frontend - DEV..."
+    - docker stop hospital-frontend-dev-cloud || true
+    - docker rm hospital-frontend-dev-cloud || true
+    - docker run -d --name hospital-frontend-dev-cloud --restart=always -p 8061:80 hospital-frontend-dev
+    - echo "Frontend DEV deployed successfully on port 8061"
+
+- name: notify-failure-dev
+  image: alpine:latest
+  environment:
+    GMAIL_USER: "humbertovenavente7@gmail.com"
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital DEV"
+    DRONE_COMMIT_BRANCH: "dev"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]
+
+---
+kind: pipeline
+type: docker
+name: hospital-qa
+
+trigger:
+  branch:
+    - QA
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Building Hospital Frontend - QA..."
+    - npm ci
+    - npm run build
+    - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+    - echo "Building Hospital Backend - QA..."
+    - cd backend
+    - ./mvnw clean compile
+    - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Testing Hospital Frontend - QA..."
+    - npm run test:unit -- --coverage
+    - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-jdk-slim
+  environment:
+    JAVA_OPTS: "-Djava.awt.headless=true"
+    MAVEN_OPTS: "-Xmx1024m"
+    SPRING_PROFILES_ACTIVE: "test"
+  commands:
+    - echo "Installing dependencies..."
+    - apt-get update && apt-get install -y fontconfig fonts-dejavu-core
+    - echo "Testing Hospital Backend - QA..."
+    - cd backend
+    - ./mvnw test
+    - echo "Backend tests completed"
+
+- name: sonar-backend-qa
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Running SonarQube analysis for Backend - QA..."
+    - apt-get update && apt-get install -y curl
+    - chmod +x analyze-backend-sonar-dev.sh
+    - SONAR_CONFIG=sonar-project-backend-qa.properties ./analyze-backend-sonar-dev.sh
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-qa
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - QA..."
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-qa
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Backend Docker image - QA..."
+    - cd backend
+    - docker build -f Dockerfile.jvm -t hospital-backend-qa .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-qa
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Frontend Docker image - QA..."
+    - docker build -f Dockerfile.frontend.qa -t hospital-frontend-qa .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-qa
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Backend - QA..."
+    - docker stop hospital-backend-qa-cloud || true
+    - docker rm -f hospital-backend-qa-cloud || true
+    - docker run -d --name hospital-backend-qa-cloud --restart=always -p 8030:8080 hospital-backend-qa
+    - echo "Backend QA deployed successfully on port 8030"
+
+- name: deploy-frontend-qa
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Frontend - QA..."
+    - docker stop hospital-frontend-qa-cloud || true
+    - docker rm hospital-frontend-qa-cloud || true
+    - docker run -d --name hospital-frontend-qa-cloud --restart=always -p 8031:80 hospital-frontend-qa
+    - echo "Frontend QA deployed successfully on port 8031"
+
+- name: notify-failure-qa
+  image: alpine:latest
+  environment:
+    GMAIL_USER: "humbertovenavente7@gmail.com"
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital QA"
+    DRONE_COMMIT_BRANCH: "QA"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]
+
+---
+kind: pipeline
+type: docker
+name: hospital-prod
+
+trigger:
+  branch:
+    - main
+    - master
+
+volumes:
+- name: docker_sock
+  host:
+    path: /var/run/docker.sock
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Building Hospital Frontend - PROD..."
+    - npm ci
+    - npm run build
+    - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+    - echo "Building Hospital Backend - PROD..."
+    - cd backend
+    - ./mvnw clean compile
+    - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+    - echo "Testing Hospital Frontend - PROD..."
+    - npm run test:unit -- --coverage
+    - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-jdk-slim
+  environment:
+    JAVA_OPTS: "-Djava.awt.headless=true"
+    MAVEN_OPTS: "-Xmx1024m"
+    SPRING_PROFILES_ACTIVE: "test"
+  commands:
+    - echo "Installing dependencies..."
+    - apt-get update && apt-get install -y fontconfig fonts-dejavu-core
+    - echo "Testing Hospital Backend - PROD..."
+    - cd backend
+    - ./mvnw test
+    - echo "Backend tests completed"
+
+- name: sonar-backend-prod
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Running SonarQube analysis for Backend - PROD..."
+    - cd backend
+    - ./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+    - echo "Backend SonarQube analysis completed"
+
+- name: sonar-frontend-prod
+  image: openjdk:17-jdk-slim
+  environment:
+    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+  commands:
+    - echo "Installing Node.js and SonarQube Scanner..."
+    - apt-get update && apt-get install -y curl
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+    - apt-get install -y nodejs
+    - npm install -g sonar-scanner
+    - echo "Running SonarQube analysis for Frontend - PROD..."
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - echo "Frontend SonarQube analysis completed"
+
+- name: build-docker-backend-prod
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Backend Docker image - PROD..."
+    - cd backend
+    - docker build -f Dockerfile.jvm -t hospital-backend-prod .
+    - echo "Backend Docker image built successfully"
+
+- name: build-docker-frontend-prod
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Building Frontend Docker image - PROD..."
+    - docker build -f Dockerfile.frontend.cloud -t hospital-frontend-prod .
+    - echo "Frontend Docker image built successfully"
+
+- name: deploy-backend-prod
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Backend - PROD..."
+    - docker stop hospital-backend-prod-cloud || true
+    - docker rm -f hospital-backend-prod-cloud || true
+    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 hospital-backend-prod
+    - echo "Backend PROD deployed successfully on port 8020"
+
+- name: deploy-frontend-prod
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  commands:
+    - echo "Deploying Frontend - PROD..."
+    - docker stop hospital-frontend-prod-cloud || true
+    - docker rm hospital-frontend-prod-cloud || true
+    - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 hospital-frontend-prod
+    - echo "Frontend PROD deployed successfully on port 8021"
+
+- name: notify-failure-prod
+  image: alpine:latest
+  environment:
+    GMAIL_USER: "humbertovenavente7@gmail.com"
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital PROD"
+    DRONE_COMMIT_BRANCH: "main"
+  commands:
+    - apk add --no-cache curl
+    - |
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Send to jflores@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jflores@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jflores@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        # Send to jnajar@unis.edu.gt
+        curl -s --url 'smtps://smtp.gmail.com:465' \
+          --ssl-reqd \
+          --mail-from "$GMAIL_USER" \
+          --mail-rcpt "jnajar@unis.edu.gt" \
+          --user "$GMAIL_USER:$GMAIL_APP_PASSWORD" \
+          -T - <<EOF
+      From: $GMAIL_USER
+      To: jnajar@unis.edu.gt
+      Subject: Pipeline Failure - $PIPELINE_NAME
+      
+      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
+      Build Number: $DRONE_BUILD_NUMBER
+      Commit: $DRONE_COMMIT_SHA
+      Time: $(date)
+      
+      Please check the Drone CI dashboard for details.
+      EOF
+        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+      fi
+  when:
+    status: [ failure ]

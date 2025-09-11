@@ -1,9 +1,7 @@
-// Configuración dinámica basada en el entorno
-const API_URL = typeof __API_URL__ !== 'undefined' ? __API_URL__ : 'http://localhost:8060';
-
-const FRONTEND_URL = 'http://localhost:5174'; // Puerto del frontend en QA
-
-const NGINX_URL = 'http://localhost:8083'; // Puerto de nginx en QA
+// Configuración para el entorno de desarrollo en la nube
+const API_URL = 'http://34.46.73.44:8060';
+const FRONTEND_URL = 'http://34.46.73.44:8061'; // URL del frontend en la nube
+const NGINX_URL = 'http://34.46.73.44:80';     // URL de nginx en la nube
 
 export default {
   API_URL,
@@ -12,9 +10,9 @@ export default {
   // Endpoints específicos para QA
   endpoints: {
     // Autenticación
-    login: `${API_URL}/api/auth/login`,
-    register: `${API_URL}/api/auth/register`,
-    refresh: `${API_URL}/api/auth/refresh`,
+    login: `${API_URL}/usuarios/login`,
+    register: `${API_URL}/usuarios/registro`,
+    refresh: `${API_URL}/usuarios/refresh`,
 
     // Usuarios
     users: `${API_URL}/api/users`,

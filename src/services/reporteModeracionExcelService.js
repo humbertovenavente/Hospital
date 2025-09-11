@@ -1,5 +1,5 @@
 // URL de la API para QA
-const API_URL = 'http://localhost:8060';
+const API_URL = 'http://localhost:8080';
 
 export async function descargarReporteModeracionExcel({ fechaInicio, fechaFin, limite }) {
     const params = new URLSearchParams({

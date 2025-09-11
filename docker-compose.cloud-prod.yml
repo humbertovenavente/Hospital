@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Backend para producción en la nube
+  backend-prod:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.jvm
+    container_name: hospital-backend-prod-cloud
+    ports:
+      - "8020:8080"
+    environment:
+      - NODE_ENV=production
+      - QUARKUS_PROFILE=prod
+      - DB_HOST=34.56.133.126
+      - DB_PORT=1523
+      - DB_SID=XE
+      - DB_USER=system
+      - DB_PASSWORD=Oracle123
+      - LOG_LEVEL=info
+    networks:
+      - hospital-prod-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend para producción en la nube
+  frontend-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.cloud
+      args:
+        - NODE_ENV=production
+        - VITE_API_URL=http://104.197.237.11:8020
+    container_name: hospital-frontend-prod-cloud
+    ports:
+      - "8021:80"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://104.197.237.11:8020
+    networks:
+      - hospital-prod-network
+    restart: unless-stopped
+    depends_on:
+      - backend-prod
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  hospital-prod-network:
+    driver: bridge

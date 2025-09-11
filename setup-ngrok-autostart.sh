@@ -13,21 +13,21 @@ cat > "$AUTOSTART_DIR/ngrok-jenkins.desktop" << EOF
 Type=Application
 Name=ngrok Jenkins Tunnel
 Comment=Inicia túnel ngrok para Jenkins automáticamente
-Exec=$HOME/Hospital-2/start-ngrok.sh
+Exec=$HOME/magic-15-07-2025-dev/start-ngrok.sh
 Terminal=false
 X-GNOME-Autostart-enabled=true
 Hidden=false
 EOF
 
 # Hacer ejecutable el script
-chmod +x "$HOME/Hospital-2/start-ngrok.sh"
+chmod +x "$HOME/magic-15-07-2025-dev/start-ngrok.sh"
 
 # Agregar alias al .bashrc
 BASH_RC="$HOME/.bashrc"
 if ! grep -q "ngrok-jenkins" "$BASH_RC"; then
     echo "" >> "$BASH_RC"
     echo "# ngrok Jenkins Tunnel" >> "$BASH_RC"
-    echo "alias ngrok-jenkins='$HOME/Hospital-2/start-ngrok.sh'" >> "$BASH_RC"
+    echo "alias ngrok-jenkins='$HOME/magic-15-07-2025-dev/start-ngrok.sh'" >> "$BASH_RC"
     echo "alias ngrok-status='curl -s http://localhost:4040/api/tunnels | jq .'" >> "$BASH_RC"
     echo "alias ngrok-stop='pkill -f \"ngrok http 8081\"'" >> "$BASH_RC"
 fi
@@ -46,7 +46,7 @@ echo "   • Al abrir terminal (alias)"
 echo ""
 echo "📁 Archivos creados:"
 echo "   • $AUTOSTART_DIR/ngrok-jenkins.desktop"
-echo "   • $HOME/Hospital-2/start-ngrok.sh"
+echo "   • $HOME/magic-15-07-2025-dev/start-ngrok.sh"
 echo "   • Aliases en $BASH_RC"
 echo ""
 echo "💡 Para probar ahora:"

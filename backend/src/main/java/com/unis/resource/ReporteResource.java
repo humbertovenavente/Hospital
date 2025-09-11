@@ -246,8 +246,23 @@ public class ReporteResource {
         }
     }
 
+<<<<<<< HEAD
     private void crearFilaSinDatos(Sheet sheet, int rownum) {
         Row nr = sheet.createRow(rownum);
         nr.createCell(0).setCellValue("No se encontraron datos para los parámetros seleccionados.");
+=======
+        StreamingOutput stream = out -> {
+            try {
+                workbook.write(out);
+            } finally {
+                workbook.close();
+            }
+        };
+
+        return Response.ok(stream)
+                       .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                       .header("Content-Disposition", "attachment; filename=\"Reporte.xlsx\"")
+                       .build();
+>>>>>>> 648dadd5258233ca3ac4f2574bd67d8933f60087
     }
 }

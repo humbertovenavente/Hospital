@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Backend para desarrollo en la nube
+  backend-dev:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.jvm
+    container_name: hospital-backend-dev-cloud
+    ports:
+      - "8060:8080"
+    environment:
+      - NODE_ENV=development
+      - QUARKUS_PROFILE=dev
+      - DB_HOST=34.56.133.126
+      - DB_PORT=1521
+      - DB_SID=XE
+      - DB_USER=system
+      - DB_PASSWORD=Oracle123
+      - LOG_LEVEL=debug
+    networks:
+      - hospital-dev-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend para desarrollo en la nube
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.cloud
+      args:
+        - NODE_ENV=development
+        - VITE_API_URL=http://34.46.73.44:8060
+    container_name: hospital-frontend-dev-cloud
+    ports:
+      - "8061:80"
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://34.46.73.44:8060
+    networks:
+      - hospital-dev-network
+    restart: unless-stopped
+    depends_on:
+      - backend-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  hospital-dev-network:
+    driver: bridge

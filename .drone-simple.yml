@@ -1,0 +1,35 @@
+kind: pipeline
+type: docker
+name: hospital-build
+
+steps:
+- name: build-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Building Hospital Frontend..."
+  - npm ci
+  - npm run build
+  - echo "Frontend build completed"
+
+- name: build-backend
+  image: openjdk:17-alpine
+  commands:
+  - echo "Building Hospital Backend..."
+  - cd backend
+  - ./mvnw clean compile
+  - echo "Backend build completed"
+
+- name: test-frontend
+  image: node:18-alpine
+  commands:
+  - echo "Testing Hospital Frontend..."
+  - npm run test:unit
+  - echo "Frontend tests completed"
+
+- name: test-backend
+  image: openjdk:17-alpine
+  commands:
+  - echo "Testing Hospital Backend..."
+  - cd backend
+  - ./mvnw test
+  - echo "Backend tests completed"

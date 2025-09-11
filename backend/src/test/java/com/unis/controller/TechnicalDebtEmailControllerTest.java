@@ -293,4 +293,77 @@ public class TechnicalDebtEmailControllerTest {
         assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
         verify(technicalDebtEmailService, times(1)).sendTechnicalDebtReport("", "Test Project", "test@example.com");
     }
+
+    @Test
+    public void testTestSmtpConnection_Success() {
+        // Given
+        TechnicalDebtEmailResponse expectedResponse = new TechnicalDebtEmailResponse(
+            true, "Success message", "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
+        );
+
+        when(technicalDebtEmailService.getMailHost()).thenReturn("smtp.gmail.com");
+        when(technicalDebtEmailService.getMailPort()).thenReturn(587);
+        when(technicalDebtEmailService.getMailUsername()).thenReturn("test@example.com");
+        when(technicalDebtEmailService.sendTechnicalDebtReport(
+            "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
+        )).thenReturn(expectedResponse);
+
+        // When
+        Response response = technicalDebtEmailController.testSmtpConnection();
+
+        // Then
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        TechnicalDebtEmailResponse actualResponse = (TechnicalDebtEmailResponse) response.getEntity();
+        assertEquals(expectedResponse, actualResponse);
+        
+        verify(technicalDebtEmailService, times(1)).getMailHost();
+        verify(technicalDebtEmailService, times(1)).getMailPort();
+        verify(technicalDebtEmailService, times(1)).getMailUsername();
+        verify(technicalDebtEmailService, times(1)).sendTechnicalDebtReport(
+            "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
+        );
+    }
+
+    @Test
+    public void testTestSmtpConnection_Failure() {
+        // Given
+        TechnicalDebtEmailResponse expectedResponse = new TechnicalDebtEmailResponse(
+            false, "Error message", "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
+        );
+
+        when(technicalDebtEmailService.getMailHost()).thenReturn("smtp.gmail.com");
+        when(technicalDebtEmailService.getMailPort()).thenReturn(587);
+        when(technicalDebtEmailService.getMailUsername()).thenReturn("test@example.com");
+        when(technicalDebtEmailService.sendTechnicalDebtReport(
+            "test-smtp", "Prueba SMTP", "jflores@unis.edu.gt"
+        )).thenReturn(expectedResponse);
+
+        // When
+        Response response = technicalDebtEmailController.testSmtpConnection();
+
+        // Then
+        assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+        TechnicalDebtEmailResponse actualResponse = (TechnicalDebtEmailResponse) response.getEntity();
+        assertEquals(expectedResponse, actualResponse);
+    }
+
+    @Test
+    public void testTestSmtpConnection_WithException() {
+        // Given
+        when(technicalDebtEmailService.getMailHost()).thenReturn("smtp.gmail.com");
+        when(technicalDebtEmailService.getMailPort()).thenReturn(587);
+        when(technicalDebtEmailService.getMailUsername()).thenReturn("test@example.com");
+        when(technicalDebtEmailService.sendTechnicalDebtReport(
+            anyString(), anyString(), anyString()
+        )).thenThrow(new RuntimeException("SMTP error"));
+
+        // When
+        Response response = technicalDebtEmailController.testSmtpConnection();
+
+        // Then
+        assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus());
+        TechnicalDebtEmailResponse actualResponse = (TechnicalDebtEmailResponse) response.getEntity();
+        assertFalse(actualResponse.isSuccess());
+        assertTrue(actualResponse.getMessage().contains("Error en prueba SMTP"));
+    }
 }

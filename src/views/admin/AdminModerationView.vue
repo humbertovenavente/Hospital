@@ -102,7 +102,7 @@
     return;
   }
 
-  const draftLink = `http://192.168.1.4:5173/drafts/${id}?email=${encodeURIComponent(email)}`;
+  const draftLink = `${window.location.origin}/drafts/${id}?email=${encodeURIComponent(email)}`;
 
   await rejectContent(id, motivo);
 
@@ -139,7 +139,7 @@ const rechazarFaq = async (id) => {
   await sendEmail(email, "rejected", {
   comentario: motivo,
   pagina: "FAQ",
-  link: `http://192.168.1.4:5173/drafts/${id}?email=${encodeURIComponent(email)}` // antes era admin-faq
+  link: `${window.location.origin}/drafts/${id}?email=${encodeURIComponent(email)}`
 });
 
 
@@ -171,7 +171,7 @@ const rechazarFaq = async (id) => {
   await sendEmail(email, "rejected", {
   comentario: motivo,
   pagina: "Historia Institucional",
-  link: `http://192.168.1.4:5173/drafts/${id}?email=${encodeURIComponent(email)}` // antes era admin-historia
+  link: `${window.location.origin}/drafts/${id}?email=${encodeURIComponent(email)}`
 });
 
 

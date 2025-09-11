@@ -1,0 +1,93 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# Build
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Misc
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+Dockerfile*
+docker-compose*
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Backend
+backend/
+
+# Data
+data/
+
+# Nginx
+nginx.*.conf
+!nginx.dev.conf
+
+# Scripts
+scripts/
+
+# Tests
+__tests__/
+*.test.js
+*.spec.js
+
+# Config files other than the ones we need
+*.config.js
+*.conf
+!nginx.dev.conf
+
+# Large files
+*.tar
+*.tar.gz
+*.zip
+*.7z
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

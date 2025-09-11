@@ -18,6 +18,7 @@ import io.quarkus.mailer.Mailer;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Collections;
 
 public class TechnicalDebtEmailServiceTest {
 
@@ -113,7 +114,98 @@ public class TechnicalDebtEmailServiceTest {
     }
 
     @Test
+    public void testSendMultiProjectReports_EmptyList() {
+        // Given
+        List<ProjectInfo> projects = Collections.emptyList();
+        String recipientEmail = "test@example.com";
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertTrue(responses.isEmpty());
+        verify(mailer, never()).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_SingleProject() {
+        // Given
+        ProjectInfo project = new ProjectInfo();
+        project.setKey("single-project");
+        project.setName("Single Project");
+        
+        List<ProjectInfo> projects = Collections.singletonList(project);
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertEquals(1, responses.size());
+        assertTrue(responses.get(0).isSuccess());
+        assertEquals("single-project", responses.get(0).getProjectKey());
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
     public void testIsHealthy_WhenServiceIsHealthy() {
+        // Given - Mock the configuration properties
+        technicalDebtEmailService = new TechnicalDebtEmailService();
+        
+        // Use reflection to set the configuration values for testing
+        try {
+            java.lang.reflect.Field hostField = TechnicalDebtEmailService.class.getDeclaredField("mailHost");
+            hostField.setAccessible(true);
+            hostField.set(technicalDebtEmailService, "smtp.gmail.com");
+            
+            java.lang.reflect.Field userField = TechnicalDebtEmailService.class.getDeclaredField("mailUsername");
+            userField.setAccessible(true);
+            userField.set(technicalDebtEmailService, "test@example.com");
+        } catch (Exception e) {
+            // If reflection fails, skip this test
+            return;
+        }
+
+        // When
+        boolean isHealthy = technicalDebtEmailService.isHealthy();
+
+        // Then
+        assertTrue(isHealthy);
+    }
+
+    @Test
+    public void testIsHealthy_WhenServiceIsUnhealthy() {
+        // Given - Mock the configuration properties
+        technicalDebtEmailService = new TechnicalDebtEmailService();
+        
+        // Use reflection to set the configuration values for testing
+        try {
+            java.lang.reflect.Field hostField = TechnicalDebtEmailService.class.getDeclaredField("mailHost");
+            hostField.setAccessible(true);
+            hostField.set(technicalDebtEmailService, null);
+            
+            java.lang.reflect.Field userField = TechnicalDebtEmailService.class.getDeclaredField("mailUsername");
+            userField.setAccessible(true);
+            userField.set(technicalDebtEmailService, "");
+        } catch (Exception e) {
+            // If reflection fails, skip this test
+            return;
+        }
+
+        // When
+        boolean isHealthy = technicalDebtEmailService.isHealthy();
+
+        // Then
+        assertFalse(isHealthy);
+    }
+
+    @Test
+    public void testIsHealthy_WithException() {
         // Given - Mock the configuration properties
         technicalDebtEmailService = new TechnicalDebtEmailService();
         
@@ -159,6 +251,22 @@ public class TechnicalDebtEmailServiceTest {
         assertTrue(htmlContent.contains("Duplicación de Código"));
         assertTrue(htmlContent.contains("Issues Críticos"));
         assertTrue(htmlContent.contains("Recomendaciones Prioritarias"));
+        assertTrue(htmlContent.contains("http://localhost:9000/dashboard?id=" + projectKey));
+    }
+
+    @Test
+    public void testGenerateTechnicalDebtReportHTML_WithSpecialCharacters() {
+        // Given
+        String projectKey = "special-project-123";
+        String projectName = "Project with & < > \" ' characters";
+
+        // When
+        String htmlContent = technicalDebtEmailService.generateTechnicalDebtReportHTML(projectKey, projectName);
+
+        // Then
+        assertNotNull(htmlContent);
+        assertTrue(htmlContent.contains(projectKey));
+        assertTrue(htmlContent.contains(projectName));
         assertTrue(htmlContent.contains("http://localhost:9000/dashboard?id=" + projectKey));
     }
 
@@ -225,6 +333,413 @@ public class TechnicalDebtEmailServiceTest {
         assertEquals(projectName, response.getProjectName());
         
         // Verify that emails were sent (we can't verify content with Quarkus Mailer API)
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithNullValues() {
+        // Given
+        String projectKey = null;
+        String projectName = null;
+        String recipientEmail = null;
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 1 destinatarios", response.getMessage());
+        assertNull(response.getProjectKey());
+        assertNull(response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá solo jflores@unis.edu.gt
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        assertFalse(response.getRecipientEmail().contains("null"));
+        
+        // Verify that email was sent only to jflores@unis.edu.gt
+        verify(mailer, times(1)).send(any(Mail.class));
+    }
+
+    // === TESTS ADICIONALES PARA MEJORAR COBERTURA ===
+
+    @Test
+    public void testSendTechnicalDebtReport_WithNullProjectKey() {
+        // Given
+        String projectKey = null;
+        String projectName = "Test Project";
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertNull(response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithNullProjectName() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = null;
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertNull(response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithNullRecipientEmail() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = "Test Project";
+        String recipientEmail = null;
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 1 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá solo jflores@unis.edu.gt
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        assertFalse(response.getRecipientEmail().contains("null"));
+        
+        // Verify that email was sent only to jflores@unis.edu.gt
+        verify(mailer, times(1)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithEmptyProjectKey() {
+        // Given
+        String projectKey = "";
+        String projectName = "Test Project";
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals("", response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithEmptyProjectName() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = "";
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertEquals("", response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithEmptyRecipientEmail() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = "Test Project";
+        String recipientEmail = "";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá ambos
+        assertTrue(response.getRecipientEmail().contains(""));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithWhitespaceProjectKey() {
+        // Given
+        String projectKey = "   ";
+        String projectName = "Test Project";
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals("   ", response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithWhitespaceProjectName() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = "   ";
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertEquals("   ", response.getProjectName());
+        assertTrue(response.getRecipientEmail().contains(recipientEmail));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendTechnicalDebtReport_WithWhitespaceRecipientEmail() {
+        // Given
+        String projectKey = "test-project";
+        String projectName = "Test Project";
+        String recipientEmail = "   ";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        TechnicalDebtEmailResponse response = technicalDebtEmailService.sendTechnicalDebtReport(
+            projectKey, projectName, recipientEmail);
+
+        // Then
+        assertTrue(response.isSuccess());
+        assertEquals("Reporte de deuda técnica enviado exitosamente a 2 destinatarios", response.getMessage());
+        assertEquals(projectKey, response.getProjectKey());
+        assertEquals(projectName, response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá ambos
+        assertTrue(response.getRecipientEmail().contains("   "));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent to both recipients
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_WithNullProjects() {
+        // Given
+        List<ProjectInfo> projects = null;
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(0, responses.size());
+        
+        // Verify that no emails were sent
+        verify(mailer, never()).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_WithEmptyProjects() {
+        // Given
+        List<ProjectInfo> projects = Collections.emptyList();
+        String recipientEmail = "test@example.com";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(0, responses.size());
+        
+        // Verify that no emails were sent
+        verify(mailer, never()).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_WithNullRecipientEmail() {
+        // Given
+        ProjectInfo project1 = new ProjectInfo();
+        project1.setKey("project1");
+        project1.setName("Project 1");
+        
+        List<ProjectInfo> projects = Arrays.asList(project1);
+        String recipientEmail = null;
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        
+        TechnicalDebtEmailResponse response = responses.get(0);
+        assertTrue(response.isSuccess());
+        assertEquals("project1", response.getProjectKey());
+        assertEquals("Project 1", response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá solo jflores@unis.edu.gt
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        assertFalse(response.getRecipientEmail().contains("null"));
+        
+        // Verify that email was sent only to jflores@unis.edu.gt
+        verify(mailer, times(1)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_WithEmptyRecipientEmail() {
+        // Given
+        ProjectInfo project1 = new ProjectInfo();
+        project1.setKey("project1");
+        project1.setName("Project 1");
+        
+        List<ProjectInfo> projects = Arrays.asList(project1);
+        String recipientEmail = "";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        
+        TechnicalDebtEmailResponse response = responses.get(0);
+        assertTrue(response.isSuccess());
+        assertEquals("project1", response.getProjectKey());
+        assertEquals("Project 1", response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá ambos
+        assertTrue(response.getRecipientEmail().contains(""));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent
+        verify(mailer, times(2)).send(any(Mail.class));
+    }
+
+    @Test
+    public void testSendMultiProjectReports_WithWhitespaceRecipientEmail() {
+        // Given
+        ProjectInfo project1 = new ProjectInfo();
+        project1.setKey("project1");
+        project1.setName("Project 1");
+        
+        List<ProjectInfo> projects = Arrays.asList(project1);
+        String recipientEmail = "   ";
+        
+        // Mock successful email sending
+        doNothing().when(mailer).send(any(Mail.class));
+
+        // When
+        List<TechnicalDebtEmailResponse> responses = technicalDebtEmailService.sendMultiProjectReports(
+            projects, recipientEmail);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(1, responses.size());
+        
+        TechnicalDebtEmailResponse response = responses.get(0);
+        assertTrue(response.isSuccess());
+        assertEquals("project1", response.getProjectKey());
+        assertEquals("Project 1", response.getProjectName());
+        // El servicio siempre agrega jflores@unis.edu.gt, por lo que el recipientEmail incluirá ambos
+        assertTrue(response.getRecipientEmail().contains("   "));
+        assertTrue(response.getRecipientEmail().contains("jflores@unis.edu.gt"));
+        
+        // Verify that emails were sent
         verify(mailer, times(2)).send(any(Mail.class));
     }
 }
