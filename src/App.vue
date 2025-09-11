@@ -36,11 +36,7 @@ const myAccountRoute = () => {
     <div class="navbar-container">
       <div class="brand">
         <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="50" height="50" />
-<<<<<<< HEAD
-        <h1>Magic 14-07-2025-UAT</h1>
-=======
-        <h1>Dev Environment Hospital</h1>
->>>>>>> 648dadd5258233ca3ac4f2574bd67d8933f60087
+        <h1>DEver 530 11/09</h1>
       </div>
 
       <nav class="nav-links">
