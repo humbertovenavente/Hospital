@@ -96,7 +96,7 @@ node {
         }
 
         stage('SonarQube Analysis') {
-            echo "📊 Ejecutando análisis de SonarQube para QA..."
+            echo " Ejecutando análisis de SonarQube para QA..."
             // IMPORTANTE: El nombre debe coincidir con el configurado en "Manage Jenkins > System > SonarQube servers"
             withSonarQubeEnv('SonarQube') {
                 withCredentials([string(credentialsId: 'sonarqube-token', variable: 'SONAR_TOKEN')]) {
@@ -129,20 +129,20 @@ node {
                         export SONAR_TOKEN=${SONAR_TOKEN:-$SONAR_AUTH_TOKEN}
 
                         # Forzar fallo del análisis del frontend para testing
-                        echo "   ❌ FORZANDO FALLO del análisis de SonarQube para frontend..."
-                        echo "   🔧 Simulando error de configuración..."
+                        echo "    FORZANDO FALLO del análisis de SonarQube para frontend..."
+                        echo "    Simulando error de configuración..."
                         
                         # Verificar que el directorio src existe
                         if [ ! -d "src" ]; then
-                            echo "   ❌ Error: Directorio src no encontrado"
-                            echo "   📁 Directorio actual: $(pwd)"
-                            echo "   📁 Contenido: $(ls -la)"
+                            echo "    Error: Directorio src no encontrado"
+                            echo "    Directorio actual: $(pwd)"
+                            echo "    Contenido: $(ls -la)"
                             exit 1
                         fi
 
                         # Verificar que el archivo de configuración existe
                         if [ ! -f "sonar-project-frontend-qa.properties" ]; then
-                            echo "   ❌ Error: Archivo de configuración sonar-project-frontend-qa.properties no encontrado"
+                            echo "    Error: Archivo de configuración sonar-project-frontend-qa.properties no encontrado"
                             echo "   📁 Archivos en directorio actual: $(ls -la *.properties 2>/dev/null || echo 'No hay archivos .properties')"
                             echo "   🚨 FALLO INTENCIONAL: Archivo de configuración de SonarQube no encontrado"
                             exit 1
@@ -210,24 +210,24 @@ node {
                   docker-compose -f docker-compose.qa.yml up -d --build
                   
                   # Conectar backend a la red de Oracle si es necesario
-                  echo "🔗 Verificando conectividad de red..."
+                  echo " Verificando conectividad de red..."
                   sleep 10
                   docker network connect bridge hospital-backend-qa 2>/dev/null || true
                 '''
                 echo "   ⏳ Esperando que los servicios se inicien..."
                 sleep 15
-                echo "✅ Despliegue en QA completado exitosamente"
-                echo "🌐 URLs de acceso QA:"
+                echo " Despliegue en QA completado exitosamente"
+                echo " URLs de acceso QA:"
                 echo "   - Backend: http://localhost:8090"
                 echo "   - Frontend: http://localhost:5174"
                 echo "   - SonarQube: http://localhost:9000"
             } else {
-                echo "⏭️ Construcción de Docker omitida (BUILD_DOCKER=false)"
+                echo "⏭ Construcción de Docker omitida (BUILD_DOCKER=false)"
             }
         }
 
         stage('Send Technical Debt Report') {
-            echo "📧 Enviando reporte de deuda técnica para QA..."
+            echo "Enviando reporte de deuda técnica para QA..."
             try {
                 sh '''
                     echo "=== Enviando Reporte de Deuda Técnica QA ==="
@@ -237,7 +237,7 @@ node {
                     # Verificar que el backend esté respondiendo
                     for i in {1..30}; do
                         if curl -f http://localhost:8090/q/health >/dev/null 2>&1; then
-                            echo "✅ Backend está disponible"
+                            echo " Backend está disponible"
                             break
                         fi
                         echo "⏳ Esperando que el backend esté disponible... ($i/30)"
@@ -251,7 +251,7 @@ node {
                              "projectKey": "hospital-backend-qa",
                              "projectName": "Hospital Backend - QA [RAMA QA]",
                              "recipientEmail": "jflores@unis.edu.gt"
-                         }' || echo "⚠️ Error enviando reporte de deuda técnica"
+                         }' || echo " Error enviando reporte de deuda técnica"
                     
                     echo "✅ Reporte de deuda técnica enviado"
                 '''
@@ -270,30 +270,30 @@ Hola equipo,
 
 El pipeline de QA se ha ejecutado exitosamente.
 
-🔧 INFORMACIÓN DEL BUILD QA:
+ INFORMACIÓN DEL BUILD QA:
 - Job: ${env.JOB_NAME}
 - Build: #${env.BUILD_NUMBER}
 - Rama: ${env.BRANCH_NAME} [RAMA QA]
 - URL: ${env.BUILD_URL}
-- Estado: ✅ EXITOSO
+- Estado:  EXITOSO
 
-📊 RESULTADOS DE CALIDAD QA:
-- Tests Backend: ✅ Completados
-- Tests Frontend: ✅ Completados
-- Análisis SonarQube: ✅ Completado
-- Quality Gate: ✅ PASÓ
+RESULTADOS DE CALIDAD QA:
+- Tests Backend:  Completados
+- Tests Frontend:  Completados
+- Análisis SonarQube:  Completado
+- Quality Gate: PASÓ
 
-🌐 URLs DE ACCESO QA:
+ URLs DE ACCESO QA:
 - Backend: http://localhost:8090
 - Frontend: http://localhost:5174
 - SonarQube: http://localhost:9000
 - Jenkins: ${env.BUILD_URL}
 
-📈 PROYECTOS SONARQUBE QA:
+PROYECTOS SONARQUBE QA:
 - Backend: hospital-backend-qa
 - Frontend: hospital-frontend-qa
 
-📧 REPORTE DE DEUDA TÉCNICA:
+ REPORTE DE DEUDA TÉCNICA:
 Se ha enviado automáticamente el reporte de deuda técnica con indicador [RAMA QA].
 
 Saludos,
