@@ -1,140 +1,146 @@
 ---
-kind: pipeline
-type: docker
-name: hospital-dev
+kind: pipeline # Tipo de pipeline que vamos a usar en este caso docker
+type: docker # Tipo de contenedor que vamos a usar en este caso docker
+name: hospital-dev # Nombre del pipeline que vamos a usar en este caso hospital-dev
 
-trigger:
-  branch:
-    - dev
+trigger: # Triggers que vamos a usar en este caso branch
+  branch: # Rama que vamos a usar en este caso dev
+    - dev # Rama dev
 
-volumes:
-- name: docker_sock
+volumes: # Volúmenes que vamos a usar en este caso docker_sock, volumen significa un espacio en el disco que vamos a usar para almacenar datos
+- name: docker_sock # Nombre del volumen que vamos a usar en este caso docker_sock
   host:
-    path: /var/run/docker.sock
+    path: /var/run/docker.sock # Ruta del volumen que vamos a usar en este caso /var/run/docker.sock
 
 steps:
-- name: build-frontend
-  image: node:18-alpine
+- name: build-frontend # Nombre del paso que vamos a usar en este caso build-frontend
+  image: node:18-alpine # Imagen del paso que vamos a usar en este caso node:18-alpine, node:18-alpine es una imagen de node.js que vamos a usar para construir el frontend
+  # la image se consiguio en https://hub.docker.com/_/node?tab=tags&page=1&name=18-alpine
   commands:
-    - echo "Building Hospital Frontend - DEV..."
-    - npm ci
-    - npm run build
-    - echo "Frontend build completed"
+    - echo "Building Hospital Frontend - DEV..." # Comando del paso que vamos a usar en este caso echo "Building Hospital Frontend - DEV..."
+    - npm ci # Comando del paso que vamos a usar en este caso npm ci
+    - npm run build # Comando del paso que vamos a usar en este caso npm run build
+    - echo "Frontend build completed" # Comando del paso que vamos a usar en este caso echo "Frontend build completed"
 
-- name: build-backend
-  image: openjdk:17-alpine
+- name: build-backend # Nombre del paso que vamos a usar en este caso build-backend
+  image: openjdk:17-alpine # Imagen del paso que vamos a usar en este caso openjdk:17-alpine, openjdk:17-alpine es una imagen de openjdk que vamos a usar para construir el backend porque tiene el comando java y maven
+  # la image se consiguio en https://hub.docker.com/_/openjdk?tab=tags&page=1&name=17-alpine
+  # openjdk se encuentra en la imagen openjdk:17-alpine, ubicada en la carpeta /usr/lib/jvm/java-17-openjdk-amd64/bin/java y es el comando para ejecutar java
   commands:
-    - echo "Building Hospital Backend - DEV..."
-    - cd backend
-    - ./mvnw clean compile
-    - echo "Backend build completed"
+    - echo "Building Hospital Backend - DEV..." # Comando del paso que vamos a usar en este caso echo "Building Hospital Backend - DEV..."
+    - cd backend # Comando del paso que vamos a usar en este caso cd backend
+    - ./mvnw clean compile # Comando del paso que vamos a usar en este caso ./mvnw clean compile
+    - echo "Backend build completed" # Comando del paso que vamos a usar en este caso echo "Backend build completed"
 
-- name: test-frontend
-  image: node:18-alpine
+- name: test-frontend # Nombre del paso
+  image: node:18-alpine # Imagen del paso que vamos a usar en este caso node:18-alpine, node:18-alpine es una imagen de node.js que vamos a usar para construir el frontend
+  # la image se consiguio en https://hub.docker.com/_/node?tab=tags&page=1&name=18-alpine
   commands:
-    - echo "Testing Hospital Frontend - DEV..."
-    - npm run test:unit -- --coverage
-    - echo "Frontend tests completed"
+    - echo "Testing Hospital Frontend - DEV..." # Comando del paso que vamos a usar en este caso echo "Testing Hospital Frontend - DEV..."
+    - npm run test:unit -- --coverage # Comando del paso que vamos a usar en este caso npm run test:unit -- --coverage
+    - echo "Frontend tests completed" # Comando del paso que vamos a usar en este caso echo "Frontend tests completed"
 
-- name: test-backend
-  image: openjdk:17-jdk-slim
-  environment:
-    JAVA_OPTS: "-Djava.awt.headless=true"
-    MAVEN_OPTS: "-Xmx1024m"
-    SPRING_PROFILES_ACTIVE: "test"
+- name: test-backend # Nombre del paso que vamos a usar en este caso test-backend
+  image: openjdk:17-jdk-slim # Imagen del paso que vamos a usar en este caso openjdk:17-jdk-slim, openjdk:17-jdk-slim es una imagen de openjdk que vamos a usar para construir el backend porque tiene el comando java y maven
+  # la image se consiguio en https://hub.docker.com/_/openjdk?tab=tags&page=1&name=17-jdk-sli
+  environment: # Variable de entorno del paso que vamos a usar en este caso environment
+    JAVA_OPTS: "-Djava.awt.headless=true" # Variable de entorno del paso que vamos a usar en este caso JAVA_OPTS: "-Djava.awt.headless=true", -Djava.awt.headless=true es una variable de entorno que vamos a usar para ejecutar java sin cabeza
+    MAVEN_OPTS: "-Xmx1024m" # Variable de entorno del paso que vamos a usar en este caso MAVEN_OPTS: "-Xmx1024m", -Xmx1024m es una variable de entorno que vamos a usar para ejecutar maven con 1024mb de memoria
+    SPRING_PROFILES_ACTIVE: "test" # Variable de entorno del paso que vamos a usar en este caso SPRING_PROFILES_ACTIVE: "test"
   commands:
-    - echo "Installing dependencies..."
+    - echo "Installing dependencies..." # Comando del paso que vamos a usar en este caso echo "Installing dependencies..."      
     - apt-get update && apt-get install -y fontconfig fonts-dejavu-core
-    - echo "Testing Hospital Backend - DEV..."
-    - cd backend
-    - ./mvnw test
-    - echo "Backend tests completed"
+    - echo "Testing Hospital Backend - DEV..." # Comando del paso que vamos a usar en este caso echo "Testing Hospital Backend - DEV..."
+    - cd backend # Comando del paso
+    - ./mvnw test # Comando del paso
+    - echo "Backend tests completed" # Comando del paso que vamos a usar en este caso echo "Backend tests completed"
 
-- name: sonar-backend-dev
-  image: openjdk:17-jdk-slim
+- name: sonar-backend-dev # Nombre del paso que vamos a usar en este caso sonar-backend-dev
+  image: openjdk:17-jdk-slim # Imagen del paso que vamos a usar en este caso openjdk:17-jdk-slim, openjdk:17-jdk-slim es una imagen de openjdk que vamos a usar para construir el backend porque tiene el comando java y maven
+  # la image se consiguio en https://hub.docker.com/_/openjdk?tab=tags&page=1&name=17-jdk-sli
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
-    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+    SONAR_HOST_URL: "http://34.46.73.44:9003" # Variable de entorno del paso que vamos a usar en este caso SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a" # Variable de entorno del paso que vamos a usar en este caso SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
-    - echo "Running SonarQube analysis for Backend - DEV..."
+    - echo "Running SonarQube analysis for Backend - DEV..." # Comando del paso que vamos a usar en este caso echo "Running SonarQube analysis for Backend - DEV..."   
     - apt-get update && apt-get install -y curl
-    - chmod +x analyze-backend-sonar-dev.sh
+    - chmod +x analyze-backend-sonar-dev.sh # Comando del paso que vamos a usar en este caso chmod +x analyze-backend-sonar-dev.sh
     - ./analyze-backend-sonar-dev.sh
-    - echo "Backend SonarQube analysis completed"
+    - echo "Backend SonarQube analysis completed" # Comando del paso que vamos a usar en este caso echo "Backend SonarQube analysis completed"
 
-- name: sonar-frontend-dev
-  image: openjdk:17-jdk-slim
+- name: sonar-frontend-dev # Nombre del paso que vamos a usar en este caso sonar-frontend-dev   
+  image: openjdk:17-jdk-slim # Imagen del paso
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
-    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
+    SONAR_HOST_URL: "http://34.46.73.44:9003" # Variable de entorno del paso
+    SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a" # Variable de entorno del paso
   commands:
-    - echo "Installing Node.js and SonarQube Scanner..."
-    - apt-get update && apt-get install -y curl
-    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
-    - apt-get install -y nodejs
-    - npm install -g sonar-scanner
-    - echo "Running SonarQube analysis for Frontend - DEV..."
+    - echo "Installing Node.js and SonarQube Scanner..." # Comando del paso
+    - apt-get update && apt-get install -y curl # Comando del paso    
+    - curl -fsSL https://deb.nodesource.com/setup_18.x | bash - # Comando del paso
+    - apt-get install -y nodejs # Comando del paso
+    - npm install -g sonar-scanner # Comando del paso
+    - echo "Running SonarQube analysis for Frontend - DEV..." # Comando del paso
     - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-    - echo "Frontend SonarQube analysis completed"
+    - echo "Frontend SonarQube analysis completed" # Comando del paso
 
-- name: build-docker-backend-dev
+- name: build-docker-backend-dev # Nombre del paso  
+  image: docker:20.10.16 # Imagen del paso
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock # Ruta del volumen
+  commands:
+    - echo "Building Backend Docker image - DEV..." # Comando del paso
+    - cd backend # Comando del paso
+    - docker build -f Dockerfile.jvm -t hospital-backend-dev . # Comando del paso
+    - echo "Backend Docker image built successfully" # Comando del paso
+
+- name: build-docker-frontend-dev # Nombre del paso
+  image: docker:20.10.16  
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock # Ruta del volumen
+  commands:
+    - echo "Building Frontend Docker image - DEV..." # Comando del paso
+    - docker build -f Dockerfile.frontend -t hospital-frontend-dev . # Comando del paso
+    - echo "Frontend Docker image built successfully" # Comando del paso
+
+- name: deploy-backend-dev # Nombre del paso
   image: docker:20.10.16
   privileged: true
   volumes:
   - name: docker_sock
-    path: /var/run/docker.sock
+    path: /var/run/docker.sock # Ruta del volumen
   commands:
-    - echo "Building Backend Docker image - DEV..."
-    - cd backend
-    - docker build -f Dockerfile.jvm -t hospital-backend-dev .
-    - echo "Backend Docker image built successfully"
-
-- name: build-docker-frontend-dev
-  image: docker:20.10.16
-  privileged: true
-  volumes:
-  - name: docker_sock
-    path: /var/run/docker.sock
-  commands:
-    - echo "Building Frontend Docker image - DEV..."
-    - docker build -f Dockerfile.frontend -t hospital-frontend-dev .
-    - echo "Frontend Docker image built successfully"
-
-- name: deploy-backend-dev
-  image: docker:20.10.16
-  privileged: true
-  volumes:
-  - name: docker_sock
-    path: /var/run/docker.sock
-  commands:
-    - echo "Deploying Backend - DEV..."
-    - docker stop hospital-backend-dev-cloud || true
-    - docker rm -f hospital-backend-dev-cloud || true
+    - echo "Deploying Backend - DEV..." # Comando del paso
+    - docker stop hospital-backend-dev-cloud || true # Comando del paso
+    - docker rm -f hospital-backend-dev-cloud || true # Comando del paso
     - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 -e NODE_ENV=development -e QUARKUS_PROFILE=dev -e DB_HOST=34.56.133.126 -e DB_PORT=1521 -e DB_SID=XE -e DB_USER=system -e DB_PASSWORD=Oracle123 -e LOG_LEVEL=debug -e QUARKUS_HTTP_CORS_ORIGINS=http://34.46.73.44:8061,http://34.46.73.44:8060,http://localhost:5173,http://localhost:5174,http://localhost:8061 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition -e QUARKUS_HTTP_CORS_MAX_AGE=3600 hospital-backend-dev
-    - echo "Backend DEV deployed successfully on port 8060"
+    - echo "Backend DEV deployed successfully on port 8060" # Comando del paso
 
-- name: deploy-frontend-dev
+- name: deploy-frontend-dev # Nombre del paso
   image: docker:20.10.16
   privileged: true
   volumes:
   - name: docker_sock
-    path: /var/run/docker.sock
+    path: /var/run/docker.sock # Ruta del volumen
   commands:
-    - echo "Deploying Frontend - DEV..."
-    - docker stop hospital-frontend-dev-cloud || true
-    - docker rm hospital-frontend-dev-cloud || true
+    - echo "Deploying Frontend - DEV..." # Comando del paso
+    - docker stop hospital-frontend-dev-cloud || true # Comando del paso
+    - docker rm hospital-frontend-dev-cloud || true # Comando del paso
     - docker run -d --name hospital-frontend-dev-cloud --restart=always -p 8061:80 hospital-frontend-dev
-    - echo "Frontend DEV deployed successfully on port 8061"
+    - echo "Frontend DEV deployed successfully on port 8061" # Comando del paso
 
-- name: notify-failure-dev
-  image: alpine:latest
+- name: notify-failure-dev # Nombre del paso
+  image: alpine:latest # Imagen del paso
   environment:
-    GMAIL_USER: "humbertovenavente7@gmail.com"
-    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
-    PIPELINE_NAME: "Hospital DEV"
-    DRONE_COMMIT_BRANCH: "dev"
+    GMAIL_USER: "humbertovenavente7@gmail.com" # Variable de entorno del paso
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb" # Variable de entorno del paso
+    PIPELINE_NAME: "Hospital DEV" # Variable de entorno del paso
+    DRONE_COMMIT_BRANCH: "dev" # Variable de entorno del paso
   commands:
-    - apk add --no-cache curl
+    - apk add --no-cache curl     
     - |
       if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
         # Send to jflores@unis.edu.gt
@@ -486,17 +492,18 @@ steps:
     - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 hospital-frontend-prod
     - echo "Frontend PROD deployed successfully on port 8021"
 
-- name: notify-failure-prod
-  image: alpine:latest
+- name: notify-failure-prod # Nombre del paso que vamos a usar en este caso notify-failure-prod
+  image: alpine:latest # Imagen del paso que vamos a usar en este caso alpine:latest, alpine:latest es una imagen de alpine que vamos a usar para enviar notificaciones por correo
+  # la image se consiguio en https://hub.docker.com/_/alpine?tab=tags&page=1&name=latest
   environment:
-    GMAIL_USER: "humbertovenavente7@gmail.com"
-    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
-    PIPELINE_NAME: "Hospital PROD"
-    DRONE_COMMIT_BRANCH: "main"
+    GMAIL_USER: "humbertovenavente7@gmail.com" # Variable de entorno del paso que vamos a usar en este caso GMAIL_USER: "humbertovenavente7@gmail.com"
+    GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb" # Variable de entorno del paso que vamos a usar en este caso GMAIL_APP_PASSWORD: "xyzf sjrm wjpz dzjb"
+    PIPELINE_NAME: "Hospital PROD" # Variable de entorno del paso que vamos a usar en este caso PIPELINE_NAME: "Hospital PROD"
+    DRONE_COMMIT_BRANCH: "main" # Variable de entorno del paso que vamos a usar en este caso DRONE_COMMIT_BRANCH: "main"
   commands:
-    - apk add --no-cache curl
-    - |
-      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+    - apk add --no-cache curl # Comando del paso que vamos a usar en este caso apk add --no-cache curl porque es una imagen de alpine que tiene el comando curl
+    - | # Comando del paso que vamos a usar en este caso | porque es una imagen de alpine que tiene el comando curl
+      if [ "$DRONE_BUILD_STATUS" = "failure" ]; then 
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
           --ssl-reqd \

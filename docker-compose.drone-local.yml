@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # Drone Server
-  drone-server:
+  drone-server: # DRONE-SERVER ES EL SERVIDOR DE DRONE QUE VA A EJECUTAR LOS PIPELINES
     image: drone/drone:2
     container_name: drone-server-local
     ports:
@@ -29,8 +29,8 @@ services:
     networks:
       - drone-network
 
-  # Drone Runner
-  drone-runner:
+  # Drone Runner PARA LOCAL
+  drone-runner: # DRONE-RUNNER ES EL EJECUTOR DE LOS PIPELINES
     image: drone/drone-runner-docker:1
     container_name: drone-runner-local
     volumes:
@@ -53,7 +53,7 @@ services:
     networks:
       - drone-network
 
-volumes:
+volumes: # VOLUMENES SON ESPACIOS EN EL DISCO QUE VAMOS A USAR PARA ALMACENAR DATOS
   drone_data:
     driver: local
 
