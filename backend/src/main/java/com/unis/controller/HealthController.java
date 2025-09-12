@@ -12,6 +12,14 @@ public class HealthController {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response healthCheck() {
+        // Código que causará fallo en SonarQube y Drone
+        if (true) {
+            if (true) {
+                // Este doble if true causará que SonarQube falle
+                // y por tanto el pipeline de Drone también fallará
+                throw new RuntimeException("Fallo intencional del backend para probar Drone");
+            }
+        }
         return Response.ok("OK").build();
     }
 }
