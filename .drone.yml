@@ -254,12 +254,23 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - DEV..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info -Dsonar.qualitygate.wait=true
+    - |
+      npx sonar-scanner \
+        -Dsonar.projectKey=frontend-hospital-dev-drone \
+        -Dsonar.host.url=http://34.46.73.44:9003 \
+        -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a \
+        -Dsonar.sources=src \
+        -Dsonar.tests=src/components/__tests__ \
+        -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts \
+        -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info \
+        -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info \
+        -Dsonar.qualitygate.wait=true
     - SONAR_EXIT_CODE=$?
-    - if [ $SONAR_EXIT_CODE -ne 0 ]; then
-        echo "ERROR: El análisis de SonarQube del frontend falló con código de salida $SONAR_EXIT_CODE";
-        echo "El pipeline de Drone fallará debido a problemas de calidad detectados por SonarQube en el frontend";
-        exit $SONAR_EXIT_CODE;
+    - |
+      if [ $SONAR_EXIT_CODE -ne 0 ]; then
+        echo "ERROR: El análisis de SonarQube del frontend falló con código de salida $SONAR_EXIT_CODE"
+        echo "El pipeline de Drone fallará debido a problemas de calidad detectados por SonarQube en el frontend"
+        exit $SONAR_EXIT_CODE
       fi
     - echo "Frontend SonarQube analysis completed"
 

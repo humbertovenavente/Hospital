@@ -1,0 +1,6 @@
+projectKey=frontend-hospital-dev-drone
+serverUrl=http://34.46.73.44:9003
+serverVersion=10.4.1.88267
+dashboardUrl=http://34.46.73.44:9003/dashboard?id=frontend-hospital-dev-drone
+ceTaskId=60c8a6c6-7c84-412e-93f7-6b4da785d139
+ceTaskUrl=http://34.46.73.44:9003/api/ce/task?id=60c8a6c6-7c84-412e-93f7-6b4da785d139
