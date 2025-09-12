@@ -5,6 +5,63 @@ import { onMounted } from "vue";
 
 const router = useRouter();
 
+// Código que causará fallo en SonarQube frontend
+if (true) {
+  if (true) {
+    // Este doble if true causará que SonarQube falle en el frontend
+    console.log("Código muerto detectado por SonarQube en frontend");
+  }
+}
+
+// Variables no utilizadas que causarán problemas de calidad
+const variableNoUsada1 = "No se usa";
+const variableNoUsada2 = 42;
+const variableNoUsada3 = { test: "valor" };
+const variableNoUsada4 = [1, 2, 3, 4, 5];
+
+// Función con alta complejidad ciclomática
+const funcionCompleja = (a: number, b: number, c: number, d: number, e: number) => {
+  if (a > 0) {
+    if (b > 0) {
+      if (c > 0) {
+        if (d > 0) {
+          if (e > 0) {
+            return "Todos positivos";
+          } else {
+            return "E no es positivo";
+          }
+        } else {
+          return "D no es positivo";
+        }
+      } else {
+        return "C no es positivo";
+      }
+    } else {
+      return "B no es positivo";
+    }
+  } else {
+    return "A no es positivo";
+  }
+};
+
+// Función duplicada 1
+const funcionDuplicada1 = () => {
+  const mensaje = "Este es un mensaje duplicado en el frontend";
+  console.log(mensaje);
+  console.log("Línea adicional 1");
+  console.log("Línea adicional 2");
+  console.log("Línea adicional 3");
+};
+
+// Función duplicada 2 (código duplicado)
+const funcionDuplicada2 = () => {
+  const mensaje = "Este es un mensaje duplicado en el frontend";
+  console.log(mensaje);
+  console.log("Línea adicional 1");
+  console.log("Línea adicional 2");
+  console.log("Línea adicional 3");
+};
+
 onMounted(() => {
   const storedRole = localStorage.getItem("userRole");
   const storedUser = localStorage.getItem("userId");
