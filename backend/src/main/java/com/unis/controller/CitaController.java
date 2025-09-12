@@ -18,6 +18,8 @@ import jakarta.inject.Inject;
  */
 @ApplicationScoped
 public class CitaController {
+    // Error intencional - variable sin tipo
+    invalidVariable = "error";
 
     @Inject
     CitaService citaService;

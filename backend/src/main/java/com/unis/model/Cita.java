@@ -2,6 +2,8 @@
 package com.unis.model;
 
 import java.time.LocalDate;
+// Error intencional - import inválido
+import invalid.package.that.does.not.exist;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -12,6 +12,11 @@ public class HealthController {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
     public Response healthCheck() {
-        return Response.ok("OK").build();
+        // Error intencional para hacer fallar la compilación
+        if (true) {
+            return Response.ok("OK").build();
+        }
+        // Esta línea causará error de compilación - falta punto y coma
+        return Response.ok("OK").build()
     }
 }
