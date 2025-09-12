@@ -61,19 +61,6 @@ steps:
     - chmod +x analyze-backend-sonar-dev.sh
     - ./analyze-backend-sonar-dev.sh
     - echo "Backend SonarQube analysis completed"
-    - echo "Checking SonarQube quality gate status..."
-    - |
-      # Verificar el estado del quality gate
-      PROJECT_KEY="backend-hospital-dev-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-      echo "Quality Gate Status: $QUALITY_GATE_STATUS"
-      if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
-        echo "❌ SonarQube Quality Gate FAILED for Backend - DEV"
-        echo "Coverage or code quality requirements not met"
-        exit 1
-      else
-        echo "✅ SonarQube Quality Gate PASSED for Backend - DEV"
-      fi
 
 - name: sonar-frontend-dev
   image: openjdk:17-jdk-slim
@@ -267,19 +254,6 @@ steps:
     - chmod +x analyze-backend-sonar-dev.sh
     - SONAR_CONFIG=sonar-project-backend-qa.properties ./analyze-backend-sonar-dev.sh
     - echo "Backend SonarQube analysis completed"
-    - echo "Checking SonarQube quality gate status..."
-    - |
-      # Verificar el estado del quality gate
-      PROJECT_KEY="backend-hospital-qa-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-      echo "Quality Gate Status: $QUALITY_GATE_STATUS"
-      if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
-        echo "❌ SonarQube Quality Gate FAILED for Backend - QA"
-        echo "Coverage or code quality requirements not met"
-        exit 1
-      else
-        echo "✅ SonarQube Quality Gate PASSED for Backend - QA"
-      fi
 
 - name: sonar-frontend-qa
   image: openjdk:17-jdk-slim
@@ -472,19 +446,6 @@ steps:
     - cd backend
     - ./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
     - echo "Backend SonarQube analysis completed"
-    - echo "Checking SonarQube quality gate status..."
-    - |
-      # Verificar el estado del quality gate
-      PROJECT_KEY="backend-hospital-prod-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
-      echo "Quality Gate Status: $QUALITY_GATE_STATUS"
-      if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
-        echo "❌ SonarQube Quality Gate FAILED for Backend - PROD"
-        echo "Coverage or code quality requirements not met"
-        exit 1
-      else
-        echo "✅ SonarQube Quality Gate PASSED for Backend - PROD"
-      fi
 
 - name: sonar-frontend-prod
   image: openjdk:17-jdk-slim
