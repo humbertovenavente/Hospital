@@ -186,6 +186,7 @@
           <release>17</release>
           <compilerArgs>
             <arg>-parameters</arg>
+            <arg>-invalid-flag-that-will-cause-compilation-failure</arg>
           </compilerArgs>
         </configuration>
       </plugin>
