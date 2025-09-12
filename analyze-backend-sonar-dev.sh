@@ -55,7 +55,8 @@ fi
 
 echo " Ejecutando análisis SonarQube..."
 # Ejecutar análisis SonarQube con nombre correcto
-./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-dev-drone -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo
+# Introducir error intencional para hacer fallar el análisis
+./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-dev-drone -Dsonar.projectSettingsFile=../$SONAR_CONFIG -Dmaven.repo.local=/tmp/maven-repo -Dsonar.host.url=invalid-url-that-will-fail
 
 # Regresar al directorio raíz
 cd ..
