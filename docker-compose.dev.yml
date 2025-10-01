@@ -20,7 +20,7 @@ services:
   frontend-dev:
     build:
       context: .
-      dockerfile: Dockerfile.frontend
+      dockerfile: Dockerfile.frontend.dev
     container_name: hospital-frontend-dev-cloud
     ports:
       - "8061:80"

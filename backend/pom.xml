@@ -83,6 +83,12 @@
       <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
 
+    <!-- Métricas para Prometheus -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-metrics</artifactId>
+    </dependency>
+
     <!-- Email y JavaMail -->
     <dependency>
       <groupId>io.quarkus</groupId>
