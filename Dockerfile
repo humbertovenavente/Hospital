@@ -1,39 +1,19 @@
-FROM oraclelinux:8-slim
+FROM openjdk:17-jdk-slim
 
-# Variables de entorno para Oracle
-ENV ORACLE_BASE=/opt/oracle
-ENV ORACLE_HOME=/opt/oracle/product/19c/dbhomeXE
-ENV ORACLE_SID=XE
-ENV PATH=$ORACLE_HOME/bin:$PATH
-ENV LD_LIBRARY_PATH=$ORACLE_HOME/lib:$LD_LIBRARY_PATH
+WORKDIR /app
 
-# Instalar dependencias
-RUN dnf update -y && \
-    dnf install -y oracle-database-preinstall-19c \
-                   oracle-instantclient-19c-basic \
-                   oracle-instantclient-19c-sqlplus \
-                   wget \
-                   unzip \
-                   tar \
-                   gzip \
-                   && dnf clean all
+# Instalar Maven
+RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
 
-# Crear directorios necesarios
-RUN mkdir -p $ORACLE_BASE && \
-    mkdir -p $ORACLE_HOME && \
-    mkdir -p /opt/oracle/scripts/startup && \
-    mkdir -p /opt/oracle/scripts/setup
+# Copiar archivos del proyecto backend
+COPY backend/ ./backend/
 
-# Copiar scripts de configuración
-COPY scripts/setup/* /opt/oracle/scripts/setup/
-COPY scripts/startup/* /opt/oracle/scripts/startup/
+# Construir la aplicación
+WORKDIR /app/backend
+RUN mvn clean package -DskipTests
 
-# Dar permisos de ejecución
-RUN chmod +x /opt/oracle/scripts/startup/* && \
-    chmod +x /opt/oracle/scripts/setup/*
+# Exponer puerto
+EXPOSE 8080
 
-# Puerto por defecto
-EXPOSE 1521
-
-# Comando de inicio
-CMD ["/opt/oracle/scripts/startup/runOracle.sh"] 
+# Comando para ejecutar
+CMD ["java", "-jar", "target/quarkus-app/lib/quarkus-run.jar"]

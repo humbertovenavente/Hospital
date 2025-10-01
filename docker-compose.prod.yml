@@ -1,90 +1,30 @@
 version: '3.8'
 
 services:
-  # Backend para producción
   backend-prod:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: hospital-backend-prod
+    container_name: hospital-backend-prod-cloud
     ports:
-      - "8082:8080"
+      - "8020:8080"
     environment:
-      - NODE_ENV=production
-      - DB_HOST=34.56.133.126
+      - QUARKUS_PROFILE=prod
+      - DB_HOST=35.208.14.178
       - DB_PORT=1523
-      - DB_SID=XE
-      - DB_USER=system
-      - DB_PASSWORD=Oracle123
-      - LOG_LEVEL=warn
-    networks:
-      - hospital-prod-network
+      - DB_NAME=XE
+      - DB_USER=C##HOSPITAL
+      - DB_PASSWORD=hospital123
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
 
-  # Frontend para producción
   frontend-prod:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: hospital-frontend-prod
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: hospital-frontend-prod-cloud
     ports:
-      - "3002:3000"
+      - "8021:80"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=http://34.10.223.20:8082
-    networks:
-      - hospital-prod-network
+      - VITE_API_URL=http://34.61.228.49:8020
     restart: unless-stopped
-    depends_on:
-      - backend-prod
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.25'
-        reservations:
-          memory: 256M
-          cpus: '0.1'
-
-  # Nginx para producción
-  nginx-prod:
-    image: nginx:alpine
-    container_name: hospital-nginx-prod
-    ports:
-      - "82:80"
-    volumes:
-      - ./nginx/prod.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - hospital-prod-network
-    restart: unless-stopped
-    depends_on:
-      - frontend-prod
-      - backend-prod
-    deploy:
-      resources:
-        limits:
-          memory: 256M
-          cpus: '0.1'
-
-  # Health check
-  health-check:
-    image: curlimages/curl
-    container_name: hospital-health-check
-    command: ["sh", "-c", "while true; do curl -f http://backend-prod:8080/health || exit 1; sleep 30; done"]
-    networks:
-      - hospital-prod-network
-    depends_on:
-      - backend-prod
-    restart: unless-stopped
-
-networks:
-  hospital-prod-network:
-    driver: bridge

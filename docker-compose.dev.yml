@@ -1,64 +1,30 @@
 version: '3.8'
 
 services:
-  # Backend para desarrollo
   backend-dev:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: hospital-backend-dev
+    container_name: hospital-backend-dev-cloud
     ports:
-      - "8080:8080"
+      - "8060:8080"
     environment:
-      - NODE_ENV=development
-      - DB_HOST=34.56.133.126
+      - QUARKUS_PROFILE=dev
+      - DB_HOST=35.208.14.178
       - DB_PORT=1521
-      - DB_SID=XE
-      - DB_USER=system
-      - DB_PASSWORD=Oracle123
-      - LOG_LEVEL=debug
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-    networks:
-      - hospital-dev-network
+      - DB_NAME=XE
+      - DB_USER=C##HOSPITAL
+      - DB_PASSWORD=hospital123
     restart: unless-stopped
 
-  # Frontend para desarrollo
   frontend-dev:
     build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: hospital-frontend-dev
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: hospital-frontend-dev-cloud
     ports:
-      - "3000:3000"
+      - "8061:80"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://34.10.223.20:8080
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    networks:
-      - hospital-dev-network
+      - VITE_API_URL=http://34.61.228.49:8060
     restart: unless-stopped
-    depends_on:
-      - backend-dev
-
-  # Nginx para desarrollo
-  nginx-dev:
-    image: nginx:alpine
-    container_name: hospital-nginx-dev
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
-    networks:
-      - hospital-dev-network
-    restart: unless-stopped
-    depends_on:
-      - frontend-dev
-      - backend-dev
-
-networks:
-  hospital-dev-network:
-    driver: bridge
