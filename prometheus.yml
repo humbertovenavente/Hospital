@@ -23,21 +23,21 @@ scrape_configs:
   # Backend Quarkus - Métricas de la aplicación
   - job_name: 'hospital-backend-prod'
     static_configs:
-      - targets: ['backend-prod:8080']
+      - targets: ['34.61.228.49:8020']
     metrics_path: '/q/metrics'
     scrape_interval: 10s
     honor_labels: true
 
   - job_name: 'hospital-backend-qa'
     static_configs:
-      - targets: ['backend-qa:8080']
+      - targets: ['34.61.228.49:8030']
     metrics_path: '/q/metrics'
     scrape_interval: 10s
     honor_labels: true
 
   - job_name: 'hospital-backend-dev'
     static_configs:
-      - targets: ['backend-dev:8080']
+      - targets: ['34.61.228.49:8060']
     metrics_path: '/q/metrics'
     scrape_interval: 10s
     honor_labels: true
@@ -77,20 +77,20 @@ scrape_configs:
   # Drone CI/CD - Métricas del pipeline
   - job_name: 'drone-server'
     static_configs:
-      - targets: ['drone-server:80']
+      - targets: ['34.61.228.49:8002']
     metrics_path: '/metrics'
     scrape_interval: 15s
 
   - job_name: 'drone-runner'
     static_configs:
-      - targets: ['drone-runner:80']
+      - targets: ['34.61.228.49:8002']
     metrics_path: '/metrics'
     scrape_interval: 15s
 
   # SonarQube - Métricas de calidad
   - job_name: 'sonarqube'
     static_configs:
-      - targets: ['sonarqube:9000']
+      - targets: ['34.61.228.49:9003']
     metrics_path: '/api/monitoring/metrics'
     scrape_interval: 60s
 
