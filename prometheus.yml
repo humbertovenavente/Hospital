@@ -20,42 +20,66 @@ scrape_configs:
       - targets: ['localhost:9090']
     scrape_interval: 15s
 
-  # Backend Quarkus - Métricas de la aplicación (IPs externas de Google Cloud)
-  - job_name: 'hospital-backend-prod'
+  # Backend Quarkus - Pipeline (3 instancias para gráficas comparativas)
+  - job_name: 'hospital-backend-pipeline'
+    static_configs:
+      - targets: 
+        - '34.61.228.49:8020'  # PROD
+        - '34.61.228.49:8030'  # QA  
+        - '34.61.228.49:8060'  # DEV
+    metrics_path: '/q/metrics'
+    scrape_interval: 30s
+    honor_labels: true
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8020'
+        replacement: 'prod'
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8030'
+        replacement: 'qa'
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8060'
+        replacement: 'dev'
+
+  # Backend Quarkus - Monitoreo de Producción (solo para alertas)
+  - job_name: 'hospital-backend-prod-monitoring'
     static_configs:
       - targets: ['34.61.228.49:8020']
     metrics_path: '/q/metrics'
     scrape_interval: 10s
     honor_labels: true
 
-  - job_name: 'hospital-backend-qa'
+  # Frontend - Pipeline (3 instancias para gráficas comparativas)
+  - job_name: 'hospital-frontend-pipeline'
     static_configs:
-      - targets: ['34.61.228.49:8030']
-    metrics_path: '/q/metrics'
-    scrape_interval: 10s
-    honor_labels: true
+      - targets: 
+        - '34.61.228.49:8021'  # PROD
+        - '34.61.228.49:8031'  # QA
+        - '34.61.228.49:8061'  # DEV
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8021'
+        replacement: 'prod'
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8031'
+        replacement: 'qa'
+      - source_labels: [__address__]
+        target_label: environment
+        regex: '34.61.228.49:8061'
+        replacement: 'dev'
 
-  - job_name: 'hospital-backend-dev'
-    static_configs:
-      - targets: ['34.61.228.49:8060']
-    metrics_path: '/q/metrics'
-    scrape_interval: 10s
-    honor_labels: true
-
-  # Frontend - Métricas de la aplicación
-  - job_name: 'hospital-frontend-prod'
+  # Frontend - Monitoreo de Producción (solo para alertas)
+  - job_name: 'hospital-frontend-prod-monitoring'
     static_configs:
       - targets: ['34.61.228.49:8021']
-    scrape_interval: 30s
-
-  - job_name: 'hospital-frontend-qa'
-    static_configs:
-      - targets: ['34.61.228.49:8031']
-    scrape_interval: 30s
-
-  - job_name: 'hospital-frontend-dev'
-    static_configs:
-      - targets: ['34.61.228.49:8061']
+    metrics_path: '/metrics'
     scrape_interval: 30s
 
   # Node Exporter - Métricas del sistema
