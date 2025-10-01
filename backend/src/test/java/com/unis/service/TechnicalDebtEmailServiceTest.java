@@ -75,7 +75,7 @@ public class TechnicalDebtEmailServiceTest {
 
         // Then
         assertFalse(response.isSuccess());
-        assertTrue(response.getMessage().contains("Error enviando reporte"));
+        assertTrue(response.getMessage().contains("ERROR ENVIANDO REPORTE"));
         assertEquals(projectKey, response.getProjectKey());
         assertEquals(projectName, response.getProjectName());
         assertEquals(recipientEmail, response.getRecipientEmail());
