@@ -53,7 +53,7 @@ steps:
 - name: sonar-backend-dev
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Running SonarQube analysis for Backend - DEV..."
@@ -65,7 +65,7 @@ steps:
 - name: sonar-frontend-dev
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Installing Node.js and SonarQube Scanner..."
@@ -74,7 +74,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - DEV..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone -Dsonar.host.url=http://34.61.228.49:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-dev
@@ -110,7 +110,7 @@ steps:
     - echo "Deploying Backend - DEV..."
     - docker stop hospital-backend-dev-cloud || true
     - docker rm -f hospital-backend-dev-cloud || true
-    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 -e NODE_ENV=development -e QUARKUS_PROFILE=dev -e DB_HOST=34.56.133.126 -e DB_PORT=1521 -e DB_SID=XE -e DB_USER=system -e DB_PASSWORD=Oracle123 -e LOG_LEVEL=debug -e QUARKUS_HTTP_CORS_ORIGINS=http://34.46.73.44:8061,http://34.46.73.44:8060,http://localhost:5173,http://localhost:5174,http://localhost:8061 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition -e QUARKUS_HTTP_CORS_MAX_AGE=3600 hospital-backend-dev
+    - docker run -d --name hospital-backend-dev-cloud --restart=always -p 8060:8080 -e NODE_ENV=development -e QUARKUS_PROFILE=dev -e DB_HOST=34.56.133.126 -e DB_PORT=1521 -e DB_SID=XE -e DB_USER=system -e DB_PASSWORD=Oracle123 -e LOG_LEVEL=debug -e QUARKUS_HTTP_CORS_ORIGINS=http://34.61.228.49:8061,http://34.61.228.49:8060,http://localhost:5173,http://localhost:5174,http://localhost:8061 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition -e QUARKUS_HTTP_CORS_MAX_AGE=3600 hospital-backend-dev
     - echo "Backend DEV deployed successfully on port 8060"
 
 - name: deploy-frontend-dev
@@ -233,7 +233,7 @@ steps:
 - name: sonar-backend-qa
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Running SonarQube analysis for Backend - QA..."
@@ -245,7 +245,7 @@ steps:
 - name: sonar-frontend-qa
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Installing Node.js and SonarQube Scanner..."
@@ -254,7 +254,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - QA..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-qa-drone -Dsonar.host.url=http://34.61.228.49:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-qa
@@ -414,18 +414,18 @@ steps:
 - name: sonar-backend-prod
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Running SonarQube analysis for Backend - PROD..."
     - cd backend
-    - ./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
+    - ./mvnw sonar:sonar -Dsonar.projectKey=backend-hospital-prod-drone -Dsonar.host.url=http://34.61.228.49:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a
     - echo "Backend SonarQube analysis completed"
 
 - name: sonar-frontend-prod
   image: openjdk:17-jdk-slim
   environment:
-    SONAR_HOST_URL: "http://34.46.73.44:9003"
+    SONAR_HOST_URL: "http://34.61.228.49:9003"
     SONAR_TOKEN: "sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a"
   commands:
     - echo "Installing Node.js and SonarQube Scanner..."
@@ -434,7 +434,7 @@ steps:
     - apt-get install -y nodejs
     - npm install -g sonar-scanner
     - echo "Running SonarQube analysis for Frontend - PROD..."
-    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.46.73.44:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+    - npx sonar-scanner -Dsonar.projectKey=frontend-hospital-prod-drone -Dsonar.host.url=http://34.61.228.49:9003 -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a -Dsonar.sources=src -Dsonar.tests=src/components/__tests__ -Dsonar.test.inclusions=**/*.spec.ts,**/*.test.ts -Dsonar.typescript.lcov.reportPaths=coverage/lcov.info -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
     - echo "Frontend SonarQube analysis completed"
 
 - name: build-docker-backend-prod

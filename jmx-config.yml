@@ -1,0 +1,88 @@
+---
+startDelaySeconds: 0
+ssl: false
+lowercaseOutputName: false
+lowercaseOutputLabelNames: false
+rules:
+  - pattern: 'java.lang<type=Memory><>HeapMemoryUsage'
+    name: 'jvm_memory_heap_usage'
+    type: 'GAUGE'
+    labels:
+      area: 'heap'
+    help: 'JVM heap memory usage'
+
+  - pattern: 'java.lang<type=Memory><>NonHeapMemoryUsage'
+    name: 'jvm_memory_nonheap_usage'
+    type: 'GAUGE'
+    labels:
+      area: 'nonheap'
+    help: 'JVM non-heap memory usage'
+
+  - pattern: 'java.lang<type=GarbageCollector,name=([^>]+)><>CollectionCount'
+    name: 'jvm_gc_collection_count'
+    type: 'COUNTER'
+    labels:
+      gc: '$1'
+    help: 'JVM garbage collection count'
+
+  - pattern: 'java.lang<type=GarbageCollector,name=([^>]+)><>CollectionTime'
+    name: 'jvm_gc_collection_time'
+    type: 'COUNTER'
+    labels:
+      gc: '$1'
+    help: 'JVM garbage collection time'
+
+  - pattern: 'java.lang<type=Threading><>ThreadCount'
+    name: 'jvm_threads_current'
+    type: 'GAUGE'
+    help: 'JVM current thread count'
+
+  - pattern: 'java.lang<type=Threading><>PeakThreadCount'
+    name: 'jvm_threads_peak'
+    type: 'GAUGE'
+    help: 'JVM peak thread count'
+
+  - pattern: 'java.lang<type=OperatingSystem><>ProcessCpuLoad'
+    name: 'jvm_process_cpu_load'
+    type: 'GAUGE'
+    help: 'JVM process CPU load'
+
+  - pattern: 'java.lang<type=OperatingSystem><>SystemCpuLoad'
+    name: 'jvm_system_cpu_load'
+    type: 'GAUGE'
+    help: 'JVM system CPU load'
+
+  - pattern: 'java.lang<type=OperatingSystem><>FreePhysicalMemorySize'
+    name: 'jvm_memory_free_physical'
+    type: 'GAUGE'
+    help: 'JVM free physical memory'
+
+  - pattern: 'java.lang<type=OperatingSystem><>TotalPhysicalMemorySize'
+    name: 'jvm_memory_total_physical'
+    type: 'GAUGE'
+    help: 'JVM total physical memory'
+
+  - pattern: 'java.lang<type=Runtime><>Uptime'
+    name: 'jvm_uptime'
+    type: 'GAUGE'
+    help: 'JVM uptime in milliseconds'
+
+  - pattern: 'java.lang<type=Runtime><>StartTime'
+    name: 'jvm_start_time'
+    type: 'GAUGE'
+    help: 'JVM start time'
+
+  - pattern: 'java.lang<type=ClassLoading><>LoadedClassCount'
+    name: 'jvm_classes_loaded'
+    type: 'GAUGE'
+    help: 'JVM loaded class count'
+
+  - pattern: 'java.lang<type=ClassLoading><>TotalLoadedClassCount'
+    name: 'jvm_classes_total_loaded'
+    type: 'COUNTER'
+    help: 'JVM total loaded class count'
+
+  - pattern: 'java.lang<type=ClassLoading><>UnloadedClassCount'
+    name: 'jvm_classes_unloaded'
+    type: 'COUNTER'
+    help: 'JVM unloaded class count'
