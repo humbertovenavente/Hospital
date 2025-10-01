@@ -316,10 +316,10 @@ public class TechnicalDebtEmailService {
         
         errorMessage.append("❌ ERROR ENVIANDO REPORTE DE DEUDA TÉCNICA\n\n");
         errorMessage.append("📋 INFORMACIÓN DEL PROYECTO:\n");
-        errorMessage.append("   • Proyecto: ").append(projectName).append(" (").append(projectKey).append(")\n");
+        errorMessage.append("   • Proyecto: ").append(projectName != null ? projectName : "N/A").append(" (").append(projectKey != null ? projectKey : "N/A").append(")\n");
         errorMessage.append("   • Destinatario: ").append(recipientEmail != null ? recipientEmail : "jflores@unis.edu.gt").append("\n");
         errorMessage.append("   • Fecha/Hora: ").append(java.time.LocalDateTime.now()).append("\n");
-        errorMessage.append("   • Entorno: ").append(profile.toUpperCase()).append("\n\n");
+        errorMessage.append("   • Entorno: ").append(profile != null ? profile.toUpperCase() : "DESCONOCIDO").append("\n\n");
         
         errorMessage.append("🔧 CONFIGURACIÓN SMTP:\n");
         errorMessage.append("   • Host: ").append(mailHost).append("\n");
@@ -330,7 +330,16 @@ public class TechnicalDebtEmailService {
         
         errorMessage.append("🚨 DETALLES DEL ERROR:\n");
         errorMessage.append("   • Tipo: ").append(e.getClass().getSimpleName()).append("\n");
-        errorMessage.append("   • Mensaje: ").append(e.getMessage()).append("\n");
+        errorMessage.append("   • Mensaje: ").append(e.getMessage() != null ? e.getMessage() : "Sin mensaje de error").append("\n");
+        
+        // Agregar información del archivo y línea donde ocurrió el error
+        if (e.getStackTrace() != null && e.getStackTrace().length > 0) {
+            StackTraceElement firstElement = e.getStackTrace()[0];
+            errorMessage.append("   • Archivo: ").append(firstElement.getFileName()).append("\n");
+            errorMessage.append("   • Clase: ").append(firstElement.getClassName()).append("\n");
+            errorMessage.append("   • Método: ").append(firstElement.getMethodName()).append("()\n");
+            errorMessage.append("   • Línea: ").append(firstElement.getLineNumber()).append("\n");
+        }
         
         // Agregar información específica según el tipo de error
         if (e.getMessage() != null) {
