@@ -1,5 +1,7 @@
 package com.unis.service;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -76,17 +78,18 @@ public class SolicitudHospitalService {
      * @param solicitud Los datos de la solicitud a enviar.
      */
     private void enviarSolicitudAMongo(SolicitudHospital solicitud) {
+        String urlDestino = "";
+        
+        if ("Aseguradora Uno".equalsIgnoreCase(solicitud.aseguradora)) {
+            urlDestino = "http://localhost:5001/api/solicitudes/hospital";
+        } else if ("Aseguradora DOS".equalsIgnoreCase(solicitud.aseguradora)) {
+            urlDestino = "http://localhost:5022/api/solicitudes/hospital";
+        } else {
+            System.err.println("No se encontró aseguradora válida para enviar");
+            return;
+        }
+        
         try {
-            String urlDestino = "";
-    
-            if ("Aseguradora Uno".equalsIgnoreCase(solicitud.aseguradora)) {
-                urlDestino = "http://localhost:5001/api/solicitudes/hospital";
-            } else if ("Aseguradora DOS".equalsIgnoreCase(solicitud.aseguradora)) {
-                urlDestino = "http://localhost:5022/api/solicitudes/hospital";
-            } else {
-                System.err.println("No se encontró aseguradora válida para enviar");
-                return;
-            }
     
             URL url = new URL(urlDestino);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
