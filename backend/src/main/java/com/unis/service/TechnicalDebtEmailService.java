@@ -94,9 +94,14 @@ public class TechnicalDebtEmailService {
         } catch (Exception e) {
             LOG.error("=== ERROR ENVIANDO REPORTE ===");
             LOG.error("Proyecto: " + projectKey);
+            LOG.error("Destinatario: " + recipientEmail);
             LOG.error("Error: " + e.getMessage(), e);
+            
+            // Generar mensaje de error más detallado
+            String detailedErrorMessage = generateDetailedErrorMessage(e, projectKey, projectName, recipientEmail);
+            
             return new TechnicalDebtEmailResponse(false, 
-                "Error enviando reporte: " + e.getMessage(), 
+                detailedErrorMessage, 
                 projectKey, projectName, recipientEmail);
         }
     }
@@ -301,5 +306,58 @@ public class TechnicalDebtEmailService {
 
     public boolean isMailStartTls() {
         return mailStartTls;
+    }
+
+    /**
+     * Genera un mensaje de error detallado con información específica del fallo
+     */
+    private String generateDetailedErrorMessage(Exception e, String projectKey, String projectName, String recipientEmail) {
+        StringBuilder errorMessage = new StringBuilder();
+        
+        errorMessage.append("❌ ERROR ENVIANDO REPORTE DE DEUDA TÉCNICA\n\n");
+        errorMessage.append("📋 INFORMACIÓN DEL PROYECTO:\n");
+        errorMessage.append("   • Proyecto: ").append(projectName).append(" (").append(projectKey).append(")\n");
+        errorMessage.append("   • Destinatario: ").append(recipientEmail != null ? recipientEmail : "jflores@unis.edu.gt").append("\n");
+        errorMessage.append("   • Fecha/Hora: ").append(java.time.LocalDateTime.now()).append("\n");
+        errorMessage.append("   • Entorno: ").append(profile.toUpperCase()).append("\n\n");
+        
+        errorMessage.append("🔧 CONFIGURACIÓN SMTP:\n");
+        errorMessage.append("   • Host: ").append(mailHost).append("\n");
+        errorMessage.append("   • Puerto: ").append(mailPort).append("\n");
+        errorMessage.append("   • Usuario: ").append(mailUsername).append("\n");
+        errorMessage.append("   • SSL: ").append(mailSsl ? "Habilitado" : "Deshabilitado").append("\n");
+        errorMessage.append("   • StartTLS: ").append(mailStartTls ? "Habilitado" : "Deshabilitado").append("\n\n");
+        
+        errorMessage.append("🚨 DETALLES DEL ERROR:\n");
+        errorMessage.append("   • Tipo: ").append(e.getClass().getSimpleName()).append("\n");
+        errorMessage.append("   • Mensaje: ").append(e.getMessage()).append("\n");
+        
+        // Agregar información específica según el tipo de error
+        if (e.getMessage() != null) {
+            String message = e.getMessage().toLowerCase();
+            if (message.contains("timeout") || message.contains("connection")) {
+                errorMessage.append("   • Causa probable: Problema de conectividad con el servidor SMTP\n");
+                errorMessage.append("   • Solución sugerida: Verificar conexión a internet y configuración de firewall\n");
+            } else if (message.contains("authentication") || message.contains("login")) {
+                errorMessage.append("   • Causa probable: Credenciales de email incorrectas\n");
+                errorMessage.append("   • Solución sugerida: Verificar usuario y contraseña de Gmail\n");
+            } else if (message.contains("ssl") || message.contains("tls")) {
+                errorMessage.append("   • Causa probable: Problema con configuración SSL/TLS\n");
+                errorMessage.append("   • Solución sugerida: Verificar configuración de seguridad del email\n");
+            } else if (message.contains("recipient") || message.contains("address")) {
+                errorMessage.append("   • Causa probable: Dirección de email inválida\n");
+                errorMessage.append("   • Solución sugerida: Verificar formato del email del destinatario\n");
+            } else {
+                errorMessage.append("   • Causa probable: Error inesperado en el servicio de email\n");
+                errorMessage.append("   • Solución sugerida: Revisar logs del servidor para más detalles\n");
+            }
+        }
+        
+        errorMessage.append("\n📞 SOPORTE TÉCNICO:\n");
+        errorMessage.append("   • Contactar al administrador del sistema\n");
+        errorMessage.append("   • Revisar logs del servidor para información adicional\n");
+        errorMessage.append("   • Verificar configuración de email en application.properties\n");
+        
+        return errorMessage.toString();
     }
 }

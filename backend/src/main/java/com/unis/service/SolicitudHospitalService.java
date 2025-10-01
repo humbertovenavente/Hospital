@@ -53,8 +53,20 @@ public class SolicitudHospitalService {
             // Enviar la solicitud a MongoDB
             enviarSolicitudAMongo(solicitud);
         } catch (Exception e) {
-            System.err.println(" Error al enviar solicitud a la aseguradora o MongoDB: " + e.getMessage());
+            System.err.println("=== ERROR ENVIANDO SOLICITUD DE HOSPITAL ===");
+            System.err.println("Paciente: " + solicitud.nombre);
+            System.err.println("Aseguradora: " + solicitud.aseguradora);
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("Tipo de error: " + e.getClass().getSimpleName());
+            System.err.println("Stack trace completo:");
             e.printStackTrace();
+            
+            // Log más detallado para debugging
+            System.err.println("=== INFORMACIÓN ADICIONAL ===");
+            System.err.println("Dirección: " + solicitud.direccion);
+            System.err.println("Teléfono: " + solicitud.telefono);
+            System.err.println("Estado: " + solicitud.estado);
+            System.err.println("Origen: " + solicitud.origen);
         }
     }
 
@@ -94,15 +106,51 @@ public class SolicitudHospitalService {
                 os.flush();
             }
     
-            if (conn.getResponseCode() != HttpURLConnection.HTTP_OK) {
-                System.err.println("Error al enviar solicitud: " + conn.getResponseMessage());
+            int responseCode = conn.getResponseCode();
+            if (responseCode != HttpURLConnection.HTTP_OK) {
+                System.err.println("=== ERROR EN RESPUESTA DE ASEGURADORA ===");
+                System.err.println("URL destino: " + urlDestino);
+                System.err.println("Código de respuesta: " + responseCode);
+                System.err.println("Mensaje de respuesta: " + conn.getResponseMessage());
+                System.err.println("Datos enviados: " + input);
+                
+                // Leer respuesta de error si está disponible
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getErrorStream()))) {
+                    String errorResponse = reader.lines().collect(java.util.stream.Collectors.joining("\n"));
+                    if (!errorResponse.isEmpty()) {
+                        System.err.println("Respuesta de error: " + errorResponse);
+                    }
+                } catch (Exception readError) {
+                    System.err.println("No se pudo leer la respuesta de error: " + readError.getMessage());
+                }
             } else {
-                System.out.println("Solicitud enviada correctamente a la aseguradora.");
+                System.out.println("✅ Solicitud enviada correctamente a la aseguradora: " + solicitud.aseguradora);
             }
-    
+
             conn.disconnect();
         } catch (Exception e) {
-            System.err.println("Error al enviar solicitud: " + e.getMessage());
+            System.err.println("=== ERROR ENVIANDO SOLICITUD A MONGODB ===");
+            System.err.println("URL destino: " + urlDestino);
+            System.err.println("Paciente: " + solicitud.nombre);
+            System.err.println("Aseguradora: " + solicitud.aseguradora);
+            System.err.println("Error: " + e.getMessage());
+            System.err.println("Tipo de error: " + e.getClass().getSimpleName());
+            
+            // Información específica según el tipo de error
+            if (e.getMessage() != null) {
+                String message = e.getMessage().toLowerCase();
+                if (message.contains("connection") || message.contains("timeout")) {
+                    System.err.println("Causa probable: Problema de conectividad con la aseguradora");
+                    System.err.println("Solución: Verificar que el servicio de la aseguradora esté ejecutándose");
+                } else if (message.contains("refused")) {
+                    System.err.println("Causa probable: Servicio de aseguradora no disponible en el puerto");
+                    System.err.println("Solución: Verificar que el servicio esté corriendo en el puerto correcto");
+                } else if (message.contains("malformed") || message.contains("invalid")) {
+                    System.err.println("Causa probable: URL o datos malformados");
+                    System.err.println("Solución: Verificar formato de datos y URL de destino");
+                }
+            }
+            
             e.printStackTrace();
         }
     }
