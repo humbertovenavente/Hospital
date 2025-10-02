@@ -29,6 +29,7 @@ services:
       # Configuración de métricas de Prometheus
       - DRONE_PROMETHEUS_ENABLED=true
       - DRONE_PROMETHEUS_ENDPOINT=/metrics
+      - DRONE_PROMETHEUS_AUTH_TOKEN=
     restart: unless-stopped
     networks:
       - drone-network
