@@ -11,3 +11,4 @@
 # Test with correct internal networking
 # Test with correct runner configuration
 # Test without healthcheck issues
+# Test pipeline activation
