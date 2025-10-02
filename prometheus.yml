@@ -61,6 +61,8 @@ scrape_configs:
         - '34.61.228.49:8061'  # DEV
     metrics_path: '/metrics'
     scrape_interval: 30s
+    scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
+    honor_labels: true
     relabel_configs:
       - source_labels: [__address__]
         target_label: environment
@@ -81,6 +83,7 @@ scrape_configs:
       - targets: ['34.61.228.49:8021']
     metrics_path: '/metrics'
     scrape_interval: 30s
+    scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
 
   # Node Exporter - Métricas del sistema
   - job_name: 'node-exporter'
