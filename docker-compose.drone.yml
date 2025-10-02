@@ -26,6 +26,9 @@ services:
       - DRONE_DOCKER_HOST=unix:///var/run/docker.sock
       # Configuración de ambientes
       - DRONE_ENVIRONMENT=dev,qa,prod
+      # Configuración de métricas de Prometheus
+      - DRONE_PROMETHEUS_ENABLED=true
+      - DRONE_PROMETHEUS_ENDPOINT=/metrics
     restart: unless-stopped
     networks:
       - drone-network
