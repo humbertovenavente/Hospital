@@ -87,7 +87,7 @@ steps:
     - echo "Building Backend Docker image - DEV..."
     - cd backend
     - docker build -f Dockerfile.jvm -t hospital-backend-dev .
-    - echo "Backend Docker image built successfully"
+    - echo "Backend Docker image built successfully - DEV"
 
 - name: build-docker-frontend-dev
   image: docker:20.10.16
