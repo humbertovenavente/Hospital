@@ -6,7 +6,7 @@ services:
     image: drone/drone:2
     container_name: drone-server
     ports:
-      - "80:80"
+      - "8002:80"
       - "443:443"
     volumes:
       - drone_data:/data

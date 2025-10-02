@@ -16,14 +16,14 @@ INSTANCE_NAME="drone-ci-gcp"
 MACHINE_TYPE="e2-standard-4"
 DISK_SIZE="50GB"
 
-# Variables de Drone predefinidas
+# Variables de Drone predefinidas - NUEVAS CREDENCIALES
 DRONE_GITHUB_CLIENT_ID="Ov23liUkZPPY6NxDbi6j"
-DRONE_GITHUB_CLIENT_SECRET="f09f9703350f6e04a8fdefa36c26f185415f5cc2"
-DRONE_RPC_SECRET=$(openssl rand -hex 16)
-DRONE_SERVER_HOST="34.10.223.20"
+DRONE_GITHUB_CLIENT_SECRET="5e6e1391da2c270e3cdd06268ad4080f1589b3c7"
+DRONE_RPC_SECRET="15d4a20df9fee5420d98c13422bf29ff"
+DRONE_SERVER_HOST="34.61.228.49"
 DRONE_SERVER_PROTO="http"
 DRONE_ADMIN_USER="humbertovenavente"
-DRONE_SECRET=$(openssl rand -hex 16)
+DRONE_SECRET="15d4a20df9fee5420d98c13422bf29ff"
 
 # Colores para output
 RED='\033[0;31m'
@@ -187,7 +187,7 @@ services:
     image: drone/drone:2
     container_name: drone-server
     ports:
-      - "8080:80"
+      - "8002:80"
     volumes:
       - drone_data:/data
       - /var/run/docker.sock:/var/run/docker.sock
@@ -196,7 +196,7 @@ services:
       - DRONE_GITHUB_CLIENT_ID=$DRONE_GITHUB_CLIENT_ID
       - DRONE_GITHUB_CLIENT_SECRET=$DRONE_GITHUB_CLIENT_SECRET
       - DRONE_RPC_SECRET=$DRONE_RPC_SECRET
-      - DRONE_SERVER_HOST=$DRONE_SERVER_HOST:8080
+      - DRONE_SERVER_HOST=$DRONE_SERVER_HOST:8002
       - DRONE_SERVER_PROTO=$DRONE_SERVER_PROTO
       - DRONE_USER_CREATE=username:$DRONE_ADMIN_USER,admin:true
       - DRONE_LOGS_DEBUG=true
@@ -261,19 +261,19 @@ show_info() {
     echo "  - Zona: $ZONE"
     echo ""
     echo "🔧 Configuración de Drone:"
-    echo "  - Server Host: $DRONE_SERVER_HOST:8080"
+    echo "  - Server Host: $DRONE_SERVER_HOST:8002"
     echo "  - Admin User: $DRONE_ADMIN_USER"
     echo "  - GitHub Client ID: $DRONE_GITHUB_CLIENT_ID"
     echo ""
     echo "🌐 Acceso:"
-    echo "  - Drone UI: http://$INSTANCE_IP:8080"
+    echo "  - Drone UI: http://$INSTANCE_IP:8002"
     echo "  - SSH: gcloud compute ssh $INSTANCE_NAME --zone=$ZONE"
     echo ""
     echo "📋 Próximos pasos:"
     echo "  1. Conectarse a la instancia: gcloud compute ssh $INSTANCE_NAME --zone=$ZONE"
     echo "  2. Subir archivos: gcloud compute scp docker-compose.gcp.yml $INSTANCE_NAME:~/ --zone=$ZONE"
     echo "  3. Ejecutar: docker-compose -f docker-compose.gcp.yml up -d"
-    echo "  4. Acceder a: http://$INSTANCE_IP:8080"
+    echo "  4. Acceder a: http://$INSTANCE_IP:8002"
     echo ""
 }
 

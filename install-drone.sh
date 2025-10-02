@@ -29,8 +29,8 @@ setup_github_oauth() {
     echo "1. Ve a: https://github.com/settings/applications/new"
     echo "2. Configura:"
     echo "   - Application name: Drone CI/CD - Hospital"
-    echo "   - Homepage URL: http://34.10.223.20:8080"
-    echo "   - Authorization callback URL: http://34.10.223.20:8080/login"
+    echo "   - Homepage URL: http://34.61.228.49:8002"
+    echo "   - Authorization callback URL: http://34.61.228.49:8002/login"
     echo ""
     echo "3. Copia el Client ID y Client Secret"
     echo ""
@@ -74,9 +74,9 @@ verify_installation() {
     docker-compose -f docker-compose.drone.yml ps
     
     # Verificar que Drone esté respondiendo
-    if curl -f http://localhost:8080 > /dev/null 2>&1; then
+    if curl -f http://localhost:8002 > /dev/null 2>&1; then
         log "✅ Drone está funcionando correctamente"
-        log "🌐 Accede a: http://34.10.223.20:8080"
+        log "🌐 Accede a: http://34.61.228.49:8002"
     else
         log "❌ Error: Drone no está respondiendo"
         log "📋 Revisa los logs: docker-compose -f docker-compose.drone.yml logs"
@@ -90,7 +90,7 @@ show_info() {
     echo "🚀 DRONE CI/CD INSTALADO EXITOSAMENTE"
     echo "====================================="
     echo ""
-    echo "🌐 URL de acceso: http://34.10.223.20:8080"
+    echo "🌐 URL de acceso: http://34.61.228.49:8002"
     echo "🔧 Admin user: $(grep DRONE_ADMIN_USER drone.env | cut -d'=' -f2)"
     echo ""
     echo "📋 Comandos útiles:"
@@ -103,9 +103,9 @@ show_info() {
     echo "  - Pipeline: .drone.yml"
     echo ""
     echo "🏥 Ambientes configurados:"
-    echo "  - Desarrollo: http://34.10.223.20:80"
-    echo "  - QA: http://34.10.223.20:81"
-    echo "  - Producción: http://34.10.223.20:82"
+    echo "  - Desarrollo: http://34.61.228.49:8060"
+    echo "  - QA: http://34.61.228.49:8061"
+    echo "  - Producción: http://34.61.228.49:8062"
     echo ""
 }
 
