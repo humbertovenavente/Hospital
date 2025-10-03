@@ -34,13 +34,13 @@ services:
       dockerfile: Dockerfile.frontend.cloud
       args:
         - NODE_ENV=development
-        - VITE_API_URL=http://34.46.73.44:8030
+        - VITE_API_URL=http://34.61.228.49:8030
     container_name: hospital-frontend-dev-cloud
     ports:
       - "8061:80"
     environment:
       - NODE_ENV=development
-      - VITE_API_URL=http://34.46.73.44:8030
+      - VITE_API_URL=http://34.61.228.49:8030
     networks:
       - hospital-dev-network
     restart: unless-stopped

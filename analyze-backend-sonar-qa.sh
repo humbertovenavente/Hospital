@@ -4,7 +4,7 @@ echo "ANÁLISIS DE SONARQUBE PARA BACKEND (RAMA QA)"
 echo "=================================================="
 
 # URL de SonarQube
-SONAR_URL="http://34.46.73.44:9003"
+SONAR_URL="http://34.61.228.49:9003"
 
 # Verificar que SonarQube esté funcionando
 echo " Verificando conexión con SonarQube en $SONAR_URL..."

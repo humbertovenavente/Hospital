@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 
 echo -e "${YELLOW}1. Verificando configuración del frontend...${NC}"
 echo "   - API_URL configurada:"
-grep "API_URL.*34.46.73.44:8030" src/services/authService.js
+grep "API_URL.*34.61.228.49:8030" src/services/authService.js
 if [ $? -eq 0 ]; then
     echo -e "   ${GREEN}✓ Frontend configurado correctamente${NC}"
 else
@@ -30,7 +30,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}3. Probando conectividad del backend...${NC}"
-HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://34.46.73.44:8030/q/health)
+HEALTH_STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://34.61.228.49:8030/q/health)
 if [ "$HEALTH_STATUS" = "200" ]; then
     echo -e "   ${GREEN}✓ Backend respondiendo correctamente${NC}"
 else
@@ -39,7 +39,7 @@ fi
 
 echo ""
 echo -e "${YELLOW}4. Probando endpoint de login...${NC}"
-LOGIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://34.46.73.44:8030/usuarios/login -H "Content-Type: application/json" -d '{"correo":"admin@hospital.com","contrasena":"admin123"}')
+LOGIN_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://34.61.228.49:8030/usuarios/login -H "Content-Type: application/json" -d '{"correo":"admin@hospital.com","contrasena":"admin123"}')
 if [ "$LOGIN_STATUS" = "200" ]; then
     echo -e "   ${GREEN}✓ Endpoint de login funcionando${NC}"
 else
@@ -50,19 +50,19 @@ echo ""
 echo -e "${YELLOW}5. Probando CORS con diferentes orígenes...${NC}"
 
 # Probar con localhost:5175
-CORS_STATUS_LOCAL=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://34.46.73.44:8030/usuarios/login -H "Origin: http://localhost:5175" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type")
+CORS_STATUS_LOCAL=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://34.61.228.49:8030/usuarios/login -H "Origin: http://localhost:5175" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type")
 if [ "$CORS_STATUS_LOCAL" = "200" ]; then
     echo -e "   ${GREEN}✓ CORS funciona con localhost:5175${NC}"
 else
     echo -e "   ${RED}✗ CORS no funciona con localhost:5175 (Status: $CORS_STATUS_LOCAL)${NC}"
 fi
 
-# Probar con 34.46.73.44:5175
-CORS_STATUS_REMOTE=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://34.46.73.44:8030/usuarios/login -H "Origin: http://34.46.73.44:5175" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type")
+# Probar con 34.61.228.49:5175
+CORS_STATUS_REMOTE=$(curl -s -o /dev/null -w "%{http_code}" -X OPTIONS http://34.61.228.49:8030/usuarios/login -H "Origin: http://34.61.228.49:5175" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: Content-Type")
 if [ "$CORS_STATUS_REMOTE" = "200" ]; then
-    echo -e "   ${GREEN}✓ CORS funciona con 34.46.73.44:5175${NC}"
+    echo -e "   ${GREEN}✓ CORS funciona con 34.61.228.49:5175${NC}"
 else
-    echo -e "   ${RED}✗ CORS no funciona con 34.46.73.44:5175 (Status: $CORS_STATUS_REMOTE)${NC}"
+    echo -e "   ${RED}✗ CORS no funciona con 34.61.228.49:5175 (Status: $CORS_STATUS_REMOTE)${NC}"
 fi
 
 echo ""

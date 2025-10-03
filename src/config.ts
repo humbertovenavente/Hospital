@@ -1,7 +1,7 @@
 // Configuración para el entorno de QA en la nube
-const API_URL = 'http://34.46.73.44:8030';
-const FRONTEND_URL = 'http://34.46.73.44:8031'; // URL del frontend en la nube
-const NGINX_URL = 'http://34.46.73.44:80';     // URL de nginx en la nube
+const API_URL = 'http://34.61.228.49:8030';
+const FRONTEND_URL = 'http://34.61.228.49:8031'; // URL del frontend en la nube
+const NGINX_URL = 'http://34.61.228.49:80';     // URL de nginx en la nube
 
 export default {
   API_URL,

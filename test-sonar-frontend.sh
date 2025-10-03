@@ -35,7 +35,7 @@ fi
 # Probar comando de SonarQube (solo validación, sin enviar)
 echo "🔍 Validando configuración de SonarQube..."
 npx sonar-scanner -Dsonar.projectKey=frontend-hospital-dev-drone \
-  -Dsonar.host.url=http://34.46.73.44:9003 \
+  -Dsonar.host.url=http://34.61.228.49:9003 \
   -Dsonar.login=sqa_9e95b3a3e0b243715a9b438fb7a08c1060e7123a \
   -Dsonar.sources=src \
   -Dsonar.tests=src/components/__tests__ \

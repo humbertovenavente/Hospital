@@ -32,7 +32,7 @@ echo ""
 
 echo "3. Probar CORS desde el frontend externo:"
 echo "   curl -X OPTIONS http://localhost:8030/usuarios/login \\"
-echo "     -H 'Origin: http://34.46.73.44:8031' \\"
+echo "     -H 'Origin: http://34.61.228.49:8031' \\"
 echo "     -H 'Access-Control-Request-Method: POST' \\"
 echo "     -H 'Access-Control-Request-Headers: Content-Type' \\"
 echo "     -v"

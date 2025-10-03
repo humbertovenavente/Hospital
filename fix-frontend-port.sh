@@ -47,7 +47,7 @@ echo ""
 
 echo "4. Verificar que no hay variables de entorno incorrectas:"
 echo "   echo \$VITE_API_URL"
-echo "   # Debería mostrar: http://34.46.73.44:8030"
+echo "   # Debería mostrar: http://34.61.228.49:8030"
 echo ""
 
 echo -e "${GREEN}✅ Después de aplicar estas soluciones, el frontend debería usar el puerto correcto.${NC}"

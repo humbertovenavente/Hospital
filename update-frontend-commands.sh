@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN}✅ Imagen del frontend construida y subida exitosamente${NC}"
 echo "   - humbertovenavente/hospital-frontend-qa:latest"
-echo "   - Incluye URL correcta: http://34.46.73.44:8030"
+echo "   - Incluye URL correcta: http://34.61.228.49:8030"
 echo ""
 
 echo -e "${YELLOW}🚀 Comandos para ejecutar en el servidor:${NC}"
@@ -51,7 +51,7 @@ echo "     -v"
 echo ""
 
 echo -e "${BLUE}💡 Lo que se ha corregido:${NC}"
-echo "   - Frontend ahora usa http://34.46.73.44:8030 (puerto correcto)"
+echo "   - Frontend ahora usa http://34.61.228.49:8030 (puerto correcto)"
 echo "   - Backend con CORS configurado como origins=*"
 echo "   - Ambos contenedores actualizados"
 echo ""
