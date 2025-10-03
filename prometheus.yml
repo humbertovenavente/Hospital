@@ -62,6 +62,7 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
+    fallback_scrape_protocol: 'PrometheusText0.0.4'
     honor_labels: true
     relabel_configs:
       - source_labels: [__address__]
@@ -84,6 +85,7 @@ scrape_configs:
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
+    fallback_scrape_protocol: 'PrometheusText0.0.4'
 
   # Node Exporter - Métricas del sistema
   - job_name: 'node-exporter'
