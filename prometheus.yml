@@ -105,7 +105,6 @@ scrape_configs:
       - targets: ['34.61.228.49:8002']
     metrics_path: '/metrics'
     scrape_interval: 15s
-    bearer_token: 'prometheus-token-123'
 
   # SonarQube - Métricas de calidad
   - job_name: 'sonarqube'
