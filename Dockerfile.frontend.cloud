@@ -30,6 +30,9 @@ FROM nginx:alpine
 # Copiar archivos construidos
 COPY --from=build /app/dist /usr/share/nginx/html
 
+# Copiar archivo de métricas
+COPY --from=build /app/metrics.txt /usr/share/nginx/html/metrics.txt
+
 # Copiar configuración de Nginx para producción
 COPY nginx/frontend.conf /etc/nginx/nginx.conf
 
