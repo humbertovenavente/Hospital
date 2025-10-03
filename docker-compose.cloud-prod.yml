@@ -12,11 +12,11 @@ services:
     environment:
       - NODE_ENV=production
       - QUARKUS_PROFILE=prod
-      - DB_HOST=34.56.133.126
+      - DB_HOST=35.208.14.178
       - DB_PORT=1523
       - DB_SID=XE
-      - DB_USER=system
-      - DB_PASSWORD=Oracle123
+      - DB_USER=C##HOSPITAL
+      - DB_PASSWORD=hospital123
       - LOG_LEVEL=info
     networks:
       - hospital-prod-network
