@@ -80,7 +80,9 @@ steps:
     - |
       # Verificar el estado del quality gate
       PROJECT_KEY="frontend-hospital-dev-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+      RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY")
+      echo "SonarQube API Response: $RESPONSE"
+      QUALITY_GATE_STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
       echo "Quality Gate Status: $QUALITY_GATE_STATUS"
       if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
         echo "❌ SonarQube Quality Gate FAILED for Frontend - DEV"
@@ -273,7 +275,9 @@ steps:
     - |
       # Verificar el estado del quality gate
       PROJECT_KEY="frontend-hospital-qa-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+      RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY")
+      echo "SonarQube API Response: $RESPONSE"
+      QUALITY_GATE_STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
       echo "Quality Gate Status: $QUALITY_GATE_STATUS"
       if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
         echo "❌ SonarQube Quality Gate FAILED for Frontend - QA"
@@ -465,7 +469,9 @@ steps:
     - |
       # Verificar el estado del quality gate
       PROJECT_KEY="frontend-hospital-prod-drone"
-      QUALITY_GATE_STATUS=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY" | grep -o '"status":"[^"]*"' | cut -d'"' -f4)
+      RESPONSE=$(curl -s -u "$SONAR_TOKEN:" "$SONAR_HOST_URL/api/qualitygates/project_status?projectKey=$PROJECT_KEY")
+      echo "SonarQube API Response: $RESPONSE"
+      QUALITY_GATE_STATUS=$(echo "$RESPONSE" | grep -o '"status":"[^"]*"' | head -1 | cut -d'"' -f4)
       echo "Quality Gate Status: $QUALITY_GATE_STATUS"
       if [ "$QUALITY_GATE_STATUS" != "OK" ]; then
         echo "❌ SonarQube Quality Gate FAILED for Frontend - PROD"
