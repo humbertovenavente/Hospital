@@ -24,30 +24,30 @@ scrape_configs:
   - job_name: 'hospital-backend-pipeline'
     static_configs:
       - targets:
-        - '34.46.73.44:8020'  # PROD
-        - '34.46.73.44:8030'  # QA
-        - '34.46.73.44:8060'  # DEV
+        - '34.61.228.49:8020'  # PROD
+        - '34.61.228.49:8030'  # QA
+        - '34.61.228.49:8060'  # DEV
     metrics_path: '/q/metrics'
     scrape_interval: 30s
     honor_labels: true
     relabel_configs:
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8020'
+        regex: '34.61.228.49:8020'
         replacement: 'prod'
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8030'
+        regex: '34.61.228.49:8030'
         replacement: 'qa'
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8060'
+        regex: '34.61.228.49:8060'
         replacement: 'dev'
 
   # Backend Quarkus - Monitoreo de Producción (solo para alertas)
   - job_name: 'hospital-backend-prod-monitoring'
     static_configs:
-      - targets: ['34.46.73.44:8020']  # PROD
+      - targets: ['34.61.228.49:8020']  # PROD
     metrics_path: '/q/metrics'
     scrape_interval: 10s
     honor_labels: true
@@ -56,9 +56,9 @@ scrape_configs:
   - job_name: 'hospital-frontend-pipeline'
     static_configs:
       - targets:
-        - '34.46.73.44:8021'  # PROD
-        - '34.46.73.44:8031'  # QA
-        - '34.46.73.44:8061'  # DEV
+        - '34.61.228.49:8021'  # PROD
+        - '34.61.228.49:8031'  # QA
+        - '34.61.228.49:8061'  # DEV
     metrics_path: '/metrics'
     scrape_interval: 30s
     scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
@@ -67,21 +67,21 @@ scrape_configs:
     relabel_configs:
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8021'
+        regex: '34.61.228.49:8021'
         replacement: 'prod'
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8031'
+        regex: '34.61.228.49:8031'
         replacement: 'qa'
       - source_labels: [__address__]
         target_label: environment
-        regex: '34.46.73.44:8061'
+        regex: '34.61.228.49:8061'
         replacement: 'dev'
 
   # Frontend - Monitoreo de Producción (solo para alertas)
   - job_name: 'hospital-frontend-prod-monitoring'
     static_configs:
-      - targets: ['34.46.73.44:8021']  # PROD
+      - targets: ['34.61.228.49:8021']  # PROD
     metrics_path: '/metrics'
     scrape_interval: 10s
     scrape_protocols: ['OpenMetricsText1.0.0', 'PrometheusText1.0.0']
@@ -90,18 +90,18 @@ scrape_configs:
   # Node Exporter - Métricas del sistema
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['34.46.73.44:9100']  # Servidor principal
+      - targets: ['34.61.228.49:9100']  # Servidor principal
     scrape_interval: 15s
 
   # cAdvisor - Métricas de contenedores
   - job_name: 'cadvisor'
     static_configs:
-      - targets: ['34.46.73.44:8080']  # Servidor principal
+      - targets: ['34.61.228.49:8080']  # Servidor principal
     scrape_interval: 15s
 
   # Drone CI/CD - Métricas del pipeline
   - job_name: 'drone-server'
     static_configs:
-      - targets: ['34.46.73.44:8002']  # Servidor principal
+      - targets: ['34.61.228.49:8002']  # Servidor principal
     metrics_path: '/metrics'
     scrape_interval: 15s

@@ -15,7 +15,7 @@ COPY . .
 
 # Variables de entorno para la construcción
 ARG NODE_ENV=production
-ARG VITE_API_URL=http://34.46.73.44:8030
+ARG VITE_API_URL=http://34.61.228.49:8030
 
 # Establecer variables de entorno
 ENV NODE_ENV=${NODE_ENV}
