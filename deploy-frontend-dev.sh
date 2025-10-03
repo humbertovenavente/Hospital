@@ -25,4 +25,4 @@ docker run -d \
   --restart unless-stopped \
   hospital-frontend-dev
 
-echo "Despliegue completado. El frontend está disponible en http://34.46.73.44:8061"
+echo "Despliegue completado. El frontend está disponible en http://34.61.228.49:8061"

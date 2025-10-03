@@ -16,7 +16,7 @@ COPY . .
 # Construir la aplicación para desarrollo
 ENV NODE_ENV=development
 ENV VITE_MODE=dev
-ENV VITE_API_URL=http://34.46.73.44:8060
+ENV VITE_API_URL=http://34.61.228.49:8060
 RUN npm run build
 
 # Etapa de producción con Nginx

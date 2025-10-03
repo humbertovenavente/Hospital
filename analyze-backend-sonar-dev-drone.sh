@@ -61,4 +61,4 @@ echo " Ejecutando análisis SonarQube..."
 cd ..
 
 echo " Análisis de Backend DEV completado"
-echo "�� Ver resultados en: http://34.46.73.44:9003/dashboard?id=sonar-backend-dev-drone"
+echo "🔍 Ver resultados en: http://34.61.228.49:9003/dashboard?id=sonar-backend-dev-drone"

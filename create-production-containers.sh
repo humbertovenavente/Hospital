@@ -30,7 +30,7 @@ docker run -d \
   -e QUARKUS_DATASOURCE_USERNAME=system \
   -e QUARKUS_DATASOURCE_PASSWORD=Oracle123 \
   -e QUARKUS_HTTP_CORS=true \
-  -e QUARKUS_HTTP_CORS_ORIGINS=http://34.46.73.44:8021,http://localhost:8021,http://localhost:5173,http://localhost:8080 \
+  -e QUARKUS_HTTP_CORS_ORIGINS=http://34.61.228.49:8021,http://localhost:8021,http://localhost:5173,http://localhost:8080 \
   -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD \
   -e QUARKUS_HTTP_CORS_HEADERS=* \
   -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true \
@@ -54,9 +54,9 @@ docker ps --filter "name=hospital-.*-prod-cloud" --format "table {{.Names}}\t{{.
 
 echo ""
 echo "🌐 URLs de acceso:"
-echo "Frontend: http://34.46.73.44:8021"
-echo "Backend:  http://34.46.73.44:8020"
-echo "Health:   http://34.46.73.44:8020/q/health"
+echo "Frontend: http://34.61.228.49:8021"
+echo "Backend:  http://34.61.228.49:8020"
+echo "Health:   http://34.61.228.49:8020/q/health"
 
 echo ""
 echo "🔍 Para ver los logs:"
