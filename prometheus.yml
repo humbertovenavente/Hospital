@@ -105,3 +105,24 @@ scrape_configs:
       - targets: ['34.61.228.49:8002']
     metrics_path: '/metrics'
     scrape_interval: 15s
+
+  # VictoriaMetrics - Base de datos de series temporales
+  - job_name: 'victoria-metrics'
+    static_configs:
+      - targets: ['localhost:8428']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+# Configuración de VictoriaMetrics como Remote Storage
+remote_write:
+  - url: http://localhost:8428/api/v1/write
+    queue_config:
+      max_samples_per_send: 1000
+      batch_send_deadline: 5s
+      max_retries: 10
+      min_backoff: 30ms
+      max_backoff: 100ms
+
+# Configuración de VictoriaMetrics como Remote Read
+remote_read:
+  - url: http://localhost:8428/api/v1/read
