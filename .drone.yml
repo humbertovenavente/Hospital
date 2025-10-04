@@ -504,6 +504,26 @@ steps:
     - docker build -f Dockerfile.frontend.cloud -t hospital-frontend-prod .
     - echo "Frontend Docker image built successfully"
 
+- name: tag-and-push-images-prod
+  image: docker:20.10.16
+  privileged: true
+  volumes:
+  - name: docker_sock
+    path: /var/run/docker.sock
+  environment:
+    DOCKER_USERNAME:
+      from_secret: docker_username
+    DOCKER_PASSWORD:
+      from_secret: docker_password
+  commands:
+    - echo "Tagging and pushing images to Docker Hub..."
+    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - docker tag hospital-backend-prod humbertovenavente/hospital-backend-prod:latest
+    - docker tag hospital-frontend-prod humbertovenavente/hospital-frontend-prod:latest
+    - docker push humbertovenavente/hospital-backend-prod:latest
+    - docker push humbertovenavente/hospital-frontend-prod:latest
+    - echo "Images pushed to Docker Hub successfully"
+
 - name: deploy-backend-prod
   image: docker:20.10.16
   privileged: true
@@ -514,7 +534,7 @@ steps:
     - echo "Deploying Backend - PROD..."
     - docker stop hospital-backend-prod-cloud || true
     - docker rm -f hospital-backend-prod-cloud || true
-    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 -e QUARKUS_PROFILE=prod -e QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@35.208.14.178:1523/XE -e QUARKUS_DATASOURCE_USERNAME=C##HOSPITAL -e QUARKUS_DATASOURCE_PASSWORD=hospital123 -e QUARKUS_HTTP_CORS=true -e QUARKUS_HTTP_CORS_ORIGINS=http://34.61.228.49:8021,http://localhost:8021,http://localhost:5173,http://localhost:8080 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition hospital-backend-prod
+    - docker run -d --name hospital-backend-prod-cloud --restart=always -p 8020:8080 -e QUARKUS_PROFILE=prod -e QUARKUS_DATASOURCE_JDBC_URL=jdbc:oracle:thin:@35.208.14.178:1523/XE -e QUARKUS_DATASOURCE_USERNAME=C##HOSPITAL -e QUARKUS_DATASOURCE_PASSWORD=hospital123 -e QUARKUS_HTTP_CORS=true -e QUARKUS_HTTP_CORS_ORIGINS=http://34.61.228.49:8021,http://localhost:8021,http://localhost:5173,http://localhost:8080 -e QUARKUS_HTTP_CORS_METHODS=GET,POST,PUT,DELETE,OPTIONS,PATCH,HEAD -e QUARKUS_HTTP_CORS_HEADERS=* -e QUARKUS_HTTP_CORS_ACCESS_CONTROL_ALLOW_CREDENTIALS=true -e QUARKUS_HTTP_CORS_EXPOSED_HEADERS=Content-Disposition humbertovenavente/hospital-backend-prod:latest
     - echo "Backend PROD deployed successfully on port 8020"
 
 - name: deploy-frontend-prod
@@ -527,7 +547,7 @@ steps:
     - echo "Deploying Frontend - PROD..."
     - docker stop hospital-frontend-prod-cloud || true
     - docker rm hospital-frontend-prod-cloud || true
-    - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 hospital-frontend-prod
+    - docker run -d --name hospital-frontend-prod-cloud --restart=always -p 8021:80 humbertovenavente/hospital-frontend-prod:latest
     - echo "Frontend PROD deployed successfully on port 8021"
 
 - name: notify-failure-prod
