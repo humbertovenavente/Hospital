@@ -517,7 +517,9 @@ steps:
       from_secret: docker_password
   commands:
     - echo "Tagging and pushing images to Docker Hub..."
-    - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+    - |
+      # Login to Docker Hub using non-interactive method
+      printf '%s' "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     - docker tag hospital-backend-prod humbertovenavente/hospital-backend-prod:latest
     - docker tag hospital-frontend-prod humbertovenavente/hospital-frontend-prod:latest
     - docker push humbertovenavente/hospital-backend-prod:latest
