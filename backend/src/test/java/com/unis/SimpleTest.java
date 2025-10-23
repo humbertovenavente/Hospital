@@ -29,4 +29,11 @@ public class SimpleTest {
         assertEquals(2, a - b);
         assertEquals(15, a * b);
     }
+
+    @Test
+    void testFalloIntencional() {
+        // Test que falla intencionalmente para probar las notificaciones de Drone CI
+        System.out.println("Ejecutando test que fallará intencionalmente...");
+        assertTrue(false, "Este test falla intencionalmente para probar las notificaciones mejoradas de Drone CI");
+    }
 }
