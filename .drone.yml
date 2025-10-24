@@ -176,18 +176,18 @@ steps:
         # Crear mensaje detallado
         echo "=== FALLO EN PIPELINE DE DESARROLLO ===" > /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
-        echo "INFORMACIÓN DEL BUILD:" >> /tmp/email_message.txt
-        echo "• Pipeline: $PIPELINE_NAME" >> /tmp/email_message.txt
-        echo "• Rama: $DRONE_COMMIT_BRANCH" >> /tmp/email_message.txt
-        echo "• Build #: $DRONE_BUILD_NUMBER" >> /tmp/email_message.txt
-        echo "• Commit: $DRONE_COMMIT_SHA" >> /tmp/email_message.txt
-        echo "• Autor: $COMMIT_AUTHOR" >> /tmp/email_message.txt
-        echo "• Mensaje: $COMMIT_MESSAGE" >> /tmp/email_message.txt
-        echo "• Fecha: $(date)" >> /tmp/email_message.txt
-        echo "• URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}" >> /tmp/email_message.txt
+        echo "INFORMACION DEL BUILD:" >> /tmp/email_message.txt
+        echo "- Pipeline: $PIPELINE_NAME" >> /tmp/email_message.txt
+        echo "- Rama: $DRONE_COMMIT_BRANCH" >> /tmp/email_message.txt
+        echo "- Build #: $DRONE_BUILD_NUMBER" >> /tmp/email_message.txt
+        echo "- Commit: $DRONE_COMMIT_SHA" >> /tmp/email_message.txt
+        echo "- Autor: $COMMIT_AUTHOR" >> /tmp/email_message.txt
+        echo "- Mensaje: $COMMIT_MESSAGE" >> /tmp/email_message.txt
+        echo "- Fecha: $(date)" >> /tmp/email_message.txt
+        echo "- URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ERRORES DETECTADOS:" >> /tmp/email_message.txt
-        echo "- Test SimpleTest.testFalloIntencional() falló intencionalmente" >> /tmp/email_message.txt
+        echo "- Test SimpleTest.testFalloIntencional() fallo intencionalmente" >> /tmp/email_message.txt
         echo "- Build Status: $DRONE_BUILD_STATUS" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ACCIONES REQUERIDAS:" >> /tmp/email_message.txt
@@ -199,7 +199,7 @@ steps:
         echo "- Lead Developer: jflores@unis.edu.gt" >> /tmp/email_message.txt
         echo "- Product Owner: jnajar@unis.edu.gt" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
-        echo "=== NOTIFICACIÓN MEJORADA FUNCIONANDO ===" >> /tmp/email_message.txt
+        echo "=== NOTIFICACION MEJORADA FUNCIONANDO ===" >> /tmp/email_message.txt
         
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
@@ -398,73 +398,32 @@ steps:
         fi
         
         # Crear mensaje detallado
-        DETAILED_MESSAGE="FALLO EN PIPELINE DE QA
-
-═══════════════════════════════════════════════════════════════
-
-INFORMACIÓN DEL BUILD:
-• Pipeline: $PIPELINE_NAME
-• Rama: $DRONE_COMMIT_BRANCH  
-• Build #: $DRONE_BUILD_NUMBER
-• Commit: $DRONE_COMMIT_SHA
-• Autor: $COMMIT_AUTHOR
-• Mensaje: $COMMIT_MESSAGE
-• Fecha/Hora: $(date '+%Y-%m-%d %H:%M:%S')
-• URL Build: $BUILD_URL
-
-DETALLES DEL FALLO:
-• Tipo de Fallo: $FAILURE_TYPE
-• Estado: FALLÓ
-• Entorno: QA (Quality Assurance)
-
-ARCHIVOS AFECTADOS:
-• Repositorio: humbertovenavente/Hospital
-• Rama: $DRONE_COMMIT_BRANCH
-• Último Commit: $DRONE_COMMIT_SHA
-
-PASOS DEL PIPELINE:
-1. Clonado del repositorio
-2. Instalación de dependencias
-3. Build Frontend (Node.js)
-4. Build Backend (Java/Maven)
-5. Tests Unitarios
-6. Tests de Integración
-7. Análisis SonarQube QA
-8. Deploy a entorno QA
-
-MÉTRICAS DE CALIDAD:
-• Tests Backend: FALLARON
-• Tests Frontend: FALLARON  
-• Tests Integración: FALLARON
-• Análisis SonarQube: FALLÓ
-• Cobertura de código: NO DISPONIBLE
-• Deuda técnica: NO DISPONIBLE
-
-ERRORES DETECTADOS:
-$FAILED_STEP_ERROR
-
-ENLACES ÚTILES:
-• Dashboard Drone: $BUILD_URL
-• SonarQube QA: http://34.10.223.20:9000
-• Logs Detallados: $BUILD_URL/logs
-
-ACCIONES REQUERIDAS:
-1. Revisar logs detallados en el dashboard de Drone
-2. Verificar tests unitarios e integración que fallaron
-3. Corregir errores de compilación
-4. Revisar métricas de SonarQube QA
-5. Reintentar el pipeline después de correcciones
-
-CONTACTO:
-• Lead Developer: jflores@unis.edu.gt
-• Product Owner: jnajar@unis.edu.gt
-
-═══════════════════════════════════════════════════════════════
-
-IMPORTANTE: Fallo en entorno QA - Revisar antes de pasar a PROD
-
-Saludos,
-Sistema CI/CD Hospital - QA"
+        echo "=== FALLO EN PIPELINE DE QA ===" > /tmp/email_message.txt
+        echo "" >> /tmp/email_message.txt
+        echo "INFORMACION DEL BUILD:" >> /tmp/email_message.txt
+        echo "- Pipeline: $PIPELINE_NAME" >> /tmp/email_message.txt
+        echo "- Rama: $DRONE_COMMIT_BRANCH" >> /tmp/email_message.txt
+        echo "- Build #: $DRONE_BUILD_NUMBER" >> /tmp/email_message.txt
+        echo "- Commit: $DRONE_COMMIT_SHA" >> /tmp/email_message.txt
+        echo "- Autor: $COMMIT_AUTHOR" >> /tmp/email_message.txt
+        echo "- Mensaje: $COMMIT_MESSAGE" >> /tmp/email_message.txt
+        echo "- Fecha: $(date)" >> /tmp/email_message.txt
+        echo "- URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}" >> /tmp/email_message.txt
+        echo "" >> /tmp/email_message.txt
+        echo "ERRORES DETECTADOS:" >> /tmp/email_message.txt
+        echo "- Test SimpleTest.testFalloIntencional() fallo intencionalmente" >> /tmp/email_message.txt
+        echo "- Build Status: $DRONE_BUILD_STATUS" >> /tmp/email_message.txt
+        echo "" >> /tmp/email_message.txt
+        echo "ACCIONES REQUERIDAS:" >> /tmp/email_message.txt
+        echo "1. Revisar logs en Drone CI" >> /tmp/email_message.txt
+        echo "2. Verificar tests que fallaron" >> /tmp/email_message.txt
+        echo "3. Corregir errores identificados" >> /tmp/email_message.txt
+        echo "" >> /tmp/email_message.txt
+        echo "CONTACTO:" >> /tmp/email_message.txt
+        echo "- Lead Developer: jflores@unis.edu.gt" >> /tmp/email_message.txt
+        echo "- Product Owner: jnajar@unis.edu.gt" >> /tmp/email_message.txt
+        echo "" >> /tmp/email_message.txt
+        echo "=== NOTIFICACION MEJORADA FUNCIONANDO ===" >> /tmp/email_message.txt
         
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
