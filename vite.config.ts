@@ -25,7 +25,7 @@ export default defineConfig(({ command, mode }) => {
     },
     // Configuración específica para QA
     server: {
-      port: mode === 'qa' ? 5175 : 5174,
+      port: mode === 'qa' ? 5175 : 5173,
       host: true
     },
     // Variables de entorno para el frontend

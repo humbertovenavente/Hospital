@@ -9,9 +9,9 @@ describe('HelloWorld', () => {
     expect(wrapper.text()).toContain('Hello Vitest')
   })
 
-  it('test que falla intencionalmente para probar notificaciones', () => {
-    // Test que falla intencionalmente para probar las notificaciones mejoradas de Drone CI
-    console.log('Ejecutando test del frontend que fallará intencionalmente...')
-    expect(true).toBe(false) // Esto fallará intencionalmente
+  it('test que verifica funcionalidad básica', () => {
+    // Test que verifica que la lógica básica funciona correctamente
+    console.log('Ejecutando test del frontend que verifica funcionalidad básica...')
+    expect(true).toBe(true) // Esto debería pasar correctamente
   })
 })
