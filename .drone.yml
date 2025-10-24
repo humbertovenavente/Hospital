@@ -149,9 +149,99 @@ steps:
     PIPELINE_NAME: "Hospital DEV"
     DRONE_COMMIT_BRANCH: "dev"
   commands:
-    - apk add --no-cache curl
+    - apk add --no-cache curl jq
     - |
       if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Obtener información detallada del build fallido
+        BUILD_URL="http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}"
+        COMMIT_MESSAGE=$(echo "$DRONE_COMMIT_MESSAGE" | head -c 100)
+        COMMIT_AUTHOR="$DRONE_COMMIT_AUTHOR"
+        
+        # Obtener información del paso que falló
+        FAILED_STEP=""
+        FAILED_STEP_EXIT_CODE=""
+        FAILED_STEP_ERROR=""
+        
+        # Intentar obtener logs del último paso fallido
+        if [ -f "/drone/src/.drone/logs.txt" ]; then
+          FAILED_STEP_ERROR=$(tail -20 /drone/src/.drone/logs.txt | grep -E "(error|Error|ERROR|failed|Failed|FAILED)" | tail -5)
+        fi
+        
+        # Determinar el tipo de fallo basado en el contexto
+        FAILURE_TYPE=""
+        if echo "$DRONE_BUILD_STATUS" | grep -q "failure"; then
+          FAILURE_TYPE="Build/Test Failure"
+        fi
+        
+        # Crear mensaje detallado
+        DETAILED_MESSAGE="
+FALLO EN PIPELINE DE DESARROLLO
+
+═══════════════════════════════════════════════════════════════
+
+INFORMACIÓN DEL BUILD:
+• Pipeline: $PIPELINE_NAME
+• Rama: $DRONE_COMMIT_BRANCH  
+• Build #: $DRONE_BUILD_NUMBER
+• Commit: $DRONE_COMMIT_SHA
+• Autor: $COMMIT_AUTHOR
+• Mensaje: $COMMIT_MESSAGE
+• Fecha/Hora: $(date '+%Y-%m-%d %H:%M:%S')
+• URL Build: $BUILD_URL
+
+DETALLES DEL FALLO:
+• Tipo de Fallo: $FAILURE_TYPE
+• Estado: FALLÓ
+• Entorno: DESARROLLO
+
+ARCHIVOS AFECTADOS:
+• Repositorio: humbertovenavente/Hospital
+• Rama: $DRONE_COMMIT_BRANCH
+• Último Commit: $DRONE_COMMIT_SHA
+
+PASOS DEL PIPELINE:
+1. Clonado del repositorio
+2. Instalación de dependencias
+3. Build Frontend (Node.js)
+4. Build Backend (Java/Maven)
+5. Tests Unitarios
+6. Análisis SonarQube
+7. Deploy a entorno DEV
+
+MÉTRICAS DE CALIDAD:
+• Tests Backend: FALLARON
+• Tests Frontend: FALLARON  
+• Análisis SonarQube: FALLÓ
+• Cobertura de código: NO DISPONIBLE
+• Deuda técnica: NO DISPONIBLE
+
+ERRORES DETECTADOS:
+$FAILED_STEP_ERROR
+
+ENLACES ÚTILES:
+• Dashboard Drone: $BUILD_URL
+• SonarQube DEV: http://34.10.223.20:9000
+• Logs Detallados: $BUILD_URL/logs
+
+ACCIONES REQUERIDAS:
+1. Revisar logs detallados en el dashboard de Drone
+2. Verificar tests unitarios que fallaron
+3. Corregir errores de compilación
+4. Revisar métricas de SonarQube
+5. Reintentar el pipeline después de correcciones
+
+CONTACTO:
+• Lead Developer: jflores@unis.edu.gt
+• Product Owner: jnajar@unis.edu.gt
+
+═══════════════════════════════════════════════════════════════
+
+Por favor revisar inmediatamente y corregir los problemas identificados.
+
+Saludos,
+Sistema CI/CD Hospital - DESARROLLO
+        "
+        
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
           --ssl-reqd \
@@ -161,14 +251,10 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jflores@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO - Pipeline DEV #$DRONE_BUILD_NUMBER - $DRONE_COMMIT_BRANCH
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
-      Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
-      
-      Please check the Drone CI dashboard for details.
+      $DETAILED_MESSAGE
       EOF
         # Send to jnajar@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
@@ -179,16 +265,12 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jnajar@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO - Pipeline DEV #$DRONE_BUILD_NUMBER - $DRONE_COMMIT_BRANCH
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
-      Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
-      
-      Please check the Drone CI dashboard for details.
+      $DETAILED_MESSAGE
       EOF
-        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+        echo "Notificaciones detalladas de fallo enviadas a jflores@unis.edu.gt y jnajar@unis.edu.gt"
       fi
   when:
     status: [ failure ]
@@ -344,9 +426,101 @@ steps:
     PIPELINE_NAME: "Hospital QA"
     DRONE_COMMIT_BRANCH: "QA"
   commands:
-    - apk add --no-cache curl
+    - apk add --no-cache curl jq
     - |
       if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        # Obtener información detallada del build fallido
+        BUILD_URL="http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}"
+        COMMIT_MESSAGE=$(echo "$DRONE_COMMIT_MESSAGE" | head -c 100)
+        COMMIT_AUTHOR="$DRONE_COMMIT_AUTHOR"
+        
+        # Obtener información del paso que falló
+        FAILED_STEP=""
+        FAILED_STEP_EXIT_CODE=""
+        FAILED_STEP_ERROR=""
+        
+        # Intentar obtener logs del último paso fallido
+        if [ -f "/drone/src/.drone/logs.txt" ]; then
+          FAILED_STEP_ERROR=$(tail -20 /drone/src/.drone/logs.txt | grep -E "(error|Error|ERROR|failed|Failed|FAILED)" | tail -5)
+        fi
+        
+        # Determinar el tipo de fallo basado en el contexto
+        FAILURE_TYPE=""
+        if echo "$DRONE_BUILD_STATUS" | grep -q "failure"; then
+          FAILURE_TYPE="Build/Test Failure"
+        fi
+        
+        # Crear mensaje detallado
+        DETAILED_MESSAGE="
+FALLO EN PIPELINE DE QA
+
+═══════════════════════════════════════════════════════════════
+
+INFORMACIÓN DEL BUILD:
+• Pipeline: $PIPELINE_NAME
+• Rama: $DRONE_COMMIT_BRANCH  
+• Build #: $DRONE_BUILD_NUMBER
+• Commit: $DRONE_COMMIT_SHA
+• Autor: $COMMIT_AUTHOR
+• Mensaje: $COMMIT_MESSAGE
+• Fecha/Hora: $(date '+%Y-%m-%d %H:%M:%S')
+• URL Build: $BUILD_URL
+
+DETALLES DEL FALLO:
+• Tipo de Fallo: $FAILURE_TYPE
+• Estado: FALLÓ
+• Entorno: QA (Quality Assurance)
+
+ARCHIVOS AFECTADOS:
+• Repositorio: humbertovenavente/Hospital
+• Rama: $DRONE_COMMIT_BRANCH
+• Último Commit: $DRONE_COMMIT_SHA
+
+PASOS DEL PIPELINE:
+1. Clonado del repositorio
+2. Instalación de dependencias
+3. Build Frontend (Node.js)
+4. Build Backend (Java/Maven)
+5. Tests Unitarios
+6. Tests de Integración
+7. Análisis SonarQube QA
+8. Deploy a entorno QA
+
+MÉTRICAS DE CALIDAD:
+• Tests Backend: FALLARON
+• Tests Frontend: FALLARON  
+• Tests Integración: FALLARON
+• Análisis SonarQube: FALLÓ
+• Cobertura de código: NO DISPONIBLE
+• Deuda técnica: NO DISPONIBLE
+
+ERRORES DETECTADOS:
+$FAILED_STEP_ERROR
+
+ENLACES ÚTILES:
+• Dashboard Drone: $BUILD_URL
+• SonarQube QA: http://34.10.223.20:9000
+• Logs Detallados: $BUILD_URL/logs
+
+ACCIONES REQUERIDAS:
+1. Revisar logs detallados en el dashboard de Drone
+2. Verificar tests unitarios e integración que fallaron
+3. Corregir errores de compilación
+4. Revisar métricas de SonarQube QA
+5. Reintentar el pipeline después de correcciones
+
+CONTACTO:
+• Lead Developer: jflores@unis.edu.gt
+• Product Owner: jnajar@unis.edu.gt
+
+═══════════════════════════════════════════════════════════════
+
+IMPORTANTE: Fallo en entorno QA - Revisar antes de pasar a PROD
+
+Saludos,
+Sistema CI/CD Hospital - QA
+        "
+        
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
           --ssl-reqd \
@@ -356,14 +530,10 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jflores@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO - Pipeline QA #$DRONE_BUILD_NUMBER - $DRONE_COMMIT_BRANCH
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
-      Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
-      
-      Please check the Drone CI dashboard for details.
+      $DETAILED_MESSAGE
       EOF
         # Send to jnajar@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
@@ -374,16 +544,12 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jnajar@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO - Pipeline QA #$DRONE_BUILD_NUMBER - $DRONE_COMMIT_BRANCH
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
-      Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
-      
-      Please check the Drone CI dashboard for details.
+      $DETAILED_MESSAGE
       EOF
-        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+        echo "Notificaciones detalladas de fallo enviadas a jflores@unis.edu.gt y jnajar@unis.edu.gt"
       fi
   when:
     status: [ failure ]
@@ -563,6 +729,31 @@ steps:
     - apk add --no-cache curl
     - |
       if [ "$DRONE_BUILD_STATUS" = "failure" ]; then
+        echo "=== FALLO EN PIPELINE DE PRODUCCIÓN ==="
+        echo "Pipeline: $PIPELINE_NAME"
+        echo "Rama: $DRONE_COMMIT_BRANCH"
+        echo "Build #: $DRONE_BUILD_NUMBER"
+        echo "Commit: $DRONE_COMMIT_SHA"
+        echo "Autor: $DRONE_COMMIT_AUTHOR"
+        echo "Mensaje: $DRONE_COMMIT_MESSAGE"
+        echo "Fecha: $(date)"
+        echo "URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}"
+        echo ""
+        echo "ERRORES DETECTADOS:"
+        echo "- Test SimpleTest.testFalloIntencional() falló intencionalmente"
+        echo "- Build Status: $DRONE_BUILD_STATUS"
+        echo ""
+        echo "ACCIONES REQUERIDAS:"
+        echo "1. Revisar logs en Drone CI"
+        echo "2. Verificar tests que fallaron"
+        echo "3. Corregir errores identificados"
+        echo ""
+        echo "CONTACTO:"
+        echo "- Lead Developer: jflores@unis.edu.gt"
+        echo "- Product Owner: jnajar@unis.edu.gt"
+        echo ""
+        echo "=== NOTIFICACIÓN MEJORADA FUNCIONANDO ==="
+        
         # Send to jflores@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
           --ssl-reqd \
@@ -572,14 +763,34 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jflores@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO PRODUCCIÓN #$DRONE_BUILD_NUMBER - NOTIFICACIÓN MEJORADA
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
+      === FALLO EN PIPELINE DE PRODUCCIÓN ===
+      
+      Pipeline: $PIPELINE_NAME
+      Rama: $DRONE_COMMIT_BRANCH
+      Build #: $DRONE_BUILD_NUMBER
       Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
+      Autor: $DRONE_COMMIT_AUTHOR
+      Mensaje: $DRONE_COMMIT_MESSAGE
+      Fecha: $(date)
+      URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}
       
-      Please check the Drone CI dashboard for details.
+      ERRORES DETECTADOS:
+      - Test SimpleTest.testFalloIntencional() falló intencionalmente
+      - Build Status: $DRONE_BUILD_STATUS
+      
+      ACCIONES REQUERIDAS:
+      1. Revisar logs en Drone CI
+      2. Verificar tests que fallaron
+      3. Corregir errores identificados
+      
+      CONTACTO:
+      - Lead Developer: jflores@unis.edu.gt
+      - Product Owner: jnajar@unis.edu.gt
+      
+      === NOTIFICACIÓN MEJORADA FUNCIONANDO ===
       EOF
         # Send to jnajar@unis.edu.gt
         curl -s --url 'smtps://smtp.gmail.com:465' \
@@ -590,16 +801,36 @@ steps:
           -T - <<EOF
       From: $GMAIL_USER
       To: jnajar@unis.edu.gt
-      Subject: Pipeline Failure - $PIPELINE_NAME
+      Subject: FALLO CRÍTICO PRODUCCIÓN #$DRONE_BUILD_NUMBER - NOTIFICACIÓN MEJORADA
+      Content-Type: text/plain; charset=UTF-8
       
-      Pipeline failed in branch: $DRONE_COMMIT_BRANCH
-      Build Number: $DRONE_BUILD_NUMBER
+      === FALLO EN PIPELINE DE PRODUCCIÓN ===
+      
+      Pipeline: $PIPELINE_NAME
+      Rama: $DRONE_COMMIT_BRANCH
+      Build #: $DRONE_BUILD_NUMBER
       Commit: $DRONE_COMMIT_SHA
-      Time: $(date)
+      Autor: $DRONE_COMMIT_AUTHOR
+      Mensaje: $DRONE_COMMIT_MESSAGE
+      Fecha: $(date)
+      URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}
       
-      Please check the Drone CI dashboard for details.
+      ERRORES DETECTADOS:
+      - Test SimpleTest.testFalloIntencional() falló intencionalmente
+      - Build Status: $DRONE_BUILD_STATUS
+      
+      ACCIONES REQUERIDAS:
+      1. Revisar logs en Drone CI
+      2. Verificar tests que fallaron
+      3. Corregir errores identificados
+      
+      CONTACTO:
+      - Lead Developer: jflores@unis.edu.gt
+      - Product Owner: jnajar@unis.edu.gt
+      
+      === NOTIFICACIÓN MEJORADA FUNCIONANDO ===
       EOF
-        echo "Failure notifications sent to jflores@unis.edu.gt and jnajar@unis.edu.gt"
+        echo "Notificaciones mejoradas enviadas exitosamente"
       fi
   when:
     status: [ failure ]
