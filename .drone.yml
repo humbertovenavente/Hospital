@@ -187,7 +187,7 @@ steps:
         echo "- URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ERRORES DETECTADOS:" >> /tmp/email_message.txt
-        echo "- Test SimpleTest.testFalloIntencional() fallo intencionalmente" >> /tmp/email_message.txt
+        echo "- Test HelloWorld.spec.ts fallo intencionalmente en frontend" >> /tmp/email_message.txt
         echo "- Build Status: $DRONE_BUILD_STATUS" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ACCIONES REQUERIDAS:" >> /tmp/email_message.txt
@@ -411,7 +411,7 @@ steps:
         echo "- URL: http://34.10.223.20:8080/humbertovenavente/Hospital/${DRONE_BUILD_NUMBER}" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ERRORES DETECTADOS:" >> /tmp/email_message.txt
-        echo "- Test SimpleTest.testFalloIntencional() fallo intencionalmente" >> /tmp/email_message.txt
+        echo "- Test HelloWorld.spec.ts fallo intencionalmente en frontend" >> /tmp/email_message.txt
         echo "- Build Status: $DRONE_BUILD_STATUS" >> /tmp/email_message.txt
         echo "" >> /tmp/email_message.txt
         echo "ACCIONES REQUERIDAS:" >> /tmp/email_message.txt

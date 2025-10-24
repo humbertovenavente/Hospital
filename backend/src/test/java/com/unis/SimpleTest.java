@@ -34,6 +34,6 @@ public class SimpleTest {
     void testFalloIntencional() {
         // Test que falla intencionalmente para probar las notificaciones de Drone CI
         System.out.println("Ejecutando test que fallará intencionalmente...");
-        assertTrue(false, "Este test falla intencionalmente para probar las notificaciones mejoradas de Drone CI");
+        assertTrue(true, "Este test ahora pasa correctamente - las notificaciones mejoradas funcionan");
     }
 }

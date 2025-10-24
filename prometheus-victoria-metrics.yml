@@ -1,0 +1,77 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # VictoriaMetrics interno
+  - job_name: 'victoria-metrics'
+    static_configs:
+      - targets: ['victoria-metrics:8429']
+    scrape_interval: 5s
+    metrics_path: /metrics
+
+  # Backend Hospital
+  - job_name: 'hospital-backend-dev'
+    static_configs:
+      - targets: ['34.61.228.49:8060']
+    scrape_interval: 10s
+    metrics_path: /q/metrics
+
+  - job_name: 'hospital-backend-qa'
+    static_configs:
+      - targets: ['34.61.228.49:8030']
+    scrape_interval: 10s
+    metrics_path: /q/metrics
+
+  - job_name: 'hospital-backend-prod'
+    static_configs:
+      - targets: ['34.61.228.49:8020']
+    scrape_interval: 10s
+    metrics_path: /q/metrics
+
+  # Frontend Hospital (si tiene métricas)
+  - job_name: 'hospital-frontend-dev'
+    static_configs:
+      - targets: ['34.61.228.49:8061']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  - job_name: 'hospital-frontend-qa'
+    static_configs:
+      - targets: ['34.61.228.49:8031']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  - job_name: 'hospital-frontend-prod'
+    static_configs:
+      - targets: ['34.61.228.49:8021']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # Drone CI
+  - job_name: 'drone-ci'
+    static_configs:
+      - targets: ['localhost:3000']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # SonarQube
+  - job_name: 'sonarqube'
+    static_configs:
+      - targets: ['34.61.228.49:9003']
+    scrape_interval: 60s
+    metrics_path: /api/monitoring/metrics
+
+# Configuración de VictoriaMetrics como backend remoto
+remote_write:
+  - url: http://victoria-metrics:8428/api/v1/write
+    queue_config:
+      max_samples_per_send: 1000
+      batch_send_deadline: 5s
+      max_retries: 10
+      min_backoff: 30ms
+      max_backoff: 100ms
