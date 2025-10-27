@@ -1,0 +1,235 @@
+apiVersion: 1
+
+groups:
+  # ============================================
+  # Grupo 1: Alertas de Infraestructura
+  # ============================================
+  - name: infrastructure_alerts
+    orgId: 1
+    folder: "Alertas de Sistema"
+    interval: 30s
+    rules:
+      - uid: cpu-high-usage
+        title: "Uso de CPU superior al 70%"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: '100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 70'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "5m"
+        annotations:
+          description: "El uso de CPU está en {{ $value }}% en {{ $labels.instance }}, sobrepasó el 70%"
+          summary: "Uso de CPU elevado detectado"
+        labels:
+          severity: "warning"
+          component: "infrastructure"
+        dashboardUid: ""
+        panelId: 0
+
+      - uid: memory-high-usage
+        title: "Uso de memoria superior al 80%"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: '(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "5m"
+        annotations:
+          description: "El uso de memoria está en {{ $value }}% en {{ $labels.instance }}, sobrepasó el 80%"
+          summary: "Uso de memoria elevado detectado"
+        labels:
+          severity: "warning"
+          component: "infrastructure"
+        dashboardUid: ""
+        panelId: 0
+
+      - uid: disk-low-space
+        title: "Espacio en disco bajo (menos del 20%)"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: '(node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 20'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "5m"
+        annotations:
+          description: "El espacio disponible en disco está en {{ $value }}% en {{ $labels.instance }}"
+          summary: "Espacio en disco bajo detectado"
+        labels:
+          severity: "warning"
+          component: "infrastructure"
+        dashboardUid: ""
+        panelId: 0
+
+  # ============================================
+  # Grupo 2: Alertas del Backend
+  # ============================================
+  - name: backend_alerts
+    orgId: 1
+    folder: "Alertas de Aplicación"
+    interval: 30s
+    rules:
+      - uid: backend-down
+        title: "Backend del Hospital fuera de línea"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: 'up{job="hospital-backend-prod-monitoring"} == 0'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "2m"
+        annotations:
+          description: "El backend del hospital no está respondiendo"
+          summary: "Backend del Hospital está fuera de línea"
+        labels:
+          severity: "critical"
+          component: "backend"
+        dashboardUid: ""
+        panelId: 0
+
+      - uid: backend-high-error-rate
+        title: "Alta tasa de errores en el backend"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: 'rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "5m"
+        annotations:
+          description: "El backend está generando errores 5xx. Tasa: {{ $value }} req/s"
+          summary: "Alta tasa de errores en el backend"
+        labels:
+          severity: "critical"
+          component: "backend"
+        dashboardUid: ""
+        panelId: 0
+
+      - uid: backend-high-response-time
+        title: "Tiempo de respuesta del backend alto"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: 'histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "10m"
+        annotations:
+          description: "El p95 del tiempo de respuesta del backend está en {{ $value }}s, sobrepasó los 2s"
+          summary: "Tiempo de respuesta del backend alto"
+        labels:
+          severity: "warning"
+          component: "backend"
+        dashboardUid: ""
+        panelId: 0
+
+  # ============================================
+  # Grupo 3: Alertas del Frontend
+  # ============================================
+  - name: frontend_alerts
+    orgId: 1
+    folder: "Alertas de Aplicación"
+    interval: 30s
+    rules:
+      - uid: frontend-down
+        title: "Frontend del Hospital fuera de línea"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: 'up{job="hospital-frontend-prod-monitoring"} == 0'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "2m"
+        annotations:
+          description: "El frontend del hospital no está respondiendo"
+          summary: "Frontend del Hospital está fuera de línea"
+        labels:
+          severity: "critical"
+          component: "frontend"
+        dashboardUid: ""
+        panelId: 0
+
+  # ============================================
+  # Grupo 4: Alertas de CI/CD (Drone)
+  # ============================================
+  - name: cicd_alerts
+    orgId: 1
+    folder: "Alertas de CI/CD"
+    interval: 60s
+    rules:
+      - uid: drone-server-down
+        title: "Servidor Drone fuera de línea"
+        condition: "A"
+        data:
+          - refId: "A"
+            datasourceUid: prometheus
+            queryType: "range"
+            model:
+              expr: 'up{job="drone-server"} == 0'
+              legendFormat: "{{instance}}"
+              refId: "A"
+              intervalMs: 30000
+              maxDataPoints: 43200
+        noDataState: "NoData"
+        execErrState: "Error"
+        for: "5m"
+        annotations:
+          description: "El servidor Drone CI/CD no está respondiendo"
+          summary: "Servidor Drone está fuera de línea"
+        labels:
+          severity: "critical"
+          component: "cicd"
+        dashboardUid: ""
+        panelId: 0
+

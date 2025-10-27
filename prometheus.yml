@@ -5,13 +5,13 @@ global:
     monitor: 'hospital-monitoring'
 
 rule_files:
-  # - "prometheus-rules.yml"
+  - "prometheus-alerts.yml"
 
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          # - alertmanager:9093
+          - alertmanager:9093
 
 scrape_configs:
   # Prometheus itself

@@ -1,0 +1,230 @@
+groups:
+  - name: hospital_alerts
+    interval: 30s
+    rules:
+      # ============================================
+      # Alertas de CPU
+      # ============================================
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 70
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Uso de CPU elevado detectado"
+          description: "El uso de CPU está en {{ $value }}% en {{ $labels.instance }}, sobrepasó el 70%"
+
+      # ============================================
+      # Alertas de Memoria
+      # ============================================
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Uso de memoria elevado detectado"
+          description: "El uso de memoria está en {{ $value }}% en {{ $labels.instance }}, sobrepasó el 80%"
+
+      # ============================================
+      # Alertas de Disco
+      # ============================================
+      - alert: HighDiskUsage
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 20
+        for: 5m
+        labels:
+          severity: warning
+          component: infrastructure
+        annotations:
+          summary: "Espacio en disco bajo detectado"
+          description: "El espacio disponible en disco está en {{ $value }}% en {{ $labels.instance }}"
+
+      # ============================================
+      # Alertas del Backend Hospital
+      # ============================================
+      - alert: BackendHighErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5.."}[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "Alta tasa de errores en el backend"
+          description: "El backend está generando errores 5xx. Tasa: {{ $value }} req/s"
+
+      - alert: BackendHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "Tiempo de respuesta del backend alto"
+          description: "El p95 del tiempo de respuesta del backend está en {{ $value }}s, sobrepasó los 2s"
+
+      - alert: BackendDown
+        expr: up{job="hospital-backend-prod-monitoring"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "Backend del Hospital está fuera de línea"
+          description: "El backend del hospital no está respondiendo"
+
+      # ============================================
+      # Alertas del Frontend
+      # ============================================
+      - alert: FrontendDown
+        expr: up{job="hospital-frontend-prod-monitoring"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: frontend
+        annotations:
+          summary: "Frontend del Hospital está fuera de línea"
+          description: "El frontend del hospital no está respondiendo"
+
+      # ============================================
+      # Alertas de Contenedores
+      # ============================================
+      - alert: ContainerHighCPUUsage
+        expr: (rate(container_cpu_usage_seconds_total{name!=""}[5m]) * 100) > 70
+        for: 5m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "Uso de CPU elevado en contenedor"
+          description: "El contenedor {{ $labels.name }} está usando {{ $value }}% de CPU"
+
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "Uso de memoria elevado en contenedor"
+          description: "El contenedor {{ $labels.name }} está usando {{ $value }}% de memoria"
+
+      - alert: ContainerRestarting
+        expr: rate(container_last_seen[5m]) == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "Contenedor reiniciándose frecuentemente"
+          description: "El contenedor {{ $labels.name }} se está reiniciando"
+
+      # ============================================
+      # Alertas de Drone CI/CD
+      # ============================================
+      - alert: DroneServerDown
+        expr: up{job="drone-server"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: cicd
+        annotations:
+          summary: "Servidor Drone está fuera de línea"
+          description: "El servidor Drone CI/CD no está respondiendo"
+
+      - alert: DroneHighFailureRate
+        expr: rate(drone_job_duration_seconds_count{status="failure"}[5m]) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          component: cicd
+        annotations:
+          summary: "Alta tasa de fallos en Drone CI/CD"
+          description: "El sistema Drone está experimentando una alta tasa de fallos en los jobs"
+
+      # ============================================
+      # Alertas de Prometheus
+      # ============================================
+      - alert: PrometheusTargetDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Target de Prometheus fuera de línea"
+          description: "El target {{ $labels.instance }} (job: {{ $labels.job }}) está fuera de línea"
+
+      # ============================================
+      # Alertas de Base de Datos
+      # ============================================
+      - alert: DatabaseConnectionPoolExhausted
+        expr: hikari_connections_active / hikari_connections_max > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Pool de conexiones de base de datos casi agotado"
+          description: "El pool de conexiones está al {{ $value }}% de capacidad"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(hikari_connections_timeout_total[5m]) > 0
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Consultas lentas en la base de datos"
+          description: "Se detectaron timeouts en el pool de conexiones"
+
+      # ============================================
+      # Alertas de Disponibilidad del Servicio
+      # ============================================
+      - alert: ServiceHighLatency
+        expr: histogram_quantile(0.99, rate(http_server_requests_seconds_bucket[5m])) > 5
+        for: 10m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "Alta latencia en el servicio"
+          description: "El p99 de latencia está en {{ $value }}s, sobrepasó los 5s"
+
+      - alert: ServiceLowAvailability
+        expr: (1 - (rate(http_server_requests_seconds_count{status=~"2.."}[5m]) / rate(http_server_requests_seconds_count[5m]))) * 100 > 10
+        for: 15m
+        labels:
+          severity: critical
+          component: service
+        annotations:
+          summary: "Baja disponibilidad del servicio"
+          description: "La disponibilidad del servicio está en {{ $value }}%, bajo el 90%"
+
+  - name: hospital_business_alerts
+    interval: 60s
+    rules:
+      # ============================================
+      # Alertas de Negocio
+      # ============================================
+      - alert: HighUserLoad
+        expr: sum(rate(http_server_requests_seconds_count[5m])) > 100
+        for: 15m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Alta carga de usuarios"
+          description: "El sistema está experimentando una alta carga de usuarios: {{ $value }} req/s"
+
+      - alert: UnusualErrorPattern
+        expr: rate(http_server_requests_seconds_count{status=~"4.."}[5m]) > 50
+        for: 10m
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "Patrón inusual de errores"
+          description: "Se detectó un alto número de errores 4xx: {{ $value }} req/s"
+
